@@ -110,7 +110,9 @@ async def fish(ctx):
         await ctx.send("Please wait " + str(remaining) + " seconds.")
         print(remaining)
            
-
+@bot.command()
+async def git(ctx):
+    await ctx.send("https://github.com/MysticVanguard/AquaMarine")
 
 
 
