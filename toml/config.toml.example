@@ -1,0 +1,8 @@
+command_prefix = ["A.", "a.", ] # or string, e.g. "A."
+case_sensitive = false
+owner_ids = [123456789]
+bot_token = "TOKEN"
+initial_extensions = [
+    "cogs.misc",
+    ]
+activity = "the fish swim around" # Will show as 'Watching <strong>the fish swim around</strong>'

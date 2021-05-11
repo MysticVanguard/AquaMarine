@@ -1,19 +1,3 @@
-from datetime import datetime, timedelta
-import random
-import time
-
-import discord
-from discord.ext import commands
-
-
-with open('AquaMarineToken.txt') as aquamarine_token:
-    token = aquamarine_token.readline()
-duration = timedelta(minutes=0)
-later = datetime.utcnow()
-
-
-prefix = "A."
-bot = commands.Bot(command_prefix=prefix)
 fish_types_rarity = [
     ["Goldfish", "Clownfish", "Tiger Barb", "Neon Tetra", "Oscar", "Squid", "Common Starfish", "Bottlenose Dolphin"], 
     ["Lionfish", "Betta", "Blue Maomao", "Headshield Snail"], 
@@ -44,31 +28,6 @@ fishing_paths = {
 }
 
 
-@bot.event
-async def on_ready():
-    print("Everything's all ready to go~")
-
-@bot.event
-async def on_message(message):
-    print("The message's content was", message.content)
-    await bot.process_commands(message)
-
-@bot.command()
-async def ping(ctx):
-    '''
-    This text will be shown in the help command
-    '''
-
-    # Get the latency of the bot
-    latency = bot.latency  # Included in the Discord.py library
-    # Send it to the user
-    await ctx.send(latency)
-
-@bot.command()
-async def echo(ctx, *, content:str):
-    await ctx.send(content)
-
-
 async def fishing_rarity(ctx, fish_rarity_value, chancespecial):
     fish_rarity = fish_types_rarity[fish_rarity_value]
     fish_name = random.choice(fish_rarity)
@@ -92,7 +51,7 @@ async def fish(ctx):
         chance_special = random.randint(0, 100)
         later = now + duration
 
-       
+
         if chance == 9999:
             await fishing_rarity(ctx, 5, chance_special)
         elif chance >= 9936:
@@ -109,11 +68,3 @@ async def fish(ctx):
         remaining = round((later - datetime.utcnow()).total_seconds())
         await ctx.send("Please wait " + str(remaining) + " seconds.")
         print(remaining)
-           
-
-
-
-
-bot.run(token)
-
-
