@@ -1,8 +1,0 @@
-command_prefix = ["A.", "a.", ]
-case_sensitive = false
-owner_ids = [393305855929483264]
-bot_token = "ODMzNzU4NDk3MjA3MjIyMzIz.YH3AHA.VtjiWHWzLDIczEcppmwIYaOgDnY"
-initial_extensions = [
-    "cogs.misc",
-    ]
-activity = "the fish swim around" # Will show as 'Watching <strong>the fish swim around</strong>'

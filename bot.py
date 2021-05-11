@@ -3,7 +3,7 @@ import discord
 from discord.ext import commands
 
 
-with open("toml/config.toml") as f:
+with open("./config/config.toml") as f:
     config = toml.loads(f.read())
 
 bot = commands.AutoShardedBot(

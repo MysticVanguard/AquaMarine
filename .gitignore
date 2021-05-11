@@ -1,4 +1,4 @@
-.toml
+*.toml
 .git/
 .vscode/
 __pycache__/
