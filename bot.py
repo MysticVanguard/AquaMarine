@@ -1,5 +1,6 @@
 import toml
 import discord
+import utils
 from discord.ext import commands
 
 
@@ -15,6 +16,8 @@ bot = commands.AutoShardedBot(
         name = config["activity"],
         ),
     )
+
+bot.fish = utils.fetch_fish('./assets/images')
 
 @bot.event
 async def on_ready():
