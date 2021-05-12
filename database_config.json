@@ -1,0 +1,10 @@
+{
+    
+    "database": {
+        "user": "postgres",
+        "database": "aqua",
+        "password": "NHsd2017",
+        "host": "127.0.0.1"
+    }
+
+}

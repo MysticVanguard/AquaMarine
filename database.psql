@@ -1,0 +1,9 @@
+CREATE TABLE user_balance(
+  user_id BIGINT,
+  balance INTEGER,
+  PRIMARY KEY (user_id)
+);
+CREATE TABLE user_fish_inventory(
+  user_id BIGINT,
+  fish TEXT
+);
