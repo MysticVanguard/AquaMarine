@@ -20,6 +20,7 @@ later = datetime.utcnow()
 prefix = ["A.", "a."]
 bot = commands.Bot(command_prefix=prefix)
 
+current_fishers = []
 # Each fish name in a dictionary seperated by rarity
 fish_types_rarity = {
     "Common": ["Goldfish", "Clownfish", "Tiger Barb", "Neon Tetra", "Oscar", "Squid", "Common Starfish", "Bottlenose Dolphin"], 
@@ -139,11 +140,17 @@ async def fishing_rarity(ctx, fish_rarity_name, chancespecial):
         return message.author == ctx.author and message.channel == ctx.channel and message.content.lower() in valid_responses
     user_input = await bot.wait_for('message', check=check)
     if user_input.content.lower() == "keep":
+        await ctx.send("What do you want to name your fish?")
+        def naming(message):
+            return message.author == ctx.author and message.channel == ctx.channel
+        user_input = await bot.wait_for('message', check=naming)
+        current_fishers.remove(ctx.author.id)
         async with bot.database() as db:
-            await db("INSERT INTO user_fish_inventory (user_id, fish) VALUES ($1,$2)", ctx.author.id, new_fish_name)
-        await ctx.send(f"You now have {new_fish_name}!")
+            await db("INSERT INTO user_fish_inventory (user_id, fish, fish_name) VALUES ($1,$2, $3)", ctx.author.id, new_fish_name, user_input.content)
+        await ctx.send(f"You now have \"{user_input.content}\", your {new_fish_name}!")
     elif user_input.content.lower() == "sell":
         async with bot.database() as db:
+            current_fishers.remove(ctx.author.id)
             bal_rows = await db("SELECT * FROM user_balance WHERE user_id=$1", ctx.author.id)
             bal = fish_pricer(fish_name, fish_rarity_name)
             if bal_rows:
@@ -169,8 +176,8 @@ async def fishbucket(ctx):
         fish_rows = await db("SELECT * FROM user_fish_inventory WHERE user_id=$1", ctx.author.id)
     if not fish_rows:
         return await ctx.send("You have no fish!")
-    fish_list = [i["fish"] for i in fish_rows]
-    await ctx.send(f"You have the following fish: {', '.join(fish_list)}")
+    fish_list = [f"\"{i['fish_name']}\", {i['fish']}" for i in fish_rows]
+    await ctx.send(f"You have the following fish: {'; '.join(fish_list)}")
 
 # Fishing command
 @bot.command()
@@ -179,7 +186,9 @@ async def fish(ctx):
     global later
     # Sets now to be when the command happens, then checks if its after later 
     now = datetime.utcnow()
-    
+    if ctx.author.id in current_fishers:
+        return await ctx.send("You're already fishing!")
+    current_fishers.append(ctx.author.id)
 
     if now >= later:
         # Determines chances, and sets later
