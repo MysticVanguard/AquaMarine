@@ -6,3 +6,9 @@ initial_extensions = [
     "cogs.misc",
     ]
 activity = "the fish swim around" # Will show as 'Watching <strong>the fish swim around</strong>'
+
+[database]
+user = "postgres"
+database = "aqua"
+password = "YOUR_PASSWORD"
+host = "127.0.0.1"
