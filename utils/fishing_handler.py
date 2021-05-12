@@ -1,6 +1,6 @@
 from os import walk
 
-def fetch_fish(dir:str) -> dict:
+def fetch_fish(dir:str):
     """Fetch fish given a directory."""
     fetched_fish = {
         "common": {}, 
@@ -15,10 +15,11 @@ def fetch_fish(dir:str) -> dict:
     for i in filenames:
         splitted = i.split("_")
         try:
-            fetched_fish[splitted[0]][splitted[2:]] = {
+            fetched_fish[splitted[0]][" ".join(splitted[2:])[:-4]] = {
                 "multiplier": splitted[1],
-                "name": " ".join(splitted[2:]).title(),
+                "name": " ".join(splitted[2:])[:-4].title(),
             }
         except KeyError:
             pass
-    return fetched_fish
+        final:
+            return fetched_fish
