@@ -15,7 +15,10 @@ def fetch_fish(dir:str) -> dict:
     for i in filenames:
         splitted = i.split("_")
         try:
-            fetched_fish[splitted[0]].append(" ".join(splitted[1:]).title())
+            fetched_fish[splitted[0]].append({
+                "multiplier": splitted[1],
+                "name": " ".join(splitted[2:]).title(),
+            })
         except KeyError:
             pass
     return fetched_fish
