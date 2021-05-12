@@ -11,8 +11,8 @@ bot = commands.AutoShardedBot(
     case_sensitive = config["case_sensitive"],
     owner_ids = config["owner_ids"],
     activity = discord.Activity(
-        type=discord.ActivityType.watching,
-        name=config["activity"],
+        type = discord.ActivityType.watching,
+        name = config["activity"],
         ),
     )
 
@@ -23,6 +23,5 @@ async def on_ready():
 if __name__ == '__main__':
     for extension in config["initial_extensions"]:
         bot.load_extension(extension)
-
-
-bot.run(config["bot_token"], reconnect=True)
+    bot.load_extension("jishaku")
+    bot.run(config["bot_token"], reconnect=True)
