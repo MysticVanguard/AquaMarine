@@ -13,7 +13,7 @@ from discord.ext import commands
 with open('AquaMarineToken.txt') as aquamarine_token:
     token = aquamarine_token.readline()
 # Sets global variables for the timer
-duration = timedelta(minutes=0)
+duration = timedelta(seconds=20)
 later = datetime.utcnow()
 
 # Sets the prefix and makes it usable
@@ -186,15 +186,16 @@ async def fish(ctx):
     global later
     # Sets now to be when the command happens, then checks if its after later 
     now = datetime.utcnow()
-    if ctx.author.id in current_fishers:
-        return await ctx.send("You're already fishing!")
-    current_fishers.append(ctx.author.id)
+    
 
     if now >= later:
         # Determines chances, and sets later
         chance = random.randint(0, 9999)
         chance_special = random.randint(0, 99)
         later = now + duration
+        if ctx.author.id in current_fishers:
+            return await ctx.send("You're already fishing!")
+        current_fishers.append(ctx.author.id)
 
         # Decides which rarity the fish will be based on chance
         if chance == 9999:
