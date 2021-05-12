@@ -12,9 +12,9 @@ class MembersCog(commands.Cog):
     async def ping(self, ctx:commands.Context):
         return await ctx.send(f'🏓 pong! Latency: `{round(self.bot.latency, 8)}ms`')
     
-    @commands.command(aliases=["latency"])
+    @commands.command(aliases=["github"])
     @commands.bot_has_permissions(send_messages=True)
-    async def ping(self, ctx:commands.Context):
+    async def git(self, ctx:commands.Context):
         return await ctx.send('https://github.com/MysticVanguard/AquaMarine')
     
     @commands.command(aliases=["say"])
