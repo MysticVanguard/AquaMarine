@@ -3,6 +3,7 @@ import random
 import time
 import asyncpg
 import json
+import re
 with open("database_config.json") as a:
     database_config = json.load(a)
 
@@ -169,15 +170,47 @@ async def balance(ctx):
         await ctx.send(f"You have {bal_rows[0]['balance']} money!")
     else:
         await ctx.send("You have no money!")
-
+                       
 @bot.command()
 async def fishbucket(ctx):
     async with bot.database() as db:
         fish_rows = await db("SELECT * FROM user_fish_inventory WHERE user_id=$1", ctx.author.id)
     if not fish_rows:
         return await ctx.send("You have no fish!")
-    fish_list = [f"\"{i['fish_name']}\", {i['fish']}" for i in fish_rows]
-    await ctx.send(f"You have the following fish: {'; '.join(fish_list)}")
+    fish_list = [({i['fish_name']}, {i['fish']}) for i in fish_rows] # List of tuples (Fish Name, Fish Type)
+    
+    # Create an embed
+    embed = discord.Embed()
+    embed.title = f"**{ctx.author.name}'s Fish**\n"
+
+    sorted_fish = {
+        "Mythic": [],
+        "Legendary": [],
+        "Epic": [],
+        "Rare": [],
+        "Uncommon": [],
+        "Common": [] 
+    }
+
+    for category in [i for i in fish_types_rarity.items()]: # Loop through a list of tuples (Category: List Of Fish)
+        for user_fish in fish_list: 
+            if get_normal_name(user_fish[1]) in category[1]: # Find the category of each fish in the user's list
+                sorted_fish[category[0]].append(user_fish)
+
+    for category, fish_list in sorted_fish.items():
+        if fish_list:
+            fish_string = [f"\"{i[0]}\", {i[1]}" for i in fish_list]
+            embed.add_field(name=category, value="\n".join(fish_string))
+
+    await ctx.send(embed=embed)
+
+
+def get_normal_name(fish_name):
+    match = re.match(r"(Inverted | Golden)(?P<fish_name>.*)", fish_name)
+    if match:
+        return match.group("fish_name")
+    else:
+        return fish_name
 
 # Fishing command
 @bot.command()
