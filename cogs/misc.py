@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 
 
-class MembersCog(commands.Cog):
+class Misc(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
     
@@ -30,4 +30,4 @@ class MembersCog(commands.Cog):
         return await ctx.message.add_reaction('👌')
 
 def setup(bot):
-    bot.add_cog(MembersCog(bot))
+    bot.add_cog(Misc(bot))
