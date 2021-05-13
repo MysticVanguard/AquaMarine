@@ -26,5 +26,4 @@ async def on_ready():
 if __name__ == '__main__':
     for extension in config["initial_extensions"]:
         bot.load_extension(extension)
-    bot.load_extension("jishaku")
     bot.run(config["bot_token"], reconnect=True)
