@@ -18,7 +18,6 @@ bot = commands.AutoShardedBot(
     )
 
 bot.fish = utils.fetch_fish('./assets/images')
-bot.db = utils.DatabaseConnection
 
 @bot.event
 async def on_ready():
