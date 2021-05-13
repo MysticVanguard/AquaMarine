@@ -6,6 +6,8 @@ from discord.ext import commands
 class MembersCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.fish = bot.fish
+        self.db = utils.DatabaseConnection
     
     
     @commands.command(aliases=["bal"])
