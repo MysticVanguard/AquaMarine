@@ -1,12 +1,12 @@
 import toml
-import asnycpg
+import asyncpg
 
 
 with open("./config/config.toml") as f:
     database_auth = toml.loads(f.read())["database"]
 
 class DatabaseConnection:
-  
+
     def __init__(self, conn=None):
         self.conn = conn
 

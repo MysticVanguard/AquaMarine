@@ -1,6 +1,6 @@
 from os import walk
 
-def fetch_fish(dir:str):
+def fetch_fish(directory:str):
     """Fetch fish given a directory."""
     fetched_fish = {
         "common": {}, 
@@ -11,7 +11,7 @@ def fetch_fish(dir:str):
         "mythic": {},
     }
     
-    _, _, filenames = next(walk(dir))
+    _, _, filenames = next(walk(directory))
     for i in filenames:
         splitted = i.split("_")
         try:
@@ -21,5 +21,4 @@ def fetch_fish(dir:str):
             }
         except KeyError:
             pass
-        final:
-            return fetched_fish
+    return fetched_fish
