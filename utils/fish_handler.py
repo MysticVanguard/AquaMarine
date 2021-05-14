@@ -18,6 +18,7 @@ def fetch_fish(directory:str):
             fetched_fish[splitted[0]][" ".join(splitted[2:])[:-4]] = {
                 "multiplier": splitted[1],
                 "name": " ".join(splitted[2:])[:-4].title(),
+                "image": f"./assets/images/{i}"
             }
         except KeyError:
             pass

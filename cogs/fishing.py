@@ -1,5 +1,6 @@
 import discord
 import utils
+import random
 from discord.ext import commands
 
 
@@ -7,6 +8,7 @@ class MembersCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.fish = bot.fish
+        self.current_fishers = []
     
     
     @commands.command(aliases=["bal"])
@@ -21,7 +23,7 @@ class MembersCog(commands.Cog):
     
     
     @commands.command(aliases=["bucket"])
-    @commands.bot_has_permissions(send_messages=True)
+    @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def fishbucket(self, ctx:commands.Context, user:discord.Member = None):
         user = user or ctx.author
         
@@ -40,6 +42,28 @@ class MembersCog(commands.Cog):
             embed.add_field(name=i['fish_name'], value=f"This fish is a **{i['fish']}**", inline=False)
             
         await ctx.send(embed=embed)
+    
+    @commands.command()
+    @commands.bot_has_permissions(send_messages=True, embed_links=True, attachments=True)
+    async def fish(self, ctx:commands.Context):
+        if ctx.author.id in self.current_fishers:
+            return await ctx.send(f"{ctx.author.display_name}, you're already fishing!")
+        
+        self.current_fishers.append(ctx.author.id)
+        
+        rarity = random.choices(
+            ["common", "uncommon", "rare", "epic", "legendary", "mythic",],
+            [.6689, .2230, .0743, .0248, .0082, .0008,])
+        
+        new_fish = random.choice(self.fish[rarity])
+        
+        embed = discord.Embed()
+        embed.title = f"You caught a {rarity} {new_fish['name']}!"
+        embed.set_image(url="attachment://new_fish.png")
+        fish_file = discord.File(new_fish["image"], )
+        
+        await ctx.send(file=fish_file, embed=embed)
+        
 
 def setup(bot):
     bot.add_cog(MembersCog(bot))
