@@ -29,3 +29,11 @@ def fetch_fish(directory:str):
             pass
         
     return fetched_fish
+
+def make_golden(fish:dict):
+    fish["name"] = f"Golden {fish['name']}"
+    fish["image"] = fish["image"][:16] + "golden_" + fish["image"][16:]
+
+def make_inverted(fish:dict):
+    fish["name"] = f"Inverted {fish['name']}"
+    fish["image"] = fish["image"][:16] + "inverted_" + fish["image"][16:]
