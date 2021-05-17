@@ -4,7 +4,7 @@ import random
 from discord.ext import commands
 
 
-class MembersCog(commands.Cog):
+class Fishing(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.fish = bot.fish
@@ -60,10 +60,10 @@ class MembersCog(commands.Cog):
         embed = discord.Embed()
         embed.title = f"You caught a {rarity} {new_fish['name']}!"
         embed.set_image(url="attachment://new_fish.png")
-        fish_file = discord.File(new_fish["image"], )
+        fish_file = discord.File(new_fish["image"], "new_fish.png")
         
         await ctx.send(file=fish_file, embed=embed)
         
 
 def setup(bot):
-    bot.add_cog(MembersCog(bot))
+    bot.add_cog(Fishing(bot))

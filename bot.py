@@ -17,7 +17,7 @@ bot = commands.AutoShardedBot(
         ),
     )
 
-bot.fish = utils.fetch_fish('./assets/images')
+bot.fish = utils.fetch_fish(config["assets"]["images"]["fish"])
 
 @bot.event
 async def on_ready():

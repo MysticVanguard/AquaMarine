@@ -14,3 +14,10 @@ user = "postgres"
 database = "aqua"
 password = "YOUR_PASSWORD"
 host = "127.0.0.1"
+
+[assets]
+asefiles = "./assets/asefiles"
+    
+    [assets.images]
+    fish = "./assets/images/fish"
+    background = "./assets/images/background"

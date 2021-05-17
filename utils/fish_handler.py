@@ -14,12 +14,18 @@ def fetch_fish(directory:str):
     _, _, filenames = next(walk(directory))
     for i in filenames:
         splitted = i.split("_")
+        if splitted[0] in ['inverted','golden']:
+            continue
+        
         try:
-            fetched_fish[splitted[0]][" ".join(splitted[2:])[:-4]] = {
+            fish_name = " ".join(splitted[2:])[:-4]
+            fetched_fish[fish_name] = {
                 "multiplier": splitted[1],
-                "name": " ".join(splitted[2:])[:-4].title(),
+                "name": fish_name.title(),
                 "image": f"./assets/images/{i}"
             }
+            
         except KeyError:
             pass
+        
     return fetched_fish
