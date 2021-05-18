@@ -22,8 +22,8 @@ def fetch_fish(directory:str=config["assets"]["images"]["fish"]):
             fish_name = " ".join(splitted[2:])[:-4]
             fetched_fish[splitted[0]][fish_name] = {
                 "rarity": splitted[0],
-                "cost": splitted[1],
-                "raw_name": splitted[2:],
+                "cost": int(splitted[1]),
+                "raw_name": "_".join(splitted[2:])[:-4],
                 "name": fish_name.title(),
                 "image": f"{directory}/{i}"
             }

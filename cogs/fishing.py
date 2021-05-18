@@ -40,7 +40,7 @@ class Fishing(commands.Cog):
         embed.title = f"{user.display_name}'s fish bucket"
         
         for i in fetched:
-            embed.add_field(name=i['fish_name'], value=f"This fish is a **{i['fish']}**", inline=False)
+            embed.add_field(name=i['fish_name'], value=f"This fish is a **{' '.join(i['fish'].split('_')).title()}**", inline=False)
             
         await ctx.send(embed=embed)
     
@@ -70,10 +70,10 @@ class Fishing(commands.Cog):
         for i in gen:
             await message.add_reaction(i)
         
-        check = lambda reaction, user: reaction.emoji.id in emojis and user == ctx.author.id and reaction.message == message
+        check = lambda reaction, user: reaction.emoji.id in emojis and user.id == ctx.author.id and reaction.message.id == message.id
         try:
-            choice = self.bot.wait_for("reaction_add", timeout=60.0, check=check)[0].id
-            choice = "sell" if choice == 844237901105594378 else "keep"
+            choice = await self.bot.wait_for("reaction_add", timeout=60.0, check=check)
+            choice = "sell" if choice[0].emoji.id == 844237901105594378 else "keep"
         except asyncio.TimeoutError:
             await ctx.send("Did you forget about me? I've been waiting for a while now! I'll just assume you wanted to sell the fish.")
             choice = "sell"
@@ -82,18 +82,23 @@ class Fishing(commands.Cog):
             async with utils.DatabaseConnection() as db:
                 await db("""
                     INSERT INTO user_balance (user_id, balance) VALUES ($1, $2)
-                    ON CONFLICT (user_id) DO UPDATE SET balance = balance + $2;
+                    ON CONFLICT (user_id) DO UPDATE SET balance = user_balance.balance + $2;
                     """, ctx.author.id, new_fish["cost"])
-                return await ctx.send(f"Sold your **{new_fish['name']}** for **{new_fish['cost']}**!")
+                self.current_fishers.remove(ctx.author.id)
+            return await ctx.send(f"Sold your **{new_fish['name']}** for **{new_fish['cost']}**!")
         
         await ctx.send("What do you want to name your new fish? (32 character limit)")
         check = lambda m: m.author == ctx.author and m.channel == ctx.channel and len(m.content) <= 32
+        
         try:
-            name = await self.bot.wait_for("message", timeout=60.0, check=check).content
+            name = await self.bot.wait_for("message", timeout=60.0, check=check)
+            name = name.content
             return await ctx.send(f"You're new fish **{name}** has been added to your bucket!")
+        
         except asyncio.TimeoutError:
-            name = random.choice(["Captain ", "Mr.", "Mrs. ", "Commander ",])+random.choice(["Nemo", "Bubbles", "Jack", "Finley", "Coral",])
+            name = f"{random.choice(['Captain', 'Mr.', 'Mrs.', 'Commander'])} {random.choice(['Nemo', 'Bubbles', 'Jack', 'Finley', 'Coral'])}"
             return await ctx.send(f"Did you forget about me? I've been waiting for a while now! I'll name the fish for you. Let's call it **{name}**")
+        
         finally:
             async with utils.DatabaseConnection() as db:
                 await db("""INSERT INTO user_fish_inventory (user_id, fish, fish_name) VALUES ($1, $2, $3)""", ctx.author.id, new_fish["raw_name"], name)
