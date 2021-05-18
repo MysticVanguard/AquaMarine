@@ -23,6 +23,7 @@ def fetch_fish(directory:str=config["assets"]["images"]["fish"]):
             fetched_fish[splitted[0]][fish_name] = {
                 "rarity": splitted[0],
                 "cost": splitted[1],
+                "raw_name": splitted[2:],
                 "name": fish_name.title(),
                 "image": f"{directory}/{i}"
             }
@@ -33,9 +34,11 @@ def fetch_fish(directory:str=config["assets"]["images"]["fish"]):
     return fetched_fish
 
 def make_golden(fish:dict):
+    fish["raw_name"] = f"golden_{fish['raw_name']}"
     fish["name"] = f"Golden {fish['name']}"
     fish["image"] = fish["image"][:16] + "golden_" + fish["image"][16:]
 
 def make_inverted(fish:dict):
+    fish["raw_name"] = f"inverted_{fish['raw_name']}"
     fish["name"] = f"Inverted {fish['name']}"
     fish["image"] = fish["image"][:16] + "inverted_" + fish["image"][16:]
