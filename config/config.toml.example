@@ -10,10 +10,11 @@ initial_extensions = [
 activity = "the fish swim around" # Will show as 'Watching <strong>the fish swim around</strong>'
 
 [database]
+host = "127.0.0.1"
+port = 5432
 user = "postgres"
 database = "aqua"
-password = "YOUR_PASSWORD"
-host = "127.0.0.1"
+password = "PASSWORD"
 
 [assets]
 asefiles = "./assets/asefiles"

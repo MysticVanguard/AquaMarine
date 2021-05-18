@@ -44,7 +44,7 @@ class Fishing(commands.Cog):
         await ctx.send(embed=embed)
     
     @commands.command()
-    @commands.bot_has_permissions(send_messages=True, embed_links=True, attachments=True)
+    @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def fish(self, ctx:commands.Context):
         if ctx.author.id in self.current_fishers:
             return await ctx.send(f"{ctx.author.display_name}, you're already fishing!")
@@ -53,17 +53,23 @@ class Fishing(commands.Cog):
         
         rarity = random.choices(
             ["common", "uncommon", "rare", "epic", "legendary", "mythic",],
-            [.6689, .2230, .0743, .0248, .0082, .0008,])
+            [.6689, .2230, .0743, .0248, .0082, .0008,])[0]
         
-        new_fish = random.choice(self.fish[rarity])
-        
+        new_fish = random.choice(list(self.fish[rarity].values()))
+        await ctx.send(new_fish)
         embed = discord.Embed()
         embed.title = f"You caught a {rarity} {new_fish['name']}!"
         embed.set_image(url="attachment://new_fish.png")
         fish_file = discord.File(new_fish["image"], "new_fish.png")
         
+        self.current_fishers.remove(ctx.author.id)
         await ctx.send(file=fish_file, embed=embed)
-        
+    
+    @commands.command()
+    @commands.is_owner()
+    async def freset(self, ctx:commands.Context):
+        self.current_fishers = []
+        await ctx.message.add_reaction('👌')
 
 def setup(bot):
     bot.add_cog(Fishing(bot))

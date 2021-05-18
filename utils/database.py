@@ -1,9 +1,5 @@
-import toml
+from utils.load_config import config
 import asyncpg
-
-
-with open("./config/config.toml") as f:
-    database_auth = toml.loads(f.read())["database"]
 
 class DatabaseConnection:
 
@@ -11,7 +7,7 @@ class DatabaseConnection:
         self.conn = conn
 
     async def connect(self):
-        self.conn = await asyncpg.connect(**database_auth)
+        self.conn = await asyncpg.connect(**config["database"])
 
     async def disconnect(self):
         await self.conn.close()

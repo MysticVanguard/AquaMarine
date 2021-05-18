@@ -1,6 +1,7 @@
+from utils.load_config import config
 from os import walk
 
-def fetch_fish(directory:str):
+def fetch_fish(directory:str=config["assets"]["images"]["fish"]):
     """Fetch fish given a directory."""
     fetched_fish = {
         "common": {}, 
@@ -19,10 +20,11 @@ def fetch_fish(directory:str):
         
         try:
             fish_name = " ".join(splitted[2:])[:-4]
-            fetched_fish[fish_name] = {
-                "multiplier": splitted[1],
+            fetched_fish[splitted[0]][fish_name] = {
+                "rarity": splitted[0],
+                "cost": splitted[1],
                 "name": fish_name.title(),
-                "image": f"./assets/images/{i}"
+                "image": f"{directory}/{i}"
             }
             
         except KeyError:
