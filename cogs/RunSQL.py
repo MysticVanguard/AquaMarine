@@ -14,7 +14,7 @@ class RunSQL(commands.Cog):
         """Runs a line of SQL into the sparcli database"""
 
         # Get the data we asked for
-        async with self.bot.database() as db:
+        async with utils.DatabaseConnection() as db:
             rows = await db(sql.format(guild=ctx.guild.id, author=ctx.author.id, channel=ctx.channel.id))
         if not rows:
             return await ctx.send("No content.")
