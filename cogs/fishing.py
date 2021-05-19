@@ -2,6 +2,7 @@ import discord
 import utils
 import random
 import asyncio
+import typing
 from discord.ext import commands
 
 
@@ -25,25 +26,30 @@ class Fishing(commands.Cog):
     
     @commands.command(aliases=["bucket"])
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
-    async def fishbucket(self, ctx:commands.Context, user:discord.Member = None):
-        user = user or ctx.author
+    async def fishbucket(self, ctx:commands.Context, arg1:typing.Optional[typing.Union[discord.Member, int]]=1, arg2:typing.Optional[int]=1):        
+        if isinstance(arg1, discord.Member):
+            user = arg1
+            page = arg2
+        elif isinstance(arg1, int):
+            user = ctx.author
+            page = arg1
         
         async with utils.DatabaseConnection() as db:
             fetched = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1""", user.id)
-        
         if not fetched:
-            if user == ctx.author:
-                return await ctx.send("You have no fish in your bucket!")
-            return await ctx.send(f"{user.display_name} has no fish in their bucket!")
+            return await ctx.send("You have no fish in your bucket!" if user == ctx.author else f"{user.display_name} has no fish in their bucket!")
+        
+        totalpages = len(fetched) // 5 + (len(fetched) % 5 > 0)
+        if page < 1 or page > totalpages:
+            return await ctx.send("That page is doesn't exist.")
         
         embed = discord.Embed()
         embed.title = f"{user.display_name}'s fish bucket"
-        
-        for i in fetched:
+        embed.set_footer(text=f"page {page}/{totalpages}")
+        for i in fetched[page*5-5:page*5]:
             embed.add_field(name=i['fish_name'], value=f"This fish is a **{' '.join(i['fish'].split('_')).title()}**", inline=False)
-            
         await ctx.send(embed=embed)
-    
+            
     @commands.command()
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def fish(self, ctx:commands.Context):
