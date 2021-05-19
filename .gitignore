@@ -1,4 +1,6 @@
-AquaMarineToken.txt
+*.toml
 .git/
 .vscode/
 __pycache__/
+
+!.example
