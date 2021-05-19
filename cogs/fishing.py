@@ -71,7 +71,7 @@ class Fishing(commands.Cog):
         fish_file = discord.File(new_fish["image"], "new_fish.png")
         message = await ctx.send(file=fish_file, embed=embed)
         
-        emojis = [844237901105594378, 844245357298450432]
+        emojis = [844594478392147968, 844594468580491264]
         gen = (x for x in self.bot.emojis if x.id in emojis)
         for i in gen:
             await message.add_reaction(i)
@@ -79,7 +79,7 @@ class Fishing(commands.Cog):
         check = lambda reaction, user: reaction.emoji.id in emojis and user.id == ctx.author.id and reaction.message.id == message.id
         try:
             choice = await self.bot.wait_for("reaction_add", timeout=60.0, check=check)
-            choice = "sell" if choice[0].emoji.id == 844237901105594378 else "keep"
+            choice = "sell" if choice[0].emoji.id == 844594478392147968 else "keep"
         except asyncio.TimeoutError:
             await ctx.send("Did you forget about me? I've been waiting for a while now! I'll just assume you wanted to sell the fish.")
             choice = "sell"
