@@ -1,4 +1,5 @@
 import discord
+from utils import config
 from discord.ext import commands
 
 
@@ -15,7 +16,7 @@ class Misc(commands.Cog):
     @commands.command(aliases=["github"])
     @commands.bot_has_permissions(send_messages=True)
     async def git(self, ctx:commands.Context):
-        return await ctx.send('https://github.com/MysticVanguard/AquaMarine')
+        return await ctx.send(config["github"])
     
     @commands.command(aliases=["say"])
     @commands.bot_has_permissions(send_messages=True)

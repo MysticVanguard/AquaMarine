@@ -8,6 +8,7 @@ initial_extensions = [
     "cogs.fishing",
     ]
 activity = "the fish swim around" # Will show as 'Watching <strong>the fish swim around</strong>'
+github = "https://github.com/username/repo"
 
 [database]
 host = "127.0.0.1"
