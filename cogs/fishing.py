@@ -71,6 +71,17 @@ class Fishing(commands.Cog):
         embed = discord.Embed()
         embed.title = f"You caught a {rarity} {new_fish['name']}!"
         embed.set_image(url="attachment://new_fish.png")
+        # Choose a color
+        embed.color = {
+            # 0xHexCode
+            "common": 0xFFFFFE, # White - FFFFFF doesn't work with Discord
+            "uncommon": 0x75FE66, # Green
+            "rare": 0x4AFBEF, # Blue
+            "epic": 0xE379FF, # Light Purple
+            "legendary": 0xFFE80D, # Gold
+            "mythic": 0xFF0090 # Hot Pink
+        }[rarity]
+        
         
         fish_file = discord.File(new_fish["image"], "new_fish.png")
         message = await ctx.send(file=fish_file, embed=embed)
