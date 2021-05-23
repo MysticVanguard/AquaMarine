@@ -9,3 +9,12 @@ CREATE TABLE user_fish_inventory (
   fish TEXT,
   fish_name TEXT
 );
+
+CREATE TABLE user_item_inventory (
+  user_id BIGINT,
+  cfb INT,
+  ufb INT,
+  rfb INT,
+  efb INT,
+  lfb INT
+);

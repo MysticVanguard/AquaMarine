@@ -15,6 +15,7 @@ class Fishing(commands.Cog):
     @commands.command(aliases=["bal"])
     @commands.bot_has_permissions(send_messages=True)
     async def balance(self, ctx:commands.Context, user:typing.Optional[discord.Member]):
+        '''Check's the user's or a member's balance'''
         async with utils.DatabaseConnection() as db:
             if user:
                 fetched = await db("""SELECT * FROM user_balance WHERE user_id = $1""", user.id)
@@ -26,7 +27,8 @@ class Fishing(commands.Cog):
     
     @commands.command(aliases=["bucket"])
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
-    async def fishbucket(self, ctx:commands.Context, arg1:typing.Optional[typing.Union[discord.Member, int]]=1, arg2:typing.Optional[int]=1):        
+    async def fishbucket(self, ctx:commands.Context, arg1:typing.Optional[typing.Union[discord.Member, int]]=1, arg2:typing.Optional[int]=1):  
+        '''Check's the user's or a member's fish bucket'''      
         if isinstance(arg1, discord.Member):
             user = arg1
             page = arg2
@@ -51,8 +53,10 @@ class Fishing(commands.Cog):
         await ctx.send(embed=embed)
             
     @commands.command()
+    @commands.cooldown(1, 5, commands.BucketType.user)
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def fish(self, ctx:commands.Context):
+        '''Fish's for a fish'''
         if ctx.author.id in self.current_fishers:
             return await ctx.send(f"{ctx.author.display_name}, you're already fishing!")
         
@@ -99,7 +103,7 @@ class Fishing(commands.Cog):
         try:
             name = await self.bot.wait_for("message", timeout=60.0, check=check)
             name = name.content
-            return await ctx.send(f"You're new fish **{name}** has been added to your bucket!")
+            return await ctx.send(f"Your new fish **{name}** has been added to your bucket!")
         
         except asyncio.TimeoutError:
             name = f"{random.choice(['Captain', 'Mr.', 'Mrs.', 'Commander'])} {random.choice(['Nemo', 'Bubbles', 'Jack', 'Finley', 'Coral'])}"
@@ -109,6 +113,14 @@ class Fishing(commands.Cog):
             async with utils.DatabaseConnection() as db:
                 await db("""INSERT INTO user_fish_inventory (user_id, fish, fish_name) VALUES ($1, $2, $3)""", ctx.author.id, new_fish["raw_name"], name)
             self.current_fishers.remove(ctx.author.id)
+
+    @fish.error
+    async def fish_error(self, ctx, error):
+        if isinstance(error, commands.CommandOnCooldown):
+            msg = 'The fish are scared, please try again in {:.0f} seconds'.format(error.retry_after)
+            await ctx.send(msg)
+        else:
+            raise error
 
 def setup(bot):
     bot.add_cog(Fishing(bot))

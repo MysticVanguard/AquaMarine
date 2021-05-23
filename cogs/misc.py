@@ -11,16 +11,19 @@ class Misc(commands.Cog):
     @commands.command(aliases=["latency"])
     @commands.bot_has_permissions(send_messages=True)
     async def ping(self, ctx:commands.Context):
+        '''Checks the ping of the bot'''
         return await ctx.send(f'🏓 pong! Latency: `{round(self.bot.latency, 8)}ms`')
     
     @commands.command(aliases=["github"])
     @commands.bot_has_permissions(send_messages=True)
     async def git(self, ctx:commands.Context):
+        '''Sends Github link'''
         return await ctx.send(config["github"])
     
     @commands.command(aliases=["say"])
     @commands.bot_has_permissions(send_messages=True)
     async def echo(self, ctx:commands.Context, *, content:str):
+        '''Repeats users message'''
         return await ctx.send(content)
     
     @commands.command(aliases=["status"])
