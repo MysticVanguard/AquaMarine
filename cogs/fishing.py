@@ -69,7 +69,7 @@ class Fishing(commands.Cog):
         new_fish = random.choice(list(self.bot.fish[rarity].values()))
         
         embed = discord.Embed()
-        embed.title = f"You caught a {rarity} {new_fish['name']}!"
+        embed.title = f"You caught {"an" if rarity[0] in ['a','e','i','o','u'] else "a"} {rarity} {new_fish['name']}!"
         embed.set_image(url="attachment://new_fish.png")
         # Choose a color
         embed.color = {
