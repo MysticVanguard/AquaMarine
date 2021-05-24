@@ -53,7 +53,7 @@ class Fishing(commands.Cog):
         await ctx.send(embed=embed)
             
     @commands.command()
-    @commands.cooldown(1, 5, commands.BucketType.user)
+    @commands.cooldown(1, 1, commands.BucketType.user)
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def fish(self, ctx:commands.Context):
         '''Fish's for a fish'''
@@ -65,11 +65,19 @@ class Fishing(commands.Cog):
         rarity = random.choices(
             ["common", "uncommon", "rare", "epic", "legendary", "mythic",],
             [.6689, .2230, .0743, .0248, .0082, .0008,])[0]
-        
+        special = random.choices(
+            ["normal", "inverted", "golden",],
+            [.94, .05, .01])[0]
         new_fish = random.choice(list(self.bot.fish[rarity].values()))
-        
+        if special == "normal":
+            pass
+        elif special == "inverted":
+            new_fish = utils.make_inverted(new_fish)
+        elif special == "golden":
+            new_fish = utils.make_golden(new_fish)
+        a_an = "an" if rarity[0].lower() in ("a", "e", "i", "o", "u") else "a"
         embed = discord.Embed()
-        embed.title = f"You caught a {rarity} {new_fish['name']}!"
+        embed.title = f"You caught {a_an} {rarity} {new_fish['name']}!"
         embed.set_image(url="attachment://new_fish.png")
         # Choose a color
         embed.color = {
