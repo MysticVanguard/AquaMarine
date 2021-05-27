@@ -30,15 +30,19 @@ def fetch_fish(directory:str=config["assets"]["images"]["fish"]):
             
         except KeyError:
             pass
-        
+
+   
     return fetched_fish
+    
 
 def make_golden(fish:dict):
     fish["raw_name"] = f"golden_{fish['raw_name']}"
     fish["name"] = f"Golden {fish['name']}"
     fish["image"] = fish["image"][:16] + "golden_" + fish["image"][16:]
+    return fish
 
 def make_inverted(fish:dict):
     fish["raw_name"] = f"inverted_{fish['raw_name']}"
     fish["name"] = f"Inverted {fish['name']}"
     fish["image"] = fish["image"][:16] + "inverted_" + fish["image"][16:]
+    return fish

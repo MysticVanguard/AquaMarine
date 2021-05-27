@@ -27,14 +27,14 @@ class Fishing(commands.Cog):
     
     @commands.command(aliases=["bucket"])
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
-    async def fishbucket(self, ctx:commands.Context, arg1:typing.Optional[typing.Union[discord.Member, int]]=1, arg2:typing.Optional[int]=1):  
+    async def fishbucket(self, ctx:commands.Context, target:typing.Optional[typing.Union[discord.Member, int]]=1, page_number:typing.Optional[int]=1):  
         '''Check's the user's or a member's fish bucket'''      
-        if isinstance(arg1, discord.Member):
-            user = arg1
-            page = arg2
-        elif isinstance(arg1, int):
+        if isinstance(target, discord.Member):
+            user = target
+            page = page_number
+        elif isinstance(target, int):
             user = ctx.author
-            page = arg1
+            page = target
         
         async with utils.DatabaseConnection() as db:
             fetched = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1""", user.id)
@@ -67,8 +67,9 @@ class Fishing(commands.Cog):
             [.6689, .2230, .0743, .0248, .0082, .0008,])[0]
         special = random.choices(
             ["normal", "inverted", "golden",],
-            [.94, .05, .01])[0]
+            [.40, .50, .10])[0]
         new_fish = random.choice(list(self.bot.fish[rarity].values()))
+        
         if special == "normal":
             pass
         elif special == "inverted":
@@ -76,6 +77,7 @@ class Fishing(commands.Cog):
         elif special == "golden":
             new_fish = utils.make_golden(new_fish)
         a_an = "an" if rarity[0].lower() in ("a", "e", "i", "o", "u") else "a"
+        print(new_fish)
         embed = discord.Embed()
         embed.title = f"You caught {a_an} {rarity} {new_fish['name']}!"
         embed.set_image(url="attachment://new_fish.png")
@@ -140,6 +142,23 @@ class Fishing(commands.Cog):
             await ctx.send(msg)
         else:
             raise error
+
+    @commands.command()
+    @commands.bot_has_permissions(send_messages=True, embed_links=True)
+    async def rename(self, ctx:commands.Context, old, new):
+        '''Rename's your fish'''
+        async with utils.DatabaseConnection() as db:
+            await db("""UPDATE user_fish_inventory SET fish_name = $1 WHERE user_id = $2 and fish_name = $3""", new, ctx.author.id, old)
+        await ctx.send(f"Congratulations, you have renamed {old} to {new}!")
+    
+    
+    @commands.command()
+    @commands.bot_has_permissions(send_messages=True, embed_links=True)
+    async def release(self, ctx:commands.Context, name):
+        '''Releases fish back into the wild'''
+        async with utils.DatabaseConnection() as db:
+            await db("""DELETE FROM user_fish_inventory WHERE fish_name = $1 and user_id = $2""", name, ctx.author.id)
+        await ctx.send(f"Goodbye {name}!")
 
 def setup(bot):
     bot.add_cog(Fishing(bot))
