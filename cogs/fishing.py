@@ -67,9 +67,10 @@ class Fishing(commands.Cog):
             [.6689, .2230, .0743, .0248, .0082, .0008,])[0]
         special = random.choices(
             ["normal", "inverted", "golden",],
-            [.40, .50, .10])[0]
+            [.94, .05, .01])[0]
         new_fish = random.choice(list(self.bot.fish[rarity].values()))
-        
+        amount = 0
+        owned_unowned = "Owned"
         if special == "normal":
             pass
         elif special == "inverted":
@@ -77,9 +78,16 @@ class Fishing(commands.Cog):
         elif special == "golden":
             new_fish = utils.make_golden(new_fish)
         a_an = "an" if rarity[0].lower() in ("a", "e", "i", "o", "u") else "a"
-        print(new_fish)
+        async with utils.DatabaseConnection() as db:
+            fetched = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1""", ctx.author.id)
+        for i in fetched:
+            if i[1] == new_fish['raw_name']:
+                amount = amount + 1
+        if amount == 0:
+            owned_unowned = "Unowned"
         embed = discord.Embed()
         embed.title = f"You caught {a_an} {rarity} {new_fish['name']}!"
+        embed.add_field(name=owned_unowned, value=f"You have {amount} {new_fish['name']}", inline=False)
         embed.set_image(url="attachment://new_fish.png")
         # Choose a color
         embed.color = {

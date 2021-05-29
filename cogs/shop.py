@@ -79,15 +79,17 @@ class Shop(commands.Cog):
         }
         
         for table, data in item_name_dict.items():
+            print(data)
             possible_entries = data[0]
             cost = data[1]
             
+
             if not await self.check_price(ctx.author.id, cost):
                 return await ctx.send("You don't have enough money for this!")
             
             rarity_response = data[2]
             db_call = data[3]
-            
+            print(rarity_response)
             if item.title() in possible_entries:
                 async with utils.DatabaseConnection() as db:
                     await db(db_call, ctx.author.id, amount)
@@ -126,21 +128,20 @@ class Shop(commands.Cog):
     @commands.command(aliases=["u"])
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def use(self, ctx:commands.Context, used_item):
-        common = .6689
-        uncommon = .2230
-        rare = .0743
-        epic = .0248
-        legendary = .0082
-        mythic = .0008
+        rarity_chances = {"cfb": {"common": .6689, "uncommon": .2230, "rare": .0743, "epic": .0248, "legendary": .0082, "mythic": .0008},
+        "ufb": {"common": .6062, "uncommon": .2423, "rare": .0967, "epic": .0385, "legendary": .0154, "mythic": .0009},
+        "rfb": {"common": .5156, "uncommon": .2578, "rare": .1289, "epic": .0645, "legendary": .0322, "mythic": .0010},
+        "efb": {"common": .4558, "uncommon": .2605, "rare": .1490, "epic": .0850, "legendary": .0486, "mythic": .0011},
+        "lfb": {"common": .3843, "uncommon": .2558, "rare": .1701, "epic": .1134, "legendary": .0752, "mythic": .0012}
+        }
        
         item = used_item
-        print(item)
         fetched = ""
         
         if item.title() == "Common Fish Bag" or item.title() == "Common" or item.title() == "Cfb":
+            chances = rarity_chances["cfb"]
             async with utils.DatabaseConnection() as db:
                 fetched = await db("""SELECT cfb FROM user_item_inventory WHERE user_id = $1""", ctx.author.id)
-                print(fetched)
                 fetched = fetched[0]['cfb']
             if not fetched:
                 return await ctx.send(f"You have no Common Fish Bags!")
@@ -148,58 +149,67 @@ class Shop(commands.Cog):
                 await db("""
                     UPDATE user_item_inventory SET cfb=cfb-1 WHERE user_id = $1""", ctx.author.id)
         if item.title() == "Uncommon Fish Bag" or item.title() == "Uncommon" or item.title() == "Ufb":
-            rarity = "ufb"
-            rarity_response = "Uncommon"
-            common = .6062
-            uncommon = .2423
-            rare = .0967
-            epic = .0385
-            legendary = .0154
-            mythic = .0009
+            chances = rarity_chances["ufb"]
             async with utils.DatabaseConnection() as db:
-                fetched = await db("""SELECT ufb FROM user_item_inventory WHERE user_id = $2""", ctx.author.id)
-                print(fetched)
-                fetched = fetched[0][rarity]
+                fetched = await db("""SELECT ufb FROM user_item_inventory WHERE user_id = $1""", ctx.author.id)
+                fetched = fetched[0]['ufb']
             if not fetched:
                 return await ctx.send(f"You have no Uncommon Fish Bags!")
+            async with utils.DatabaseConnection() as db:
+                await db("""
+                    UPDATE user_item_inventory SET ufb=ufb-1 WHERE user_id = $1""", ctx.author.id)
         if item.title() == "Rare Fish Bag" or item.title() == "Rare" or item.title() == "Rfb":
-            rarity = "rfb"
-            rarity_response = "Rare"
-            common = .6689
-            uncommon = .2230
-            rare = .0743
-            epic = .0248
-            legendary = .0082
-            mythic = .0008
+            chances = rarity_chances["rfb"]
+            async with utils.DatabaseConnection() as db:
+                fetched = await db("""SELECT rfb FROM user_item_inventory WHERE user_id = $1""", ctx.author.id)
+                fetched = fetched[0]['rfb']
+            if not fetched:
+                return await ctx.send(f"You have no Rare Fish Bags!")
+            async with utils.DatabaseConnection() as db:
+                await db("""
+                    UPDATE user_item_inventory SET rfb=rfb-1 WHERE user_id = $1""", ctx.author.id)
         if item.title() == "Epic Fish Bag" or item.title() == "Epic" or item.title() == "Efb":
-            rarity = "efb"
-            rarity_response = "Epic"
-            common = .5156
-            uncommon = .2578
-            rare = .1289
-            epic = .0645
-            legendary = .0322
-            mythic = .0010
+            chances = rarity_chances["efb"]
+            async with utils.DatabaseConnection() as db:
+                fetched = await db("""SELECT efb FROM user_item_inventory WHERE user_id = $1""", ctx.author.id)
+                fetched = fetched[0]['efb']
+            if not fetched:
+                return await ctx.send(f"You have no Epic Fish Bags!")
+            async with utils.DatabaseConnection() as db:
+                await db("""
+                    UPDATE user_item_inventory SET efb=efb-1 WHERE user_id = $1""", ctx.author.id)
         if item.title() == "Legendary Fish Bag" or item.title() == "Legendary" or item.title() == "Lfb":
-            rarity = "lfb"
-            rarity_response = "Legendary"
-            common = .4558
-            uncommon = .2605
-            rare = .1490
-            epic = .0850
-            legendary = .0486
-            mythic = .0011
+            chances = rarity_chances["lfb"]
+            async with utils.DatabaseConnection() as db:
+                fetched = await db("""SELECT lfb FROM user_item_inventory WHERE user_id = $1""", ctx.author.id)
+                fetched = fetched[0]['lfb']
+            if not fetched:
+                return await ctx.send(f"You have no Legendary Fish Bags!")
+            async with utils.DatabaseConnection() as db:
+                await db("""
+                    UPDATE user_item_inventory SET lfb=lfb-1 WHERE user_id = $1""", ctx.author.id)
 
 
-
+        print(chances)
         rarity = random.choices(
         ["common", "uncommon", "rare", "epic", "legendary", "mythic",],
-        [common, uncommon, rare, epic, legendary, mythic,])[0]
-        
+        [chances["common"], chances["uncommon"], chances["rare"], chances["epic"], chances["legendary"], chances["mythic"],])[0]
+        special = random.choices(
+            ["normal", "inverted", "golden",],
+            [.94, .05, .01])[0]
         new_fish = random.choice(list(self.bot.fish[rarity].values()))
         
+        if special == "normal":
+            pass
+        elif special == "inverted":
+            new_fish = utils.make_inverted(new_fish)
+        elif special == "golden":
+            new_fish = utils.make_golden(new_fish)
+        
+        a_an = "an" if rarity[0].lower() in ("a", "e", "i", "o", "u") else "a"
+
         embed = discord.Embed()
-        embed.title = f"You got a {rarity} {new_fish['name']}!"
+        embed.title = f"You got {a_an} {rarity} {new_fish['name']}!"
         embed.set_image(url="attachment://new_fish.png")
         
         fish_file = discord.File(new_fish["image"], "new_fish.png")
@@ -224,7 +234,8 @@ class Shop(commands.Cog):
                     INSERT INTO user_balance (user_id, balance) VALUES ($1, $2)
                     ON CONFLICT (user_id) DO UPDATE SET balance = user_balance.balance + $2;
                     """, ctx.author.id, new_fish["cost"])
-            return await ctx.send(f"Sold your **{new_fish['name']}** for **{new_fish['cost']}**!")
+            await ctx.send(f"Sold your **{new_fish['name']}** for **{new_fish['cost']}**!")
+            return utils.make_pure(new_fish, special)
         
         await ctx.send("What do you want to name your new fish? (32 character limit)")
         check = lambda m: m.author == ctx.author and m.channel == ctx.channel and len(m.content) <= 32
@@ -241,6 +252,7 @@ class Shop(commands.Cog):
         finally:
             async with utils.DatabaseConnection() as db:
                 await db("""INSERT INTO user_fish_inventory (user_id, fish, fish_name) VALUES ($1, $2, $3)""", ctx.author.id, new_fish["raw_name"], name)
+            return utils.make_pure(new_fish, special)
     
 def setup(bot):
     bot.add_cog(Shop(bot))

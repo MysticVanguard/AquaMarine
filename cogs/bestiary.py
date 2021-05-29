@@ -12,19 +12,11 @@ class Bestiary(commands.Cog):
     @commands.command()
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def bestiary(self, ctx:commands.Context, fish_name):
+        new_fish = {}
         for rarity, fish_types in self.bot.fish.items():
             for fish_type, fish_info in fish_types.items():
-                # print(fish_name)
-                print(fish_info["name"] == str(fish_name.title()))
                 if fish_info["name"] == str(fish_name.title()):
                     new_fish = fish_info
-                    # print(new_fish)
-        # new_fish = {}
-        # for rarity, fish_type in self.bot.fish.items():
-        #     for fish, detail in fish_type.items():
-        #         if detail['name'] == str(fish_name.title()):
-        #             new_fish = fish
-        print(new_fish['image'])
         embed = discord.Embed()
         embed.title = new_fish['name']
         embed.set_image(url="attachment://new_fish.png")

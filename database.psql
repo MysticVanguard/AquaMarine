@@ -12,11 +12,11 @@ CREATE TABLE user_fish_inventory (
 
 CREATE TABLE user_item_inventory (
   user_id BIGINT,
-  cfb INT,
-  ufb INT,
-  rfb INT,
-  efb INT,
-  lfb INT
+  cfb INT NOT NULL DEFAULT 0,
+  ufb INT NOT NULL DEFAULT 0,
+  rfb INT NOT NULL DEFAULT 0,
+  efb INT NOT NULL DEFAULT 0,
+  lfb INT NOT NULL DEFAULT 0,
   PRIMARY KEY (user_id)
 );
 
