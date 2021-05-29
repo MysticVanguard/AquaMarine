@@ -79,18 +79,17 @@ class Shop(commands.Cog):
         }
         
         for table, data in item_name_dict.items():
-            print(data)
-            possible_entries = data[0]
-            cost = data[1]
             
-
-            if not await self.check_price(ctx.author.id, cost):
-                return await ctx.send("You don't have enough money for this!")
-            
-            rarity_response = data[2]
-            db_call = data[3]
-            print(rarity_response)
             if item.title() in possible_entries:
+                    
+                possible_entries = data[0]
+                cost = data[1]
+                rarity_response = data[2]
+                db_call = data[3]
+                
+                if not await self.check_price(ctx.author.id, cost):
+                    return await ctx.send("You don't have enough money for this!")
+                
                 async with utils.DatabaseConnection() as db:
                     await db(db_call, ctx.author.id, amount)
         
