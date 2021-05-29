@@ -47,7 +47,7 @@ class Shop(commands.Cog):
             "lfb": (legendary_names, 1500, "Legendary"),
         }
         
-        for table, data in item_name_dict:
+        for table, data in item_name_dict.items():
             possible_entries = data[0]
             cost = data[1]
             rarity_response = data[2]
