@@ -29,57 +29,84 @@ class Shop(commands.Cog):
     async def buy(self, ctx:commands.Context, item:typing.Optional[str], amount:typing.Optional[int]=1):
 
         common_names = ["Common Fish Bag", "Common", "Cfb"]
+        common_call = """
+                    INSERT INTO user_item_inventory (user_id, cfb) 
+                    VALUES ($1, $2) 
+                    ON CONFLICT (user_id) DO UPDATE 
+                    SET cfb=user_item_inventory.cfb+excluded.cfb
+                    """
         uncommon_names = ["Uncommon Fish Bag", "Uncommon", "Ufb"]
+        uncommon_call = """
+                    INSERT INTO user_item_inventory (user_id, ufb) 
+                    VALUES ($1, $2) 
+                    ON CONFLICT (user_id) DO UPDATE 
+                    SET ufb=user_item_inventory.ufb+excluded.ufb
+                    """
         rare_names = ["Rare Fish Bag", "Rare", "Rfb"]
+        rare_call = """
+                    INSERT INTO user_item_inventory (user_id, rfb) 
+                    VALUES ($1, $2) 
+                    ON CONFLICT (user_id) DO UPDATE 
+                    SET rfb=user_item_inventory.rfb+excluded.rfb
+                    """
         epic_names = ["Epic Fish Bag", "Epic", "Efb"]
+        epic_call = """
+                    INSERT INTO user_item_inventory (user_id, efb) 
+                    VALUES ($1, $2) 
+                    ON CONFLICT (user_id) DO UPDATE 
+                    SET efb=user_item_inventory.efb+excluded.efb
+                    """
         legendary_names = ["Legendary Fish Bag", "Legendary", "Lfb"]
+        legendary_call = """
+                    INSERT INTO user_item_inventory (user_id, lfb) 
+                    VALUES ($1, $2) 
+                    ON CONFLICT (user_id) DO UPDATE 
+                    SET lfb=user_item_inventory.lfb+excluded.lfb
+                    """
         mystery_names = ["Mystery Fish Bag", "Mystery", "Mfb"]
+        
         all_names = [common_names, uncommon_names, rare_names, epic_names, legendary_names, mystery_names]
         
         if not any([item.title() in name_list for name_list in all_names]):
             return await ctx.send("That is not an available item")
            
         item_name_dict = {
-            "cfb": (common_names, 100, "Common"),
-            "ufb": (uncommon_names, 250, "Uncommon"),
-            "rfb": (rare_names, 450, "Rare"),
-            "efb": (epic_names, 1000, "Epic"),
-            "lfb": (legendary_names, 1500, "Legendary"),
+            "cfb": (common_names, 100, "Common", common_call),
+            "ufb": (uncommon_names, 250, "Uncommon", uncommon_call),
+            "rfb": (rare_names, 450, "Rare", rare_call),
+            "efb": (epic_names, 1000, "Epic", epic_call),
+            "lfb": (legendary_names, 1500, "Legendary", legendary_call)
         }
         
         for table, data in item_name_dict.items():
             possible_entries = data[0]
             cost = data[1]
-            rarity_response = data[2]
             
             if not await self.check_price(ctx.author.id, cost):
                 return await ctx.send("You don't have enough money for this!")
+            
+            rarity_response = data[2]
+            db_call = data[3]
             
             if item.title() in possible_entries:
                 async with utils.DatabaseConnection() as db:
-                    await db("""
-                    INSERT INTO user_item_inventory (user_id, $1) 
-                    VALUES ($2, $3) 
-                    ON CONFLICT (user_id) DO UPDATE 
-                    SET $1=user_item_inventory.$1+excluded.$1""", table, ctx.author.id, amount)
+                    await db(db_call, ctx.author.id, amount)
         
         if item.title() in mystery_names:
             cost = 500
-            rarity_type = random.choices(
-                ["cfb", "ufb", "rfb", "efb", "lfb",],
-                [.5, .3, .125, .05, .025,])[0]
-            rarity_response = data[2]
             
             if not await self.check_price(ctx.author.id, cost):
                 return await ctx.send("You don't have enough money for this!")
+            
+            rarity_type = random.choices(
+                ["cfb", "ufb", "rfb", "efb", "lfb",],
+                [.5, .3, .125, .05, .025,])[0]
+            data = item_name_dict[rarity_type]
+            rarity_response = data[2]
+            db_call = data[3]
                 
             async with utils.DatabaseConnection() as db:
-                await db("""
-                        INSERT INTO user_item_inventory (user_id, $1) 
-                        VALUES ($2, $3) 
-                        ON CONFLICT (user_id) DO UPDATE 
-                        SET $1=user_item_inventory.$1+excluded.$1""", rarity_type, ctx.author.id, amount)
-        
+                await db(db_call, ctx.author.id, amount)
         
         async with utils.DatabaseConnection() as db:
             await db("""
