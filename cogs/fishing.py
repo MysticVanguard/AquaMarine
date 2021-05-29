@@ -115,11 +115,13 @@ class Fishing(commands.Cog):
                     INSERT INTO user_balance (user_id, balance) VALUES ($1, $2)
                     ON CONFLICT (user_id) DO UPDATE SET balance = user_balance.balance + $2;
                     """, ctx.author.id, new_fish["cost"])
-                self.current_fishers.remove(ctx.author.id)
-            return await ctx.send(f"Sold your **{new_fish['name']}** for **{new_fish['cost']}**!")
+            self.current_fishers.remove(ctx.author.id)
+            await ctx.send(f"Sold your **{new_fish['name']}** for **{new_fish['cost']}**!")
+            return utils.make_pure(new_fish, special)
         
         await ctx.send("What do you want to name your new fish? (32 character limit)")
         check = lambda m: m.author == ctx.author and m.channel == ctx.channel and len(m.content) <= 32
+        
         
         try:
             name = await self.bot.wait_for("message", timeout=60.0, check=check)
@@ -134,6 +136,7 @@ class Fishing(commands.Cog):
             async with utils.DatabaseConnection() as db:
                 await db("""INSERT INTO user_fish_inventory (user_id, fish, fish_name) VALUES ($1, $2, $3)""", ctx.author.id, new_fish["raw_name"], name)
             self.current_fishers.remove(ctx.author.id)
+            utils.make_pure(new_fish, special)
 
     @fish.error
     async def fish_error(self, ctx, error):

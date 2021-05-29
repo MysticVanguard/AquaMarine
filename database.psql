@@ -17,4 +17,6 @@ CREATE TABLE user_item_inventory (
   rfb INT,
   efb INT,
   lfb INT
+  PRIMARY KEY (user_id)
 );
+

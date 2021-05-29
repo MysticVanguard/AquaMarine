@@ -46,3 +46,17 @@ def make_inverted(fish:dict):
     fish["name"] = f"Inverted {fish['name']}"
     fish["image"] = fish["image"][:16] + "inverted_" + fish["image"][16:]
     return fish
+
+def make_pure(fish:dict, special):
+    if special == "golden":
+        number = 7
+        number_two = 23
+    elif special == "inverted":
+        number = 9
+        number_two = 25
+    else:
+        pass
+    fish["raw_name"] = fish['raw_name'][number:]
+    fish["name"] = fish['name'][number:]
+    fish["image"] = fish["image"][:16] + fish["image"][number_two:]
+    return fish
