@@ -89,7 +89,7 @@ class Shop(commands.Cog):
     
     # Returns true is a user_id has enough money based on the cost
     async def check_price(self, user_id, cost):
-         async with utils.DatabaseConnection() as db:
+        async with utils.DatabaseConnection() as db:
             fetched = await db("""SELECT balance FROM user_balance WHERE user_id = $1""", user_id)
             fetched = fetched[0]['balance']
         if fetched < cost:
