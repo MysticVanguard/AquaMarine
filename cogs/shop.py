@@ -52,7 +52,7 @@ class Shop(commands.Cog):
             cost = data[1]
             rarity_response = data[2]
             
-            if not check_price(ctx.author.id, cost):
+            if not await check_price(ctx.author.id, cost):
                 return await ctx.send("You don't have enough money for this!")
             
             if item.title() in possible_entries:
@@ -70,7 +70,7 @@ class Shop(commands.Cog):
                 [.5, .3, .125, .05, .025,])[0]
             rarity_response = data[2]
             
-            if not check_price(ctx.author.id, cost):
+            if not await check_price(ctx.author.id, cost):
                 return await ctx.send("You don't have enough money for this!")
                 
             async with utils.DatabaseConnection() as db:
