@@ -26,107 +26,76 @@ class Shop(commands.Cog):
 
     @commands.command(aliases=["b"])
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
-    async def buy(self, ctx:commands.Context, arg1:typing.Optional[str], arg2:typing.Optional[int]=1):
-        item = arg1
-        amount = arg2
-        if item.title() == "Common Fish Bag" or item.title() == "Common" or item.title() == "Cfb":
-            cost = 100
-            rarity_response = "Common"
-            async with utils.DatabaseConnection() as db:
-                await db("""
-                    INSERT INTO user_item_inventory (user_id, cfb) 
-                    VALUES ($1, $2) 
+    async def buy(self, ctx:commands.Context, item:typing.Optional[str], amount:typing.Optional[int]=1):
+
+        common_names = ["Common Fish Bag", "Common", "Cfb"]
+        uncommon_names = ["Uncommon Fish Bag", "Uncommon", "Ufb"]
+        rare_names = ["Rare Fish Bag", "Rare", "Rfb"]
+        epic_names = ["Epic Fish Bag", "Epic", "Efb"]
+        legendary_names = ["Legendary Fish Bag", "Legendary", "Lfb"]
+        mystery_names = ["Mystery Fish Bag", "Mystery", "Mfb"]
+        all_names = [common_names, uncommon_names, rare_names, epic_names, legendary_names, mystery_names]
+        
+        if not any([item.title() in name_list for name_list in all_names]):
+            return await ctx.send("That is not an available item")
+           
+        item_name_dict = {
+            "cfb": (common_names, 100, "Common"),
+            "ufb": (uncommon_names, 250, "Uncommon"),
+            "rfb": (rare_names, 450, "Rare"),
+            "efb": (epic_names, 1000, "Epic"),
+            "lfb": (legendary_names, 1500, "Legendary"),
+        }
+        
+        for table, data in item_name_dict:
+            possible_entries = data[0]
+            cost = data[1]
+            rarity_response = data[2]
+            
+            if not check_price(ctx.author.id, cost):
+                return await ctx.send("You don't have enough money for this!")
+            
+            if item.title() in possible_entries:
+                async with utils.DatabaseConnection() as db:
+                    await db("""
+                    INSERT INTO user_item_inventory (user_id, $1) 
+                    VALUES ($2, $3) 
                     ON CONFLICT (user_id) DO UPDATE 
-                    SET cfb=user_item_inventory.cfb+excluded.cfb""", ctx.author.id, amount)
-        elif item.title() == "Uncommon Fish Bag" or item.title() == "Uncommon" or item.title() == "Ufb":
-            cost = 250
-            rarity_response = "Uncommon"
-            async with utils.DatabaseConnection() as db:
-                await db("""
-                    INSERT INTO user_item_inventory (user_id, ufb) 
-                    VALUES ($1, $2) 
-                    ON CONFLICT (user_id) DO UPDATE 
-                    SET ufb=user_item_inventory.ufb+excluded.ufb""", ctx.author.id, amount)
-        elif item.title() == "Rare Fish Bag" or item.title() == "Rare" or item.title() == "Rfb":
-            cost = 450
-            rarity_response = "Rare"
-            async with utils.DatabaseConnection() as db:
-                await db("""
-                    INSERT INTO user_item_inventory (user_id, rfb) 
-                    VALUES ($1, $2) 
-                    ON CONFLICT (user_id) DO UPDATE 
-                    SET rfb=user_item_inventory.rfb+excluded.rfb""", ctx.author.id, amount)
-        elif item.title() == "Epic Fish Bag" or item.title() == "Epic" or item.title() == "Efb":
-            cost = 1000
-            rarity_response = "Epic"
-            async with utils.DatabaseConnection() as db:
-                await db("""
-                    INSERT INTO user_item_inventory (user_id, efb) 
-                    VALUES ($1, $2) 
-                    ON CONFLICT (user_id) DO UPDATE 
-                    SET efb=user_item_inventory.efb+excluded.efb""", ctx.author.id, amount)
-        elif item.title() == "Legendary Fish Bag" or item.title() == "Legendary" or item.title() == "Lfb":
-            cost = 1500
-            rarity_response = "legendary"
-            async with utils.DatabaseConnection() as db:
-                await db("""
-                    INSERT INTO user_item_inventory (user_id, lfb) 
-                    VALUES ($1, $2) 
-                    ON CONFLICT (user_id) DO UPDATE 
-                    SET lfb=user_item_inventory.lfb+excluded.lfb""", ctx.author.id, amount)
-        elif item.title() == "Mystery Fish Bag" or item.title() == "Mystery" or item.title() == "Mfb":
+                    SET $1=user_item_inventory.$1+excluded.$1""", table, ctx.author.id, amount)
+        
+        if item.title() in mystery_names:
             cost = 500
-            rarity_response = random.choices(
-                ["Common", "Uncommon", "Rare", "Epic", "Legendary",],
+            rarity_type = random.choices(
+                ["cfb", "ufb", "rfb", "efb", "lfb",],
                 [.5, .3, .125, .05, .025,])[0]
-            if rarity_response == "Common":
-                async with utils.DatabaseConnection() as db:
-                    await db("""
-                        INSERT INTO user_item_inventory (user_id, cfb) 
-                        VALUES ($1, $2) 
+            rarity_response = data[2]
+            
+            if not check_price(ctx.author.id, cost):
+                return await ctx.send("You don't have enough money for this!")
+                
+            async with utils.DatabaseConnection() as db:
+                await db("""
+                        INSERT INTO user_item_inventory (user_id, $1) 
+                        VALUES ($2, $3) 
                         ON CONFLICT (user_id) DO UPDATE 
-                        SET cfb=user_item_inventory.cfb+excluded.cfb""", ctx.author.id, amount)
-            elif rarity_response == "Uncommon":
-                async with utils.DatabaseConnection() as db:
-                    await db("""
-                        INSERT INTO user_item_inventory (user_id, ufb) 
-                        VALUES ($1, $2) 
-                        ON CONFLICT (user_id) DO UPDATE 
-                        SET ufb=user_item_inventory.ufb+excluded.ufb""", ctx.author.id, amount)
-            elif rarity_response == "Rare":
-                async with utils.DatabaseConnection() as db:
-                    await db("""
-                        INSERT INTO user_item_inventory (user_id, rfb) 
-                        VALUES ($1, $2) 
-                        ON CONFLICT (user_id) DO UPDATE 
-                        SET rfb=user_item_inventory.rfb+excluded.rfb""", ctx.author.id, amount)
-            elif rarity_response == "Epic":
-                async with utils.DatabaseConnection() as db:
-                    await db("""
-                        INSERT INTO user_item_inventory (user_id, efb) 
-                        VALUES ($1, $2) 
-                        ON CONFLICT (user_id) DO UPDATE 
-                        SET efb=user_item_inventory.efb+excluded.efb""", ctx.author.id, amount)
-            elif rarity_response == "legendary":
-                async with utils.DatabaseConnection() as db:
-                    await db("""
-                        INSERT INTO user_item_inventory (user_id, lfb) 
-                        VALUES ($1, $2) 
-                        ON CONFLICT (user_id) DO UPDATE 
-                        SET lfb=user_item_inventory.lfb+excluded.lfb""", ctx.author.id, amount)
-        else:
-            return await ctx.send("That is not an item in the shop.")
-        async with utils.DatabaseConnection() as db:
-            fetched = await db("""SELECT balance FROM user_balance WHERE user_id = $1""", ctx.author.id)
-            fetched = fetched[0]['balance']
-        if fetched < cost:
-            return await ctx.send(f"You don't have enough money for this!")
+                        SET $1=user_item_inventory.$1+excluded.$1""", rarity_type, ctx.author.id, amount)
+        
+        
         async with utils.DatabaseConnection() as db:
             await db("""
                 UPDATE user_balance SET balance=balance-$1 WHERE user_id = $2""", cost, ctx.author.id)
+            
         await ctx.send(f"You Bought {amount} {rarity_response} Fish Bag for {amount * cost}!")
-
-
+    
+    # Returns true is a user_id has enough money based on the cost
+    async def check_price(self, user_id, cost):
+         async with utils.DatabaseConnection() as db:
+            fetched = await db("""SELECT balance FROM user_balance WHERE user_id = $1""", user_id)
+            fetched = fetched[0]['balance']
+        if fetched < cost:
+            return False
+        return True
+    
     @commands.command(aliases=["u"])
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def use(self, ctx:commands.Context, used_item):
