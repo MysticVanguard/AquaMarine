@@ -80,9 +80,10 @@ class Shop(commands.Cog):
         
         for table, data in item_name_dict.items():
             
+            possible_entries = data[0]
+            
             if item.title() in possible_entries:
                     
-                possible_entries = data[0]
                 cost = data[1]
                 rarity_response = data[2]
                 db_call = data[3]
