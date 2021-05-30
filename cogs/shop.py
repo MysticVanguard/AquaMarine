@@ -16,12 +16,12 @@ class Shop(commands.Cog):
         embed = discord.Embed()
         embed.title = "Fish Shop"
         embed.add_field(name="Fish Bags", value=f"These are bags containing a fish of a random rarity", inline=False)
-        embed.add_field(name="Common Fish Bag", value=f"This gives you one fish with normal chances COST 100", inline=True)
-        embed.add_field(name="Uncommon Fish Bag", value=f"This gives you one fish with increased chances COST 250", inline=True)
-        embed.add_field(name="Rare Fish Bag", value=f"This gives you one fish with higher chances COST 450", inline=True)
-        embed.add_field(name="Epic Fish Bag", value=f"This gives you one fish with substantially better chances COST 1000", inline=True)
-        embed.add_field(name="Legendary Fish Bag", value=f"This gives you one fish with extremely better chances COST 1500", inline=True)
-        embed.add_field(name="Mystery Fish Bag", value=f"This gives you one bag of a random rarity COST 500", inline=True)
+        embed.add_field(name="Common Fish Bag", value=f"This gives you one fish with normal chances COST 50", inline=True)
+        embed.add_field(name="Uncommon Fish Bag", value=f"This gives you one fish with increased chances COST 100", inline=True)
+        embed.add_field(name="Rare Fish Bag", value=f"This gives you one fish with higher chances COST 200", inline=True)
+        embed.add_field(name="Epic Fish Bag", value=f"This gives you one fish with substantially better chances COST 400", inline=True)
+        embed.add_field(name="Legendary Fish Bag", value=f"This gives you one fish with extremely better chances COST 500", inline=True)
+        embed.add_field(name="Mystery Fish Bag", value=f"This gives you one bag of a random rarity COST 250", inline=True)
         await ctx.send(embed=embed)
 
     @commands.command(aliases=["b"])
@@ -71,11 +71,11 @@ class Shop(commands.Cog):
             return await ctx.send("That is not an available item")
            
         item_name_dict = {
-            "cfb": (common_names, 100, "Common", common_call),
-            "ufb": (uncommon_names, 250, "Uncommon", uncommon_call),
-            "rfb": (rare_names, 450, "Rare", rare_call),
-            "efb": (epic_names, 1000, "Epic", epic_call),
-            "lfb": (legendary_names, 1500, "Legendary", legendary_call)
+            "cfb": (common_names, 50, "Common", common_call),
+            "ufb": (uncommon_names, 100, "Uncommon", uncommon_call),
+            "rfb": (rare_names, 200, "Rare", rare_call),
+            "efb": (epic_names, 400, "Epic", epic_call),
+            "lfb": (legendary_names, 500, "Legendary", legendary_call)
         }
         
         for table, data in item_name_dict.items():
@@ -95,7 +95,7 @@ class Shop(commands.Cog):
                     await db(db_call, ctx.author.id, amount)
         
         if item.title() in mystery_names:
-            cost = 500
+            cost = 250
             
             if not await self.check_price(ctx.author.id, cost):
                 return await ctx.send("You don't have enough money for this!")

@@ -3,6 +3,7 @@ import utils
 import random
 import asyncio
 import typing
+import re
 from discord.ext import commands
 
 
@@ -40,7 +41,7 @@ class Fishing(commands.Cog):
             fetched = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1""", user.id)
         if not fetched:
             return await ctx.send("You have no fish in your bucket!" if user == ctx.author else f"{user.display_name} has no fish in their bucket!")
-        
+
         totalpages = len(fetched) // 5 + (len(fetched) % 5 > 0)
         if page < 1 or page > totalpages:
             return await ctx.send("That page is doesn't exist.")
@@ -48,12 +49,48 @@ class Fishing(commands.Cog):
         embed = discord.Embed()
         embed.title = f"{user.display_name}'s fish bucket"
         embed.set_footer(text=f"page {page}/{totalpages}")
-        for i in fetched[page*5-5:page*5]:
-            embed.add_field(name=i['fish_name'], value=f"This fish is a **{' '.join(i['fish'].split('_')).title()}**", inline=False)
+
+        sorted_fish = {
+            "mythic": [],
+            "legendary": [],
+            "epic": [],
+            "rare": [],
+            "uncommon": [],
+            "common": [] 
+        }
+        user_fish_sorted = {
+             "mythic": [],
+            "legendary": [],
+            "epic": [],
+            "rare": [],
+            "uncommon": [],
+            "common": [] 
+        } 
+
+        for rarity, fish_type in self.bot.fish.items():
+            for fish_name_big, categories in fish_type.items():
+                for category_big, value in categories.items():
+                    if category_big == 'rarity':
+                        sorted_fish[categories['rarity']].append(categories['raw_name'])
+        for category in fetched:
+            for rarity, name_fish in sorted_fish.items():
+                print(name_fish)
+                if category['fish'] in name_fish or category['fish'][7:] in name_fish or category['fish'][9:] in name_fish:
+                    user_fish_sorted[rarity].append([category['fish'], category['fish_name']])
+                #print(user_fish_sorted[rarity])
+        fish_names_final = []
+        for rarity_block, names in user_fish_sorted.items():
+            for fish_named in names:
+                fish_names_final.append(fish_named)
+        for x in fish_names_final[page*5-5:page*5]:
+            for rarity_block, names in user_fish_sorted.items():
+                    if x in names:
+                        needed_rarity = rarity_block
+            embed.add_field(name=f"{x[1]} ({needed_rarity})", value=f"This fish is a **{' '.join(x[0].split('_')).title()}**", inline=False)
         await ctx.send(embed=embed)
-            
+
     @commands.command()
-    @commands.cooldown(1, 1, commands.BucketType.user)
+    @commands.cooldown(1, 3600, commands.BucketType.user)
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def fish(self, ctx:commands.Context):
         '''Fish's for a fish'''
@@ -114,7 +151,7 @@ class Fishing(commands.Cog):
             choice = await self.bot.wait_for("reaction_add", timeout=60.0, check=check)
             choice = "sell" if choice[0].emoji.id == 844594478392147968 else "keep"
         except asyncio.TimeoutError:
-            await ctx.send("Did you forget about me? I've been waiting for a while now! I'll just assume you wanted to sell the fish.")
+            await ctx.send(f"Did you forget about me {ctx.author.mention}? I've been waiting for a while now! I'll just assume you wanted to sell the fish.")
             choice = "sell"
         
         if choice == "sell":
@@ -127,8 +164,15 @@ class Fishing(commands.Cog):
             await ctx.send(f"Sold your **{new_fish['name']}** for **{new_fish['cost']}**!")
             return utils.make_pure(new_fish, special)
         
-        await ctx.send("What do you want to name your new fish? (32 character limit)")
-        check = lambda m: m.author == ctx.author and m.channel == ctx.channel and len(m.content) <= 32
+        fish_names = []
+        async with utils.DatabaseConnection() as db:
+            fetched = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1""", ctx.author.id)
+        for i in fetched:
+            fish_names.append(i[2])
+        print(fish_names)
+
+        await ctx.send("What do you want to name your new fish? (32 character limit and cannot be named the same as another fish you own)")
+        check = lambda m: m.author == ctx.author and m.channel == ctx.channel and len(m.content) <= 32 and m.content not in fish_names
         
         
         try:
@@ -138,7 +182,7 @@ class Fishing(commands.Cog):
         
         except asyncio.TimeoutError:
             name = f"{random.choice(['Captain', 'Mr.', 'Mrs.', 'Commander'])} {random.choice(['Nemo', 'Bubbles', 'Jack', 'Finley', 'Coral'])}"
-            return await ctx.send(f"Did you forget about me? I've been waiting for a while now! I'll name the fish for you. Let's call it **{name}**")
+            return await ctx.send(f"Did you forget about me {ctx.author.mention}? I've been waiting for a while now! I'll name the fish for you. Let's call it **{name}**")
         
         finally:
             async with utils.DatabaseConnection() as db:
@@ -148,8 +192,22 @@ class Fishing(commands.Cog):
 
     @fish.error
     async def fish_error(self, ctx, error):
+        time = error.retry_after
+        form = 'seconds'
+        if error.retry_after < 1.5:
+            form = 'second'
+        if error.retry_after > 3600:
+            time = error.retry_after / 3600
+            form = 'hours'
+            if error.retry_after < 5400:
+                form = 'hour'
+        elif error.retry_after > 60:
+            time = error.retry_after / 60
+            form = 'minutes'
+            if error.retry_after < 90:
+                form = 'minute'
         if isinstance(error, commands.CommandOnCooldown):
-            msg = 'The fish are scared, please try again in {:.0f} seconds'.format(error.retry_after)
+            msg = f'The fish are scared, please try again in {round(time)} {form}.'
             await ctx.send(msg)
         else:
             raise error
