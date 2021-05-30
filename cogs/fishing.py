@@ -16,7 +16,7 @@ class Fishing(commands.Cog):
     @commands.command(aliases=["bal"])
     @commands.bot_has_permissions(send_messages=True)
     async def balance(self, ctx:commands.Context, user:typing.Optional[discord.Member]):
-        '''Check's the user's or a member's balance'''
+        '''Checks the users or a member's balance'''
         async with utils.DatabaseConnection() as db:
             if user:
                 fetched = await db("""SELECT * FROM user_balance WHERE user_id = $1""", user.id)
@@ -29,7 +29,7 @@ class Fishing(commands.Cog):
     @commands.command(aliases=["bucket"])
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def fishbucket(self, ctx:commands.Context, target:typing.Optional[typing.Union[discord.Member, int]]=1, page_number:typing.Optional[int]=1):  
-        '''Check's the user's or a member's fish bucket'''      
+        '''Checks the users or a members fish bucket'''      
         if isinstance(target, discord.Member):
             user = target
             page = page_number
@@ -90,10 +90,10 @@ class Fishing(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command()
-    @commands.cooldown(1, 3600, commands.BucketType.user)
+    @commands.cooldown(1, 1800, commands.BucketType.user)
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def fish(self, ctx:commands.Context):
-        '''Fish's for a fish'''
+        '''Fishes for a fish'''
         if ctx.author.id in self.current_fishers:
             return await ctx.send(f"{ctx.author.display_name}, you're already fishing!")
         

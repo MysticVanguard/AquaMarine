@@ -13,6 +13,7 @@ class Shop(commands.Cog):
     @commands.command(aliases=["s"])
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def shop(self, ctx:commands.Context):
+        '''Shows embed full of shop information'''
         embed = discord.Embed()
         embed.title = "Fish Shop"
         embed.add_field(name="Fish Bags", value=f"These are bags containing a fish of a random rarity", inline=False)
@@ -27,6 +28,8 @@ class Shop(commands.Cog):
     @commands.command(aliases=["b"])
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def buy(self, ctx:commands.Context, item:typing.Optional[str], amount:typing.Optional[int]=1):
+        
+        '''Buys a certain amount of an item in the shop'''
 
         common_names = ["Common Fish Bag", "Common", "Cfb"]
         common_call = """
@@ -128,6 +131,7 @@ class Shop(commands.Cog):
     @commands.command(aliases=["u"])
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def use(self, ctx:commands.Context, used_item):
+        '''Uses a certain item in your inventory'''
         rarity_chances = {"cfb": {"common": .6689, "uncommon": .2230, "rare": .0743, "epic": .0248, "legendary": .0082, "mythic": .0008},
         "ufb": {"common": .6062, "uncommon": .2423, "rare": .0967, "epic": .0385, "legendary": .0154, "mythic": .0009},
         "rfb": {"common": .5156, "uncommon": .2578, "rare": .1289, "epic": .0645, "legendary": .0322, "mythic": .0010},
@@ -253,6 +257,27 @@ class Shop(commands.Cog):
             async with utils.DatabaseConnection() as db:
                 await db("""INSERT INTO user_fish_inventory (user_id, fish, fish_name) VALUES ($1, $2, $3)""", ctx.author.id, new_fish["raw_name"], name)
             return utils.make_pure(new_fish, special)
-    
+
+    @commands.command(aliases=["inv"])
+    @commands.bot_has_permissions(send_messages=True, embed_links=True)
+    async def inventory(self, ctx:commands.Context):
+        '''Shows the users bag inventory'''
+        fetched_info = []
+        async with utils.DatabaseConnection() as db:
+            fetched = await db("""SELECT * FROM user_item_inventory WHERE user_id = $1""", ctx.author.id)
+        if not fetched:
+            return await ctx.send("You have no items in your inventory!")
+        for info in fetched:
+            for values in info:
+                if values < 1000000:
+                    fetched_info.append(values)
+        bags = ["Common Fish Bag", "Uncommon Fish Bag", "Rare Fish Bag", "Epic Fish Bag", "Legendary Fish Bag"]   
+        count = 0
+        embed = discord.Embed()
+        embed.title = f"{ctx.author.display_name}'s Inventory"
+        for name in bags:
+            embed.add_field(name=f'{name}\'s',value=fetched_info[count], inline=False)
+            count += 1
+        await ctx.send(embed=embed)
 def setup(bot):
     bot.add_cog(Shop(bot))

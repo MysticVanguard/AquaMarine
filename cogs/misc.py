@@ -30,6 +30,7 @@ class Misc(commands.Cog):
     @commands.bot_has_permissions(send_messages=True)
     @commands.is_owner()
     async def activity(self, ctx:commands.Context, *, activity:str):
+        '''Changes the status of the bot (owner command only)'''
         await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=activity))
         return await ctx.message.add_reaction('👌')
 

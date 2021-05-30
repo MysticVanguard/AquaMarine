@@ -12,6 +12,7 @@ class Bestiary(commands.Cog):
     @commands.command()
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def bestiary(self, ctx:commands.Context, fish_name):
+        '''Gets info on fish specified'''
         new_fish = {}
         for rarity, fish_types in self.bot.fish.items():
             for fish_type, fish_info in fish_types.items():

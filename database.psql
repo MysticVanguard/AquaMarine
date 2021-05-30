@@ -20,3 +20,4 @@ CREATE TABLE user_item_inventory (
   PRIMARY KEY (user_id)
 );
 
+ 
