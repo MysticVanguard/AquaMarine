@@ -124,22 +124,20 @@ class Tanks(commands.Cog):
         filenames = []
         images = []
 
-        path_of_fish = random.choices(
-            ["common", "uncommon", "rare", "epic", "legendary", "mythic",],
-            [.6689, .2230, .0743, .0248, .0082, .0008,]
-        )[0]
+        path_of_fish = random.choices(utils.RARITY_PERCENTAGE_LIST)[0]
         new_fish = random.choice(list(self.bot.fish[path_of_fish].values()))
         random_fish_path = f"C:/Users/JT/Pictures/Aqua{new_fish['image'][1:16]}normal_fish_size{new_fish['image'][20:]}"
+        file_prefix = "C:/Users/JT/Pictures/Aqua/assets/images"
 
         for x in gif_length:
-            filename_image = f"assets/images/gifs/images/test_tank{int(x)}.png"
-            background = Image.open("C:/Users/JT/Pictures/Aqua/assets/images/background/aqua_background_medium.png")
+            filename_image = f"/gifs/images/test_tank{int(x)}.png"
+            background = Image.open(f"{file_prefix}/background/aqua_background_medium.png")
             fishes = Image.open(random_fish_path)
-            foreground = Image.open("C:/Users/JT/Pictures/Aqua/assets/images/background/medium_tank_2D.png")
+            foreground = Image.open(f"{file_prefix}/background/medium_tank_2D.png")
 
             background.paste(fishes, (move_x, move_y), fishes)
             background.paste(foreground, (0, 0), foreground)
-            background.save(f"C:/Users/JT/Pictures/Aqua/{filename_image}")
+            background.save(f"{file_prefix}{filename_image}")
 
             filenames.append(filename_image)
             move_x += 10
@@ -149,9 +147,9 @@ class Tanks(commands.Cog):
 
         for filename in filenames:
             images.append(imageio.imread(filename))
-            imageio.mimsave('C:/Users/JT/Pictures/Aqua/assets/images/gifs/actual_gifs/testtank.gif', images)
+            imageio.mimsave(f'{file_prefix}/gifs/actual_gifs/testtank.gif', images)
 
-        await ctx.send(file=discord.File('C:/Users/JT/Pictures/Aqua/assets/images/gifs/actual_gifs/testtank.gif'))
+        await ctx.send(file=discord.File(f'{file_prefix}/gifs/actual_gifs/testtank.gif'))
 
 
 def setup(bot):
