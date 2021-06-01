@@ -48,7 +48,7 @@ class Fishing(commands.Cog):
         embed.title = f"{user.display_name}'s Fish Bucket"
         # embed.set_footer(text=f"page {page}/{totalpages}")
 
-        fish_list = [({i['fish_name']}, {i['fish']}) for i in fish_rows] # List of tuples (Fish Name, Fish Type)
+        fish_list = [(i['fish_name'], i['fish']) for i in fish_rows] # List of tuples (Fish Name, Fish Type)
 
         fields = [] # The "pages" that the user can scroll through are the different rarity levels
 
