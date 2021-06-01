@@ -116,15 +116,17 @@ class Fishing(commands.Cog):
                 number_message = await ctx.send(f"What page would you like to go to? (1-{len(fields)}) ")
                 # Check for custom message
                 def message_check(message):
-                    return user == ctx.author and message.channel == fish_message.channel and message.content.isdigit()
+                    return message.author == ctx.author and message.channel == fish_message.channel and message.content.isdigit()
 
-                user_input = int((await self.bot.wait_for('message', check=message_check)).content)
+                user_message = await self.bot.wait_for('message', check=message_check)
+                user_input = int(user_message.content)
 
                 curr_index = min(len(fields), max(1, user_input))
                 curr_field = fields[curr_index-1]
 
                 await fish_message.edit(embed=self.create_fish_embed(user, curr_field))
                 await number_message.delete()
+                await user_message.delete()
 
 
     def create_fish_embed(self, user, field):
