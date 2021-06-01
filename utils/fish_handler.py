@@ -2,6 +2,21 @@ from utils.load_config import config
 from os import walk
 
 
+_RARITY_PERCENTAGES = [
+    ("common", 0.6689),
+    ("uncommon", 0.2230),
+    ("rare", 0.0743),
+    ("epic", 0.0248),
+    ("legendary", 0.0082),
+    ("mythic", 0.0008),
+]
+RARITY_PERCENTAGE_DICT = dict(_RARITY_PERCENTAGES)  # A dictionary of `rarity: percentage`
+RARITY_PERCENTAGE_LIST = [
+    list(i[0] for i in _RARITY_PERCENTAGES),
+    list(i[1] for i in _RARITY_PERCENTAGES),
+]  # A nested list of `[[...rarity], [...percentage]]`
+
+
 def parse_fish_filename(filename: str) -> dict:
     """
     Parse a given fish filename into a dict of `modifier`, `rarity`, `cost`,
