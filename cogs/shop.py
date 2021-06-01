@@ -35,110 +35,89 @@ class Shop(commands.Cog):
 
     @commands.command(aliases=["b"])
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
-    async def buy(self, ctx:commands.Context, item:typing.Optional[str], amount:typing.Optional[int]=1):
-        '''Buys a certain amount of an item in the shop'''
+    async def buy(self, ctx: commands.Context, item: typing.Optional[str], amount: typing.Optional[int] = 1):
+        """
+        Buys a certain amount of an item in the shop.
+        """
 
+        # Say what's valid
         common_names = ["Common Fish Bag", "Common", "Cfb"]
-        common_call = """
-                    INSERT INTO user_item_inventory (user_id, cfb)
-                    VALUES ($1, $2)
-                    ON CONFLICT (user_id) DO UPDATE
-                    SET cfb=user_item_inventory.cfb+excluded.cfb
-                    """
         uncommon_names = ["Uncommon Fish Bag", "Uncommon", "Ufb"]
-        uncommon_call = """
-                    INSERT INTO user_item_inventory (user_id, ufb)
-                    VALUES ($1, $2)
-                    ON CONFLICT (user_id) DO UPDATE
-                    SET ufb=user_item_inventory.ufb+excluded.ufb
-                    """
         rare_names = ["Rare Fish Bag", "Rare", "Rfb"]
-        rare_call = """
-                    INSERT INTO user_item_inventory (user_id, rfb)
-                    VALUES ($1, $2)
-                    ON CONFLICT (user_id) DO UPDATE
-                    SET rfb=user_item_inventory.rfb+excluded.rfb
-                    """
         epic_names = ["Epic Fish Bag", "Epic", "Efb"]
-        epic_call = """
-                    INSERT INTO user_item_inventory (user_id, efb)
-                    VALUES ($1, $2)
-                    ON CONFLICT (user_id) DO UPDATE
-                    SET efb=user_item_inventory.efb+excluded.efb
-                    """
         legendary_names = ["Legendary Fish Bag", "Legendary", "Lfb"]
-        legendary_call = """
-                    INSERT INTO user_item_inventory (user_id, lfb)
-                    VALUES ($1, $2)
-                    ON CONFLICT (user_id) DO UPDATE
-                    SET lfb=user_item_inventory.lfb+excluded.lfb
-                    """
         mystery_names = ["Mystery Fish Bag", "Mystery", "Mfb"]
-
         all_names = [common_names, uncommon_names, rare_names, epic_names, legendary_names, mystery_names]
 
+        # See if they gave a valid item
         if not any([item.title() in name_list for name_list in all_names]):
             return await ctx.send("That is not an available item")
 
+        # Set up SQL statements for each of the tiered inserts
+        inventory_insert_sql = (
+            "INSERT INTO user_item_inventory (user_id, {0}) VALUES ($1, $2) ON CONFLICT "
+            "(user_id) DO UPDATE SET {0}=user_item_inventory.{0}+excluded.{0}"
+        )
         item_name_dict = {
-            "cfb": (common_names, 50, "Common", common_call),
-            "ufb": (uncommon_names, 100, "Uncommon", uncommon_call),
-            "rfb": (rare_names, 200, "Rare", rare_call),
-            "efb": (epic_names, 400, "Epic", epic_call),
-            "lfb": (legendary_names, 500, "Legendary", legendary_call)
+            "cfb": (common_names, 50, "Common", inventory_insert_sql.format("cfb")),
+            "ufb": (uncommon_names, 100, "Uncommon", inventory_insert_sql.format("ufb")),
+            "rfb": (rare_names, 200, "Rare", inventory_insert_sql.format("rfb")),
+            "efb": (epic_names, 400, "Epic", inventory_insert_sql.format("efb")),
+            "lfb": (legendary_names, 500, "Legendary", inventory_insert_sql.format("lfb")),
         }
 
+        # Work out which of the SQL statements to use
         for table, data in item_name_dict.items():
-
             possible_entries = data[0]
+            if item.title() not in possible_entries:
+                continue
 
-            if item.title() in possible_entries:
+            # Unpack the given information
+            if possible_entries[-1] == "Mfb":
+                rarity_type = random.choices(
+                    ["cfb", "ufb", "rfb", "efb", "lfb"],
+                    [.5, .3, .125, .05, .025,]
+                )[0]
+                _, rarity_response, db_call = item_name_dict[rarity_type]
+                cost = 250
+            else:
+                cost, rarity_response, db_call = data
 
-                cost = data[1]
-                rarity_response = data[2]
-                db_call = data[3]
-
-                if not await self.check_price(ctx.author.id, cost):
-                    return await ctx.send("You don't have enough money for this!")
-
-                async with utils.DatabaseConnection() as db:
-                    await db(db_call, ctx.author.id, amount)
-
-        if item.title() in mystery_names:
-            cost = 250
-
+            # See if the user has enough money
             if not await self.check_price(ctx.author.id, cost):
                 return await ctx.send("You don't have enough money for this!")
 
-            rarity_type = random.choices(
-                ["cfb", "ufb", "rfb", "efb", "lfb",],
-                [.5, .3, .125, .05, .025,])[0]
-            data = item_name_dict[rarity_type]
-            rarity_response = data[2]
-            db_call = data[3]
-
+            # Add fish bag to user
             async with utils.DatabaseConnection() as db:
                 await db(db_call, ctx.author.id, amount)
 
+        # Remove money from the user
         async with utils.DatabaseConnection() as db:
             await db("""
                 UPDATE user_balance SET balance=balance-$1 WHERE user_id = $2""", cost, ctx.author.id)
 
-        await ctx.send(f"You Bought {amount} {rarity_response} Fish Bag for {amount * cost}!")
+        # And tell the user we're done
+        await ctx.send(f"You Bought {amount:,} {rarity_response} Fish Bag for {amount * cost:,}!")
 
-    # Returns true is a user_id has enough money based on the cost
-    async def check_price(self, user_id, cost):
+    async def check_price(self, user_id: int, cost: int) -> bool:
+        """
+        Returns if a user_id has enough money based on the cost.
+        """
+
         async with utils.DatabaseConnection() as db:
-            fetched = await db("""SELECT balance FROM user_balance WHERE user_id = $1""", user_id)
-            fetched = fetched[0]['balance']
-        if fetched < cost:
-            return False
-        return True
+            user_rows = await db(
+                """SELECT balance FROM user_balance WHERE user_id=$1""",
+                user_id,
+            )
+            user_balance = user_rows[0]['balance']
+        return user_balance >= cost
 
     @commands.command(aliases=["u"])
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
-    async def use(self, ctx:commands.Context, used_item):
-        '''Uses a certain item in your inventory'''
+    async def use(self, ctx:commands.Context, used_item: str):
+        """
+        Uses an item from your inventory.
+        """
 
         rarity_chances = {
             "cfb": {"common": .6689, "uncommon": .2230, "rare": .0743, "epic": .0248, "legendary": .0082, "mythic": .0008},
