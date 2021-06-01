@@ -126,14 +126,14 @@ class Fishing(commands.Cog):
                 await number_message.delete()
 
 
-    def create_fish_embed(ctx, field):
+    def create_fish_embed(self, ctx, field):
         embed = discord.Embed() # Create a new embed to edit the message
         embed.title = f"**{ctx.author.display_name}'s Fish Bucket**\n"
         embed.add_field(name=field[0], value=field[1], inline=False)
 
         return embed
 
-    def get_normal_name(fish_name):
+    def get_normal_name(self, fish_name):
         match = re.match(r"(inverted_|golden_)(?P<fish_name>.*)", fish_name)
         if match:
             return match.group("fish_name")
