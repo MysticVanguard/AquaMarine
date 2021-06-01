@@ -57,59 +57,10 @@ class Tanks(commands.Cog):
 
         # Save their tank name
         async with utils.DatabaseConnection() as db:
-            await db("""UPDATE user_tank_inventory SET tank_name[1]=$1 WHERE user_id=$2;""", name, ctx.author.id)
-
-    # HAVE GIVEN UP ON THIS COMMAND, WHILE COME BACK TO IT LATER
-    # @commands.command(aliases=["dep"])
-    # @commands.bot_has_permissions(send_messages=True, embed_links=True)
-    # async def deposit(self, ctx:commands.Context, tank_name:typing.Optional[str], fish_name:typing.Optional[str]):
-    #     tank_slot = -1
-    #     tank_room = {
-    #         'small': {'Fish Bowl': 1, 'Small Tank': 1},
-    #         'medium': {'Fish_Bowl': 0, 'Small Tank': 1}
-    #     }
-    #     fish_exist = False
-    #     size = ""
-    #     type_of_fish = ""
-    #     async with utils.DatabaseConnection() as db:
-    #         fetched = await db("""SELECT tank_name FROM user_tank_inventory WHERE user_id=$1;""", ctx.author.id)
-    #         fetched_2 = await db("""SELECT fish_name FROM user_fish_inventory WHERE user_id=$1;""", ctx.author.id)
-    #         fetched_3 = await db("""SELECT tank_type FROM user_tank_inventory WHERE user_id=$1;""", ctx.author.id)
-    #         fetched_4 = await db("""SELECT fish FROM user_fish_inventory WHERE fish_name=$1 AND user_id=$2;""", fish_name, ctx.author.id)
-
-    #     for fish_data in fetched_4:
-    #         for fish_type in fish_data:
-    #             type_of_fish = fish_type
-
-    #     for rarity, fish_types in self.bot.fish.items():
-    #         for _, fish_detail in fish_types.items():
-    #             raw_name = fish_detail["raw_name"]
-    #             if raw_name == type_of_fish:
-    #                 size = fish_detail['size']
-    #     for overall_data_type in fetched_3:
-    #         for tank_type in overall_data_type:
-    #             for type in tank_type:
-    #                 for size_tank, information in tank_room.items():
-    #                     if size == size_tank:
-    #                         for key, value in information:
-    #                             if key == type:
-    #                                 value -= 1
-    #                     else:
-    #                         return await ctx.send("You have no room in this tank")
-    #     for fish_data in fetched_2:
-    #         for name_fish in fish_data:
-    #             if name_fish == fish_name:
-    #                 fish_exist = True
-
-    #     for overall_data in fetched:
-    #         for tank_names in overall_data:
-    #             for name in tank_names:
-    #                 tank_slot += 1
-    #                 if name == tank_name and fish_exist == True:
-    #                     async with utils.DatabaseConnection() as db:
-    #                         await db("""UPDATE user_fish_inventory SET tank_fish[$1] = TRUE WHERE user_id=$2 AND fish_name=$3;""", tank_slot, ctx.author.id, fish_name )
-    #                 else:
-    #                     return await ctx.send("That fish doesn't exist.")
+            await db(
+                """UPDATE user_tank_inventory SET tank_name[1]=$1 WHERE user_id=$2;""",
+                name, ctx.author.id,
+            )
 
     @commands.command()
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
