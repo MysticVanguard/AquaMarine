@@ -25,7 +25,7 @@ CREATE TABLE user_item_inventory (
 
 CREATE TABLE user_tank_inventory (
   user_id BIGINT,
-  tank BOOLEAN[] NOT NULL DEFAULT '{FALSE,}',
+  tank BOOLEAN[] NOT NULL DEFAULT '{FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE}',
   tank_type text[] NOT NULL DEFAULT '{}',
   tank_name text[] NOT NULL DEFAULT '{}',
   PRIMARY KEY (user_id)
