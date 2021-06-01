@@ -15,30 +15,49 @@ class Tanks(commands.Cog):
         self.bot = bot
 
     @commands.command()
-    @commands.bot_has_permissions(send_messages=True, embed_links=True)
+    @commands.bot_has_permissions(send_messages=True)
     async def firsttank(self, ctx:commands.Context):
+        """
+        Gives your your first tank.
+        """
+
+        # See if they already have a tank
         async with utils.DatabaseConnection() as db:
             fetched = await db("""SELECT user_id FROM user_tank_inventory WHERE user_id=$1;""", ctx.author.id)
         if fetched:
             return await ctx.send("You have your first tank already!")
-        else:
-            async with utils.DatabaseConnection() as db:
-                await db("""INSERT INTO user_tank_inventory VALUES ($1, '{TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE}', '{"Fish Bowl"}', '{null}');""", ctx.author.id)
+
+        # Add a tank to the user
+        async with utils.DatabaseConnection() as db:
+            await db(
+                """INSERT INTO user_tank_inventory VALUES
+                ($1, '{TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE}',
+                '{"Fish Bowl"}', '{null}');""",
+                ctx.author.id,
+            )
+
+        # Ask the user what they want to name their tank
+        def check(message):
+            return all([
+                message.author == ctx.author,
+                message.channel == ctx.channel,
+                len(message.content) <= 32,
+            ])
         await ctx.send("What do you want to name your first tank? (32 character limit)")
-        check = lambda m: m.author == ctx.author and m.channel == ctx.channel and len(m.content) <= 32
-
         try:
-            name = await self.bot.wait_for("message", timeout=60.0, check=check)
-            name = name.content
-            return await ctx.send(f"You have your new tank, **{name}**!")
-
+            name_message = await self.bot.wait_for("message", timeout=60.0, check=check)
+            name = name_message.content
+            await ctx.send(f"You have your new tank, **{name}**!")
         except asyncio.TimeoutError:
             name = "Starter Tank"
-            return await ctx.send(f"Did you forget about me {ctx.author.mention}? I've been waiting for a while now! I'll name the tank for you. Let's call it **{name}**")
+            await ctx.send((
+                f"Did you forget about me {ctx.author.mention}? I've been waiting for a while "
+                f"now! I'll name the tank for you. Let's call it **{name}**"
+            ))
 
-        finally:
-            async with utils.DatabaseConnection() as db:
-                await db("""UPDATE user_tank_inventory SET tank_name[1] = $1 WHERE user_id = $2;""", name, ctx.author.id)
+        # Save their tank name
+        async with utils.DatabaseConnection() as db:
+            await db("""UPDATE user_tank_inventory SET tank_name[1]=$1 WHERE user_id=$2;""", name, ctx.author.id)
 
     # HAVE GIVEN UP ON THIS COMMAND, WHILE COME BACK TO IT LATER
     # @commands.command(aliases=["dep"])
@@ -95,6 +114,10 @@ class Tanks(commands.Cog):
     @commands.command()
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def testtank(self, ctx:commands.Context):
+        """
+        A test of the tank gifs.
+        """
+
         gif_length = [str(i) for i in range(1, 109)]
         move_x = -360
         move_y = random.randint(50, 150)
@@ -103,7 +126,8 @@ class Tanks(commands.Cog):
 
         path_of_fish = random.choices(
             ["common", "uncommon", "rare", "epic", "legendary", "mythic",],
-            [.6689, .2230, .0743, .0248, .0082, .0008,])[0]
+            [.6689, .2230, .0743, .0248, .0082, .0008,]
+        )[0]
         new_fish = random.choice(list(self.bot.fish[path_of_fish].values()))
         random_fish_path = f"C:/Users/JT/Pictures/Aqua{new_fish['image'][1:16]}normal_fish_size{new_fish['image'][20:]}"
 

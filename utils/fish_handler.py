@@ -1,53 +1,93 @@
 from utils.load_config import config
 from os import walk
 
-def fetch_fish(directory:str=config["assets"]["images"]["fish"]):
-    """Fetch fish given a directory."""
+
+def parse_fish_filename(filename: str) -> dict:
+    """
+    Parse a given fish filename into a dict of `modifier`, `rarity`, `cost`,
+    `raw_name`, and `name`.
+    """
+
+    # Initial filename splitterboi
+    filename = filename[:-4]  # Remove file extension
+    modifier = None
+    rarity, cost, *raw_name = filename.split("_")
+
+    # See if our fish name has a modifier on it
+    if rarity in ["inverted", "golden"]:
+        modifier, rarity, cost, raw_name = rarity, cost, raw_name[0], raw_name[1:]
+    raw_name = "_".join(raw_name)
+
+    # And we done
+    return {
+        "modifier": modifier,
+        "rarity": rarity,
+        "cost": cost,
+        "raw_name": raw_name,
+        "name": raw_name.replace("_", " ").title(),
+    }
+
+
+def fetch_fish(directory: str = config["assets"]["images"]["fish"]) -> dict:
+    """
+    Fetch all of the fish from a given directory.
+    """
+
+    # Set up a dict of fish the we want to append/return to
     fetched_fish = {
-        "common": {}, 
-        "uncommon": {}, 
+        "common": {},
+        "uncommon": {},
         "rare": {},
         "epic": {},
         "legendary": {},
         "mythic": {},
     }
-    
-    _, _, filenames = next(walk(directory))
-    for i in filenames:
-        splitted = i.split("_")
-        if splitted[0] in ['inverted','golden']:
-            continue
-        
-        try:
-            fish_name = " ".join(splitted[2:])[:-4]
-            fetched_fish[splitted[0]][fish_name] = {
-                "rarity": splitted[0],
-                "cost": int(splitted[1]),
-                "raw_name": "_".join(splitted[2:])[:-4],
-                "name": fish_name.title(),
-                "image": f"{directory}/{i}",
-            }
-            
-        except KeyError:
-            pass
 
-   
+    # Grab all the filenames from the given directory
+    _, _, fish_filenames = next(walk(directory))
+
+    # Go through each filename
+    for filename in fish_filenames:
+
+        # Add the fish to the dict
+        fish_data = parse_fish_filename(filename)
+        if fish_data['modifier']:
+            continue  # We don't care about inverted/golden fish here
+        fetched_fish[fish_data['rarity']][fish_data['name'].lower()] = {
+            "image": f"{directory}/{filename}",
+            **fish_data,
+        }
+
     return fetched_fish
-    
 
-def make_golden(fish:dict):
+
+def make_golden(fish: dict) -> dict:
+    """
+    Take the given fish and change the dict to make it golden.
+    """
+
     fish["raw_name"] = f"golden_{fish['raw_name']}"
     fish["name"] = f"Golden {fish['name']}"
     fish["image"] = fish["image"][:16] + "golden_" + fish["image"][16:]
     return fish
 
-def make_inverted(fish:dict):
+
+def make_inverted(fish: dict) -> dict:
+    """
+    Take the given fish and change the dict to make it inverted.
+    """
+
     fish["raw_name"] = f"inverted_{fish['raw_name']}"
     fish["name"] = f"Inverted {fish['name']}"
     fish["image"] = fish["image"][:16] + "inverted_" + fish["image"][16:]
     return fish
 
-def make_pure(fish:dict, special):
+
+def make_pure(fish: dict, special: str) -> dict:
+    """
+    Take the given fish and change the dict to make it pure.
+    """
+
     number = 0
     number_two = 16
     if special == "golden":
