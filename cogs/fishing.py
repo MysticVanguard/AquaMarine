@@ -126,7 +126,11 @@ class Fishing(commands.Cog):
 
                 await fish_message.edit(embed=self.create_fish_embed(user, curr_field))
                 await number_message.delete()
-                await user_message.delete()
+
+                try:
+                    await user_message.delete()
+                except Exception:
+                    pass
 
 
     def create_fish_embed(self, user, field):
