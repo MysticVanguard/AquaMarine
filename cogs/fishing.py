@@ -53,12 +53,12 @@ class Fishing(commands.Cog):
         fields = [] # The "pages" that the user can scroll through are the different rarity levels
 
         sorted_fish = {
-            "mythic": [],
-            "legendary": [],
-            "epic": [],
-            "rare": [],
+            "common": [],
             "uncommon": [],
-            "common": [] 
+            "rare": [],
+            "epic": [],
+            "legendary": [],
+            "mythic": []
         }
         
         # Sorted Fish will become a dictionary of {rarity: [list of fish names of fish in that category]} if the fish is in the user's inventory
@@ -66,7 +66,7 @@ class Fishing(commands.Cog):
             for _, fish_detail in fish_types.items(): # For each fish in that level
                 raw_name = fish_detail["raw_name"]
                 for user_fish_name, user_fish in fish_list:
-                    if raw_name == self.get_normal_name(user_fish_name): # If the name of a fish in the user's list matches the name of a fish in the rarity catgeory
+                    if raw_name == self.get_normal_name(user_fish): # If the fish in the user's list matches the name of a fish in the rarity catgeory
                         sorted_fish[rarity].append((user_fish_name, user_fish)) # Append to the dictionary
 
 
