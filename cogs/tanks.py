@@ -35,6 +35,6 @@ class tanks(commands.Cog):
         
         finally:
             async with utils.DatabaseConnection() as db:
-                await db("""UPDATE user_tank_inventory SET tank_name = '{"$1"}' WHERE user_id = $2;""", name, ctx.author.id)
+                await db("""UPDATE user_tank_inventory SET tank_name[1] = $1 WHERE user_id = $2;""", name, ctx.author.id)
 def setup(bot):
     bot.add_cog(tanks(bot))
