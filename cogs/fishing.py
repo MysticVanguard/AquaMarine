@@ -79,7 +79,7 @@ class Fishing(commands.Cog):
         # Create an embed
         curr_index = 1
         curr_field = fields[curr_index-1]
-        embed = self.create_fish_embed(ctx, curr_field)
+        embed = self.create_fish_embed(user, curr_field)
 
         fish_message = await ctx.send(embed=embed) 
 
@@ -99,13 +99,13 @@ class Fishing(commands.Cog):
                 curr_index = max(1, curr_index - 1) # Keep the index in bounds
                 curr_field = fields[curr_index-1]
 
-                await fish_message.edit(embed=self.create_fish_embed(ctx, curr_field))
+                await fish_message.edit(embed=self.create_fish_embed(user, curr_field))
 
             elif chosen_reaction == "▶️":
                 curr_index = min(len(fields), curr_index + 1) # Keep the index in bounds
                 curr_field = fields[curr_index-1]
 
-                await fish_message.edit(embed=self.create_fish_embed(ctx, curr_field))
+                await fish_message.edit(embed=self.create_fish_embed(user, curr_field))
 
             elif chosen_reaction == "⏹️":
                 [await fish_message.remove_reaction(reaction, ctx.guild.me) for reaction in valid_reactions] # Remove the pagination emojis
@@ -122,13 +122,13 @@ class Fishing(commands.Cog):
                 curr_index = min(len(fields), max(1, user_input))
                 curr_field = fields[curr_index-1]
 
-                await fish_message.edit(embed=self.create_fish_embed(ctx, curr_field))
+                await fish_message.edit(embed=self.create_fish_embed(user, curr_field))
                 await number_message.delete()
 
 
-    def create_fish_embed(ctx, field):
+    def create_fish_embed(user, field):
         embed = discord.Embed() # Create a new embed to edit the message
-        embed.title = f"**{ctx.author.display_name}'s Fish Bucket**\n"
+        embed.title = f"**{user.display_name}'s Fish Bucket**\n"
         embed.add_field(name=field[0], value=field[1], inline=False)
 
         return embed
