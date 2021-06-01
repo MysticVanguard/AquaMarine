@@ -9,26 +9,29 @@ from discord.ext import commands
 import utils
 
 
+FISH_SHOP_EMBED = discord.Embed(title="Fish Shop")
+FISH_SHOP_EMBED.add_field(name="Fish Bags", value="These are bags containing a fish of a random rarity", inline=False)
+FISH_SHOP_EMBED.add_field(name="Common Fish Bag", value="This gives you one fish with normal chances COST 50", inline=True)
+FISH_SHOP_EMBED.add_field(name="Uncommon Fish Bag", value="This gives you one fish with increased chances COST 100", inline=True)
+FISH_SHOP_EMBED.add_field(name="Rare Fish Bag", value="This gives you one fish with higher chances COST 200", inline=True)
+FISH_SHOP_EMBED.add_field(name="Epic Fish Bag", value="This gives you one fish with substantially better chances COST 400", inline=True)
+FISH_SHOP_EMBED.add_field(name="Legendary Fish Bag", value="This gives you one fish with extremely better chances COST 500", inline=True)
+FISH_SHOP_EMBED.add_field(name="Mystery Fish Bag", value="This gives you one bag of a random rarity COST 250", inline=True)
+
+
 class Shop(commands.Cog):
 
-    def __init__(self, bot:commands.AutoShardedBot):
+    def __init__(self, bot: commands.AutoShardedBot):
         self.bot = bot
 
     @commands.command(aliases=["s"])
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
-    async def shop(self, ctx:commands.Context):
-        '''Shows embed full of shop information'''
+    async def shop(self, ctx: commands.Context):
+        """
+        Shows embed full of shop information.
+        """
 
-        embed = discord.Embed()
-        embed.title = "Fish Shop"
-        embed.add_field(name="Fish Bags", value="These are bags containing a fish of a random rarity", inline=False)
-        embed.add_field(name="Common Fish Bag", value="This gives you one fish with normal chances COST 50", inline=True)
-        embed.add_field(name="Uncommon Fish Bag", value="This gives you one fish with increased chances COST 100", inline=True)
-        embed.add_field(name="Rare Fish Bag", value="This gives you one fish with higher chances COST 200", inline=True)
-        embed.add_field(name="Epic Fish Bag", value="This gives you one fish with substantially better chances COST 400", inline=True)
-        embed.add_field(name="Legendary Fish Bag", value="This gives you one fish with extremely better chances COST 500", inline=True)
-        embed.add_field(name="Mystery Fish Bag", value="This gives you one bag of a random rarity COST 250", inline=True)
-        await ctx.send(embed=embed)
+        await ctx.send(embed=FISH_SHOP_EMBED)
 
     @commands.command(aliases=["b"])
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
