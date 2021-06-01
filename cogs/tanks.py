@@ -20,7 +20,7 @@ class tanks(commands.Cog):
             return await ctx.send(f"You have your first tank already!")
         else: 
             async with utils.DatabaseConnection() as db:
-                await db("""INSERT INTO user_fish_inventory VALUES ($1, '{TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE}', '{"Fish Bowl"}');""", ctx.author.id)
+                await db("""INSERT INTO user_tank_inventory VALUES ($1, '{TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE}', '{"Fish Bowl"}', '{null}');""", ctx.author.id)
         await ctx.send("What do you want to name your first tank? (32 character limit)")
         check = lambda m: m.author == ctx.author and m.channel == ctx.channel and len(m.content) <= 32
 
@@ -35,6 +35,6 @@ class tanks(commands.Cog):
         
         finally:
             async with utils.DatabaseConnection() as db:
-                await db("""UPDATE user_tank_inventory SET tank_1_name = '{$1}' WHERE user_id = $2;""", name, ctx.author.id)
+                await db("""UPDATE user_tank_inventory SET tank_name = '{"$1"}' WHERE user_id = $2;""", name, ctx.author.id)
 def setup(bot):
     bot.add_cog(tanks(bot))
