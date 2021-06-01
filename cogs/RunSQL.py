@@ -1,7 +1,10 @@
+import io
+
 import discord
 from discord.ext import commands
-import io
+
 import utils
+
 
 class RunSQL(commands.Cog):
 
@@ -53,7 +56,6 @@ class RunSQL(commands.Cog):
         except discord.HTTPException:
             file = discord.File(io.StringIO(string_output), filename="runsql.txt")
             await ctx.send(file=file)
-    
 
 
 def setup(bot):
