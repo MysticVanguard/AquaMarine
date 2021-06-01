@@ -28,27 +28,29 @@ class Fishing(commands.Cog):
     
     @commands.command(aliases=["bucket"])
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
-    async def fishbucket(self, ctx:commands.Context, target:typing.Optional[typing.Union[discord.Member, int]]=1, page_number:typing.Optional[int]=1):  
-        '''Checks the users or a members fish bucket'''      
-        if isinstance(target, discord.Member):
-            user = target
-            page = page_number
-        elif isinstance(target, int):
-            user = ctx.author
-            page = target
+    async def fishbucket(self, ctx:commands.Context, user:discord.User=None):  
+        '''Shows a user's fish bucket'''   
+
+        # Default the user to the author of the command
+        user = user or ctx.author
         
         async with utils.DatabaseConnection() as db:
-            fetched = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1""", user.id)
-        if not fetched:
+            fish_rows = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1""", user.id)
+            
+        if not fish_rows:
             return await ctx.send("You have no fish in your bucket!" if user == ctx.author else f"{user.display_name} has no fish in their bucket!")
 
-        totalpages = len(fetched) // 5 + (len(fetched) % 5 > 0)
-        if page < 1 or page > totalpages:
-            return await ctx.send("That page is doesn't exist.")
+        # totalpages = len(fetched) // 5 + (len(fetched) % 5 > 0)
+        # if page < 1 or page > totalpages:
+        #     return await ctx.send("That page is doesn't exist.")
         
         embed = discord.Embed()
-        embed.title = f"{user.display_name}'s fish bucket"
-        embed.set_footer(text=f"page {page}/{totalpages}")
+        embed.title = f"{user.display_name}'s Fish Bucket"
+        # embed.set_footer(text=f"page {page}/{totalpages}")
+
+        fish_list = [({i['fish_name']}, {i['fish']}) for i in fish_rows] # List of tuples (Fish Name, Fish Type)
+
+        fields = [] # The "pages" that the user can scroll through are the different rarity levels
 
         sorted_fish = {
             "mythic": [],
@@ -58,36 +60,85 @@ class Fishing(commands.Cog):
             "uncommon": [],
             "common": [] 
         }
-        user_fish_sorted = {
-             "mythic": [],
-            "legendary": [],
-            "epic": [],
-            "rare": [],
-            "uncommon": [],
-            "common": [] 
-        } 
+        
+        # Sorted Fish will become a dictionary of {rarity: [list of fish names of fish in that category]} if the fish is in the user's inventory
+        for rarity, fish_types in self.bot.fish.items(): # For each rarity level
+            for _, fish_detail in fish_types.items(): # For each fish in that level
+                raw_name = fish_detail["raw_name"]
+                for _, user_fish_name in fish_list:
+                    if raw_name == self.get_normal_name(user_fish_name): # If the name of a fish in the user's list matches the name of a fish in the rarity catgeory
+                        sorted_fish[rarity].append(user_fish_name) # Append to the dictionary
 
-        for rarity, fish_type in self.bot.fish.items():
-            for fish_name_big, categories in fish_type.items():
-                for category_big, value in categories.items():
-                    if category_big == 'rarity':
-                        sorted_fish[categories['rarity']].append(categories['raw_name'])
-        for category in fetched:
-            for rarity, name_fish in sorted_fish.items():
-                print(name_fish)
-                if category['fish'] in name_fish or category['fish'][7:] in name_fish or category['fish'][9:] in name_fish:
-                    user_fish_sorted[rarity].append([category['fish'], category['fish_name']])
-                #print(user_fish_sorted[rarity])
-        fish_names_final = []
-        for rarity_block, names in user_fish_sorted.items():
-            for fish_named in names:
-                fish_names_final.append(fish_named)
-        for x in fish_names_final[page*5-5:page*5]:
-            for rarity_block, names in user_fish_sorted.items():
-                    if x in names:
-                        needed_rarity = rarity_block
-            embed.add_field(name=f"{x[1]} ({needed_rarity})", value=f"This fish is a **{' '.join(x[0].split('_')).title()}**", inline=False)
-        await ctx.send(embed=embed)
+
+        # Get the display string for each field
+        for rarity, fish_list in sorted_fish.items():
+            if fish_list:
+                fish_string = [f"\"{fish_name}\": **{' '.join(fish_type.split('_')).title()}**" for fish_name, fish_type in fish_list]
+                fields.append((rarity.title(), "\n".join(fish_string)))
+
+        # Create an embed
+        curr_index = 1
+        curr_field = fields[curr_index-1]
+        embed = self.create_fish_embed(ctx, curr_field)
+
+        fish_message = await ctx.send(embed=embed) 
+
+        valid_reactions = ["◀️", "▶️", "⏹️", "🔢"]
+        [await fish_message.add_reaction(reaction) for reaction in valid_reactions] # Add the pagination reactions to the message
+
+        def reaction_check(reaction, user):
+            return user == ctx.author and str(reaction.emoji) in valid_reactions and reaction.message == fish_message
+        
+        while True: # Keep paginating until the user clicks stop
+            try:
+                chosen_reaction, _ = await self.bot.wait_for('reaction_add', timeout=60.0, check=reaction_check)
+            except asyncio.TimeoutError:
+                chosen_reaction = "⏹️"
+
+            if chosen_reaction == "◀️":
+                curr_index = max(1, curr_index - 1) # Keep the index in bounds
+                curr_field = fields[curr_index-1]
+
+                await fish_message.edit(embed=self.create_fish_embed(ctx, curr_field))
+
+            elif chosen_reaction == "▶️":
+                curr_index = min(len(fields), curr_index + 1) # Keep the index in bounds
+                curr_field = fields[curr_index-1]
+
+                await fish_message.edit(embed=self.create_fish_embed(ctx, curr_field))
+
+            elif chosen_reaction == "⏹️":
+                [await fish_message.remove_reaction(reaction, ctx.guild.me) for reaction in valid_reactions] # Remove the pagination emojis
+                break # End the while loop
+
+            elif chosen_reaction == "🔢":
+                number_message = await ctx.send(f"What page would you like to go to? (1-{len(fields)}) ")
+                # Check for custom message
+                def message_check(message):
+                    return user == ctx.author and message.channel == fish_message.channel and message.content.isdigit()
+
+                user_input = int((await self.bot.wait_for('message', check=message_check)).content)
+
+                curr_index = min(len(fields), max(1, user_input))
+                curr_field = fields[curr_index-1]
+
+                await fish_message.edit(embed=self.create_fish_embed(ctx, curr_field))
+                await number_message.delete()
+
+
+    def create_fish_embed(ctx, field):
+        embed = discord.Embed() # Create a new embed to edit the message
+        embed.title = f"**{ctx.author.display_name}'s Fish Bucket**\n"
+        embed.add_field(name=field[0], value=field[1], inline=False)
+
+        return embed
+
+    def get_normal_name(fish_name):
+        match = re.match(r"(inverted_|golden_)(?P<fish_name>.*)", fish_name)
+        if match:
+            return match.group("fish_name")
+        else:
+            return fish_name
 
     @commands.command()
     @commands.cooldown(1, 1800, commands.BucketType.user)
