@@ -165,6 +165,7 @@ class Fishing(commands.Cog):
             ["normal", "inverted", "golden",],
             [.94, .05, .01])[0]
         new_fish = random.choice(list(self.bot.fish[rarity].values()))
+        print(new_fish)
         amount = 0
         owned_unowned = "Owned"
         if special == "normal":

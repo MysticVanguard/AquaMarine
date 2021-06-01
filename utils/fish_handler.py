@@ -25,7 +25,7 @@ def fetch_fish(directory:str=config["assets"]["images"]["fish"]):
                 "cost": int(splitted[1]),
                 "raw_name": "_".join(splitted[2:])[:-4],
                 "name": fish_name.title(),
-                "image": f"{directory}/{i}"
+                "image": f"{directory}/{i}",
             }
             
         except KeyError:
