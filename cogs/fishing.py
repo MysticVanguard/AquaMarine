@@ -116,7 +116,7 @@ class Fishing(commands.Cog):
                 number_message = await ctx.send(f"What page would you like to go to? (1-{len(fields)}) ")
                 # Check for custom message
                 def message_check(message):
-                    return user == ctx.author and message.channel == fish_message.channel and message.content.isdigit()
+                    return message.author == ctx.author and message.channel == fish_message.channel and message.content.isdigit()
 
                 user_message = await self.bot.wait_for('message', check=message_check)
                 user_input = int(user_message.content)
