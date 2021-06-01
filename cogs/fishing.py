@@ -92,6 +92,7 @@ class Fishing(commands.Cog):
         while True: # Keep paginating until the user clicks stop
             try:
                 chosen_reaction, _ = await self.bot.wait_for('reaction_add', timeout=60.0, check=reaction_check)
+                chosen_reaction = chosen_reaction.emoji
             except asyncio.TimeoutError:
                 chosen_reaction = "⏹️"
 
@@ -129,7 +130,7 @@ class Fishing(commands.Cog):
     def create_fish_embed(self, user, field):
         embed = discord.Embed() # Create a new embed to edit the message
         embed.title = f"**{user.display_name}'s Fish Bucket**\n"
-        embed.add_field(name=field[0], value=field[1], inline=False)
+        embed.add_field(name=f"__{field[0]}__", value=field[1], inline=False)
 
         return embed
 
