@@ -65,9 +65,9 @@ class Fishing(commands.Cog):
         for rarity, fish_types in self.bot.fish.items(): # For each rarity level
             for _, fish_detail in fish_types.items(): # For each fish in that level
                 raw_name = fish_detail["raw_name"]
-                for _, user_fish_name in fish_list:
+                for user_fish_name, user_fish in fish_list:
                     if raw_name == self.get_normal_name(user_fish_name): # If the name of a fish in the user's list matches the name of a fish in the rarity catgeory
-                        sorted_fish[rarity].append(user_fish_name) # Append to the dictionary
+                        sorted_fish[rarity].append((user_fish_name, user_fish)) # Append to the dictionary
 
 
         # Get the display string for each field
