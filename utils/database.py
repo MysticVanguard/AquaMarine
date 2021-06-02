@@ -1,6 +1,7 @@
 from utils.load_config import config
 import asyncpg
 
+
 class DatabaseConnection:
 
     def __init__(self, conn=None):
