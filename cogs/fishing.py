@@ -219,7 +219,7 @@ class Fishing(commands.Cog):
         self.current_fishers.append(ctx.author.id)
 
         # See what our chances of getting each fish are
-        rarity = random.choices(utils.RARITY_PERCENTAGE_LIST)[0]  # Chance of each rarity
+        rarity = random.choices(*utils.RARITY_PERCENTAGE_LIST)[0]  # Chance of each rarity
         special = random.choices(
             ["normal", "inverted", "golden",],
             [.94, .05, .01]
