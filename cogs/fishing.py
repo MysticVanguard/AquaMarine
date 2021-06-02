@@ -48,7 +48,7 @@ class Fishing(commands.Cog):
         # Get their current fish names
         fish_names = []
         async with utils.DatabaseConnection() as db:
-            fish_rows = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1""", ctx.author.id)
+            fish_rows = await db("""SELECT * FROM user_fish_inventory WHERE user_id=$1""", user.id)
         fish_names = [i['fish_name'] for i in fish_rows]
 
         # They want to keep - ask what they want to name the fish
