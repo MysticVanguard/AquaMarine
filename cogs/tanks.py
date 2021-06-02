@@ -74,21 +74,21 @@ class Tanks(commands.Cog):
         move_y = random.randint(50, 150)
         files = []
 
-        path_of_fish = random.choices(utils.RARITY_PERCENTAGE_LIST)[0]
+        path_of_fish = random.choices(*utils.RARITY_PERCENTAGE_LIST)[0]
         new_fish = random.choice(list(self.bot.fish[path_of_fish].values())).copy()
         random_fish_path = f"C:/Users/JT/Pictures/Aqua{new_fish['image'][1:16]}normal_fish_size{new_fish['image'][20:]}"
         file_prefix = "C:/Users/JT/Pictures/Aqua/assets/images"
         gif_filename = f'{file_prefix}/gifs/actual_gifs/testtank.gif'
 
-        # Open our background and foreground images
+        # Open our constant images
         background = Image.open(f"{file_prefix}/background/aqua_background_medium.png")
         foreground = Image.open(f"{file_prefix}/background/medium_tank_2D.png")
+        fish = Image.open(random_fish_path)
 
         # For each frame of the gif...
         for _ in range(108):
 
             # Add a fish to the background image
-            fish = Image.open(random_fish_path)
             this_background = background.copy()
             this_background.paste(fish, (move_x, move_y), fish)
             this_background.paste(foreground, (0, 0), foreground)
@@ -103,7 +103,6 @@ class Tanks(commands.Cog):
             move_x += 10
             if move_x > 720:
                 move_x = -360
-                print(move_x)
 
         # Save the image sequence to a gif
         image_handles = [imageio.imread(i) for i in files]
