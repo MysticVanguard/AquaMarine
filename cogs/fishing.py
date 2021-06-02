@@ -11,7 +11,7 @@ import utils
 
 class Fishing(commands.Cog):
 
-    def __init__(self, bot:commands.AutoShardedBot):
+    def __init__(self, bot: commands.AutoShardedBot):
         self.bot = bot
         self.current_fishers = []
 
@@ -71,8 +71,10 @@ class Fishing(commands.Cog):
 
     @commands.command(aliases=["bal"])
     @commands.bot_has_permissions(send_messages=True)
-    async def balance(self, ctx:commands.Context, user:typing.Optional[discord.Member]):
-        '''Checks the users or a member's balance'''
+    async def balance(self, ctx: commands.Context, user: typing.Optional[discord.Member]):
+        """
+        Checks the user or member's balance.
+        """
 
         async with utils.DatabaseConnection() as db:
             if user:
@@ -84,7 +86,7 @@ class Fishing(commands.Cog):
 
     @commands.command(aliases=["bucket"])
     @commands.bot_has_permissions(send_messages=True, embed_links=True, manage_messages=True)
-    async def fishbucket(self, ctx:commands.Context, user:discord.User=None):
+    async def fishbucket(self, ctx: commands.Context, user: discord.User = None):
         """
         Shows a user's fish bucket.
         """
@@ -206,7 +208,7 @@ class Fishing(commands.Cog):
     @commands.command()
     @commands.cooldown(1, 30 * 60, commands.BucketType.user)
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
-    async def fish(self, ctx:commands.Context):
+    async def fish(self, ctx: commands.Context):
         """
         Fishes for a fish.
         """
@@ -258,43 +260,63 @@ class Fishing(commands.Cog):
 
     @fish.error
     async def fish_error(self, ctx, error):
-        time = error.retry_after
-        form = 'seconds'
-        if error.retry_after < 1.5:
-            form = 'second'
-        if error.retry_after > 3600:
-            time = error.retry_after / 3600
-            form = 'hours'
-            if error.retry_after < 5400:
-                form = 'hour'
-        elif error.retry_after > 60:
-            time = error.retry_after / 60
-            form = 'minutes'
-            if error.retry_after < 90:
-                form = 'minute'
-        if isinstance(error, commands.CommandOnCooldown):
-            msg = f'The fish are scared, please try again in {round(time)} {form}.'
-            await ctx.send(msg)
-        else:
+
+        # Only handle cooldown errors
+        if not isinstance(error, commands.CommandOnCooldown):
             raise error
 
+        time = error.retry_after
+        if 5_400 > time >= 3_600:
+            form = 'hour'
+            time /= 60 * 60
+        elif time > 3_600:
+            form = 'hours'
+            time /= 60 * 60
+        elif 90 > time >= 60:
+            form = 'minute'
+            time /= 60
+        elif time >= 60:
+            form = 'minutes'
+            time /= 60
+        elif time < 1.5:
+            form = 'second'
+        else:
+            form = 'seconds'
+        await ctx.send(f'The fish are scared, please try again in {round(time)} {form}.')
+
     @commands.command()
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
-    async def rename(self, ctx:commands.Context, old, new):
-        '''Rename's your fish'''
+    async def rename(self, ctx: commands.Context, old: str, new: str):
+        """
+        Renames your fish.
+        """
 
         async with utils.DatabaseConnection() as db:
-            await db("""UPDATE user_fish_inventory SET fish_name = $1 WHERE user_id = $2 and fish_name = $3""", new, ctx.author.id, old)
-        await ctx.send(f"Congratulations, you have renamed {old} to {new}!")
+            await db(
+                """UPDATE user_fish_inventory SET fish_name=$1 WHERE user_id=$2 and fish_name=$3""",
+                new, ctx.author.id, old,
+            )
+        await ctx.send(
+            f"Congratulations, you have renamed {old} to {new}!",
+            allowed_mentions=discord.AllowedMentions.none(),
+        )
 
     @commands.command()
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
-    async def release(self, ctx:commands.Context, name):
-        '''Releases fish back into the wild'''
+    async def release(self, ctx: commands.Context, name: str):
+        """
+        Releases fish back into the wild.
+        """
 
         async with utils.DatabaseConnection() as db:
-            await db("""DELETE FROM user_fish_inventory WHERE fish_name = $1 and user_id = $2""", name, ctx.author.id)
-        await ctx.send(f"Goodbye {name}!")
+            await db(
+                """DELETE FROM user_fish_inventory WHERE fish_name=$1 and user_id=$2""",
+                name, ctx.author.id,
+            )
+        await ctx.send(
+            f"Goodbye {name}!",
+            allowed_mentions=discord.AllowedMentions.none(),
+        )
 
 
 def setup(bot):
