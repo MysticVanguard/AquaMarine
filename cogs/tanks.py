@@ -1,5 +1,6 @@
 import random
 import asyncio
+import io
 
 import discord
 from discord.ext import commands
@@ -69,38 +70,47 @@ class Tanks(commands.Cog):
         A test of the tank gifs.
         """
 
-        gif_length = [str(i) for i in range(1, 109)]
         move_x = -360
         move_y = random.randint(50, 150)
-        filenames = []
-        images = []
+        files = []
 
         path_of_fish = random.choices(utils.RARITY_PERCENTAGE_LIST)[0]
-        new_fish = random.choice(list(self.bot.fish[path_of_fish].values()))
+        new_fish = random.choice(list(self.bot.fish[path_of_fish].values())).copy()
         random_fish_path = f"C:/Users/JT/Pictures/Aqua{new_fish['image'][1:16]}normal_fish_size{new_fish['image'][20:]}"
         file_prefix = "C:/Users/JT/Pictures/Aqua/assets/images"
+        gif_filename = f'{file_prefix}/gifs/actual_gifs/testtank.gif'
 
-        for x in gif_length:
-            filename_image = f"/gifs/images/test_tank{int(x)}.png"
-            background = Image.open(f"{file_prefix}/background/aqua_background_medium.png")
-            fishes = Image.open(random_fish_path)
-            foreground = Image.open(f"{file_prefix}/background/medium_tank_2D.png")
+        # Open our background and foreground images
+        background = Image.open(f"{file_prefix}/background/aqua_background_medium.png")
+        foreground = Image.open(f"{file_prefix}/background/medium_tank_2D.png")
 
-            background.paste(fishes, (move_x, move_y), fishes)
-            background.paste(foreground, (0, 0), foreground)
-            background.save(f"{file_prefix}{filename_image}")
+        # For each frame of the gif...
+        for _ in range(108):
 
-            filenames.append(filename_image)
+            # Add a fish to the background image
+            fish = Image.open(random_fish_path)
+            this_background = background.copy()
+            this_background.paste(fish, (move_x, move_y), fish)
+            this_background.paste(foreground, (0, 0), foreground)
+
+            # Save the generated image to memory
+            with io.BytesIO() as f:
+                this_background.save(f, format="PNG")
+            f.seek(0)
+            files.append(f)
+
+            # Move fish
             move_x += 10
             if move_x > 720:
                 move_x = -360
                 print(move_x)
 
-        for filename in filenames:
-            images.append(imageio.imread(filename))
-            imageio.mimsave(f'{file_prefix}/gifs/actual_gifs/testtank.gif', images)
+        # Save the image sequence to a gif
+        image_handles = [imageio.imread(i) for i in files]
+        imageio.mimsave(gif_filename, image_handles)
 
-        await ctx.send(file=discord.File(f'{file_prefix}/gifs/actual_gifs/testtank.gif'))
+        # Send gif to Discord
+        await ctx.send(file=discord.File(gif_filename))
 
 
 def setup(bot):
