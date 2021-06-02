@@ -15,6 +15,14 @@ RARITY_PERCENTAGE_LIST = [
     list(i[0] for i in _RARITY_PERCENTAGES),
     list(i[1] for i in _RARITY_PERCENTAGES),
 ]  # A nested list of `[[...rarity], [...percentage]]`
+RARITY_CULERS = {
+    "common": 0xFFFFFE,  # White - FFFFFF doesn't work with Discord
+    "uncommon": 0x75FE66,  # Green
+    "rare": 0x4AFBEF,  # Blue
+    "epic": 0xE379FF,  # Light Purple
+    "legendary": 0xFFE80D,  # Gold
+    "mythic": 0xFF0090  # Hot Pink
+}
 
 
 def parse_fish_filename(filename: str) -> dict:

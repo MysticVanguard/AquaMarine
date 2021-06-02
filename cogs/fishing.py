@@ -15,6 +15,60 @@ class Fishing(commands.Cog):
         self.bot = bot
         self.current_fishers = []
 
+    async def ask_to_sell_fish(self, user: discord.User, message: discord.Message, new_fish: dict):
+        """
+        Ask the user if they want to sell a fish they've been given.
+        """
+
+        # Add the emojis to the message
+        emojis = [844594478392147968, 844594468580491264]
+        for i in emojis:
+            await message.add_reaction(self.bot.get_emoji(i))
+
+        # See what reaction the user is adding to the message
+        check = lambda reaction, user: reaction.emoji.id in emojis and user.id == user.id and reaction.message.id == message.id
+        try:
+            reaction, _ = await self.bot.wait_for("reaction_add", timeout=60.0, check=check)
+            choice = "sell" if reaction.emoji.id == 844594478392147968 else "keep"
+        except asyncio.TimeoutError:
+            await message.channel.send("Did you forget about me? I've been waiting for a while now! I'll just assume you wanted to sell the fish.")
+            choice = "sell"
+
+        # See if they want to sell the fish
+        if choice == "sell":
+            async with utils.DatabaseConnection() as db:
+                await db(
+                    """INSERT INTO user_balance (user_id, balance) VALUES ($1, $2)
+                    ON CONFLICT (user_id) DO UPDATE SET balance = user_balance.balance + $2""",
+                    user.id, new_fish["cost"],
+                )
+            await message.channel.send(f"Sold your **{new_fish['name']}** for **{new_fish['cost']}**!")
+            return
+
+        # Get their current fish names
+        fish_names = []
+        async with utils.DatabaseConnection() as db:
+            fish_rows = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1""", ctx.author.id)
+        fish_names = [i['fish_name'] for i in fish_rows]
+
+        # They want to keep - ask what they want to name the fish
+        await message.channel.send("What do you want to name your new fish? (32 character limit and cannot be named the same as another fish you own)")
+        check = lambda m: m.author == user and m.channel == message.channel and len(m.content) <= 32 and m.content not in fish_names
+        try:
+            name_message = await self.bot.wait_for("message", timeout=60.0, check=check)
+            name = name_message.content
+            await message.channel.send(f"Your new fish **{name}** has been added to your bucket!")
+        except asyncio.TimeoutError:
+            name = f"{random.choice(['Captain', 'Mr.', 'Mrs.', 'Commander'])} {random.choice(['Nemo', 'Bubbles', 'Jack', 'Finley', 'Coral'])}"
+            await message.channel.send(f"Did you forget about me? I've been waiting for a while now! I'll name the fish for you. Let's call it **{name}**")
+
+        # Save the fish name
+        async with utils.DatabaseConnection() as db:
+            await db(
+                """INSERT INTO user_fish_inventory (user_id, fish, fish_name) VALUES ($1, $2, $3)""",
+                user.id, new_fish["raw_name"], name,
+            )
+
     @commands.command(aliases=["bal"])
     @commands.bot_has_permissions(send_messages=True)
     async def balance(self, ctx:commands.Context, user:typing.Optional[discord.Member]):
@@ -29,9 +83,11 @@ class Fishing(commands.Cog):
             return await ctx.send(f"You have {fetched[0]['balance']} money!" if fetched else "You have no money!")
 
     @commands.command(aliases=["bucket"])
-    @commands.bot_has_permissions(send_messages=True, embed_links=True)
+    @commands.bot_has_permissions(send_messages=True, embed_links=True, manage_messages=True)
     async def fishbucket(self, ctx:commands.Context, user:discord.User=None):
-        '''Shows a user's fish bucket'''
+        """
+        Shows a user's fish bucket.
+        """
 
         # Default the user to the author of the command
         user = user or ctx.author
@@ -80,7 +136,7 @@ class Fishing(commands.Cog):
 
         # Create an embed
         curr_index = 1
-        curr_field = fields[curr_index-1]
+        curr_field = fields[curr_index - 1]
         embed = self.create_fish_embed(user, curr_field)
 
         fish_message = await ctx.send(embed=embed)
@@ -100,18 +156,18 @@ class Fishing(commands.Cog):
 
             if chosen_reaction == "◀️":
                 curr_index = max(1, curr_index - 1)  # Keep the index in bounds
-                curr_field = fields[curr_index-1]
+                curr_field = fields[curr_index - 1]
 
                 await fish_message.edit(embed=self.create_fish_embed(user, curr_field))
 
             elif chosen_reaction == "▶️":
                 curr_index = min(len(fields), curr_index + 1)  # Keep the index in bounds
-                curr_field = fields[curr_index-1]
+                curr_field = fields[curr_index - 1]
 
                 await fish_message.edit(embed=self.create_fish_embed(user, curr_field))
 
             elif chosen_reaction == "⏹️":
-                [await fish_message.remove_reaction(reaction, ctx.guild.me) for reaction in valid_reactions]  # Remove the pagination emojis
+                await fish_message.clear_reactions()
                 break  # End the while loop
 
             elif chosen_reaction == "🔢":
@@ -125,7 +181,7 @@ class Fishing(commands.Cog):
                 user_input = int(user_message.content)
 
                 curr_index = min(len(fields), max(1, user_input))
-                curr_field = fields[curr_index-1]
+                curr_field = fields[curr_index - 1]
 
                 await fish_message.edit(embed=self.create_fish_embed(user, curr_field))
                 await number_message.delete()
@@ -148,105 +204,57 @@ class Fishing(commands.Cog):
         return fish_name
 
     @commands.command()
-    @commands.cooldown(1, 1800, commands.BucketType.user)
+    @commands.cooldown(1, 30 * 60, commands.BucketType.user)
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def fish(self, ctx:commands.Context):
-        '''Fishes for a fish'''
+        """
+        Fishes for a fish.
+        """
 
+        # Make sure they can't fish twice
         if ctx.author.id in self.current_fishers:
             return await ctx.send(f"{ctx.author.display_name}, you're already fishing!")
-
         self.current_fishers.append(ctx.author.id)
 
-        rarity = random.choices(
-            ["common", "uncommon", "rare", "epic", "legendary", "mythic",],
-            [.6689, .2230, .0743, .0248, .0082, .0008,])[0]
+        # See what our chances of getting each fish are
+        rarity = random.choices(utils.RARITY_PERCENTAGE_LIST)[0]  # Chance of each rarity
         special = random.choices(
             ["normal", "inverted", "golden",],
-            [.94, .05, .01])[0]
-        new_fish = random.choice(list(self.bot.fish[rarity].values()))
-        print(new_fish)
-        amount = 0
-        owned_unowned = "Owned"
-        if special == "normal":
-            pass
-        elif special == "inverted":
+            [.94, .05, .01]
+        )[0]  # Chance of modifier
+
+        # See which fish they caught
+        new_fish = random.choice(list(self.bot.fish[rarity].values())).copy()
+        if special == "inverted":
             new_fish = utils.make_inverted(new_fish)
         elif special == "golden":
             new_fish = utils.make_golden(new_fish)
+
+        # Say how many of those fish they caught previously
+        amount = 0
+        owned_unowned = "Owned"
         a_an = "an" if rarity[0].lower() in ("a", "e", "i", "o", "u") else "a"
         async with utils.DatabaseConnection() as db:
-            fetched = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1""", ctx.author.id)
-        for i in fetched:
-            if i[1] == new_fish['raw_name']:
+            user_inventory = await db("""SELECT * FROM user_fish_inventory WHERE user_id=$1""", ctx.author.id)
+        for row in user_inventory:
+            if row['fish'] == new_fish['raw_name']:
                 amount = amount + 1
-        if amount == 0:
-            owned_unowned = "Unowned"
+                owned_unowned = "Unowned"
+
+        # Tell the user about the fish they caught
         embed = discord.Embed()
         embed.title = f"You caught {a_an} {rarity} {new_fish['name']}!"
         embed.add_field(name=owned_unowned, value=f"You have {amount} {new_fish['name']}", inline=False)
         embed.set_image(url="attachment://new_fish.png")
-        # Choose a color
-        embed.color = {
-            # 0xHexCode
-            "common": 0xFFFFFE,  # White - FFFFFF doesn't work with Discord
-            "uncommon": 0x75FE66,  # Green
-            "rare": 0x4AFBEF,  # Blue
-            "epic": 0xE379FF,  # Light Purple
-            "legendary": 0xFFE80D,  # Gold
-            "mythic": 0xFF0090  # Hot Pink
-        }[rarity]
-
+        embed.color = utils.RARITY_CULERS[rarity]
         fish_file = discord.File(new_fish["image"], "new_fish.png")
         message = await ctx.send(file=fish_file, embed=embed)
 
-        emojis = [844594478392147968, 844594468580491264]
-        gen = (x for x in self.bot.emojis if x.id in emojis)
-        for i in gen:
-            await message.add_reaction(i)
+        # Ask if they want to sell the fish they just caught
+        await self.ask_to_sell_fish(ctx.author, message, new_fish)
 
-        check = lambda reaction, user: reaction.emoji.id in emojis and user.id == ctx.author.id and reaction.message.id == message.id
-        try:
-            choice = await self.bot.wait_for("reaction_add", timeout=60.0, check=check)
-            choice = "sell" if choice[0].emoji.id == 844594478392147968 else "keep"
-        except asyncio.TimeoutError:
-            await ctx.send(f"Did you forget about me {ctx.author.mention}? I've been waiting for a while now! I'll just assume you wanted to sell the fish.")
-            choice = "sell"
-
-        if choice == "sell":
-            async with utils.DatabaseConnection() as db:
-                await db("""
-                    INSERT INTO user_balance (user_id, balance) VALUES ($1, $2)
-                    ON CONFLICT (user_id) DO UPDATE SET balance = user_balance.balance + $2;
-                    """, ctx.author.id, new_fish["cost"])
-            self.current_fishers.remove(ctx.author.id)
-            await ctx.send(f"Sold your **{new_fish['name']}** for **{new_fish['cost']}**!")
-            return utils.make_pure(new_fish, special)
-
-        fish_names = []
-        async with utils.DatabaseConnection() as db:
-            fetched = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1""", ctx.author.id)
-        for i in fetched:
-            fish_names.append(i[2])
-        print(fish_names)
-
-        await ctx.send("What do you want to name your new fish? (32 character limit and cannot be named the same as another fish you own)")
-        check = lambda m: m.author == ctx.author and m.channel == ctx.channel and len(m.content) <= 32 and m.content not in fish_names
-
-        try:
-            name = await self.bot.wait_for("message", timeout=60.0, check=check)
-            name = name.content
-            return await ctx.send(f"Your new fish **{name}** has been added to your bucket!")
-
-        except asyncio.TimeoutError:
-            name = f"{random.choice(['Captain', 'Mr.', 'Mrs.', 'Commander'])} {random.choice(['Nemo', 'Bubbles', 'Jack', 'Finley', 'Coral'])}"
-            return await ctx.send(f"Did you forget about me {ctx.author.mention}? I've been waiting for a while now! I'll name the fish for you. Let's call it **{name}**")
-
-        finally:
-            async with utils.DatabaseConnection() as db:
-                await db("""INSERT INTO user_fish_inventory (user_id, fish, fish_name) VALUES ($1, $2, $3)""", ctx.author.id, new_fish["raw_name"], name)
-            self.current_fishers.remove(ctx.author.id)
-            utils.make_pure(new_fish, special)
+        # And now they should be allowed to fish again
+        self.current_fishers.remove(ctx.author.id)
 
     @fish.error
     async def fish_error(self, ctx, error):
