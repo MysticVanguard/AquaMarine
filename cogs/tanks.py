@@ -94,8 +94,8 @@ class Tanks(commands.Cog):
             this_background.paste(foreground, (0, 0), foreground)
 
             # Save the generated image to memory
-            with io.BytesIO() as f:
-                this_background.save(f, format="PNG")
+            f = io.BytesIO()
+            this_background.save(f, format="PNG")
             f.seek(0)
             files.append(f)
 
@@ -107,6 +107,10 @@ class Tanks(commands.Cog):
         # Save the image sequence to a gif
         image_handles = [imageio.imread(i) for i in files]
         imageio.mimsave(gif_filename, image_handles)
+
+        # Close all our file handles because oh no
+        for i in files:
+            i.close()
 
         # Send gif to Discord
         await ctx.send(file=discord.File(gif_filename))
