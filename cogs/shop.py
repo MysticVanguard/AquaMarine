@@ -85,10 +85,10 @@ class Shop(commands.Cog):
                 _, rarity_response, db_call = item_name_dict[rarity_type]
                 cost = 250
             else:
-                cost, rarity_response, db_call = data
+                _, cost, rarity_response, db_call = data
 
             # See if the user has enough money
-            if not await self.check_price(ctx.author.id, cost):
+            if not await utils.check_price(ctx.author.id, cost):
                 return await ctx.send("You don't have enough money for this!")
 
             # Add fish bag to user
@@ -102,19 +102,6 @@ class Shop(commands.Cog):
 
         # And tell the user we're done
         await ctx.send(f"You Bought {amount:,} {rarity_response} Fish Bag for {amount * cost:,}!")
-
-    async def check_price(self, user_id: int, cost: int) -> bool:
-        """
-        Returns if a user_id has enough money based on the cost.
-        """
-
-        async with utils.DatabaseConnection() as db:
-            user_rows = await db(
-                """SELECT balance FROM user_balance WHERE user_id=$1""",
-                user_id,
-            )
-            user_balance = user_rows[0]['balance']
-        return user_balance >= cost
 
     @commands.command(aliases=["u"])
     @commands.bot_has_permissions(send_messages=True, embed_links=True)

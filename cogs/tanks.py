@@ -69,48 +69,50 @@ class Tanks(commands.Cog):
         """
         A test of the tank gifs.
         """
+        #Typing Indicator
+        async with ctx.typing():
+            move_x = -360
+            move_y = random.randint(50, 150)
+            files = []
 
-        move_x = -360
-        move_y = random.randint(50, 150)
-        files = []
+            path_of_fish = random.choices(*utils.RARITY_PERCENTAGE_LIST)[0]
+            new_fish = random.choice(list(self.bot.fish[path_of_fish].values())).copy()
+            random_fish_path = f"C:/Users/JT/Pictures/Aqua{new_fish['image'][1:16]}normal_fish_size{new_fish['image'][20:]}"
+            file_prefix = "C:/Users/JT/Pictures/Aqua/assets/images"
+            gif_filename = f'{file_prefix}/gifs/actual_gifs/testtank.gif'
 
-        path_of_fish = random.choices(*utils.RARITY_PERCENTAGE_LIST)[0]
-        new_fish = random.choice(list(self.bot.fish[path_of_fish].values())).copy()
-        random_fish_path = f"C:/Users/JT/Pictures/Aqua{new_fish['image'][1:16]}normal_fish_size{new_fish['image'][20:]}"
-        file_prefix = "C:/Users/JT/Pictures/Aqua/assets/images"
-        gif_filename = f'{file_prefix}/gifs/actual_gifs/testtank.gif'
+            
+            # Open our constant images
+            background = Image.open(f"{file_prefix}/background/aqua_background_medium.png")
+            foreground = Image.open(f"{file_prefix}/background/medium_tank_2D.png")
+            fish = Image.open(random_fish_path)
 
-        # Open our constant images
-        background = Image.open(f"{file_prefix}/background/aqua_background_medium.png")
-        foreground = Image.open(f"{file_prefix}/background/medium_tank_2D.png")
-        fish = Image.open(random_fish_path)
+            # For each frame of the gif...
+            for _ in range(108):
 
-        # For each frame of the gif...
-        for _ in range(108):
+                # Add a fish to the background image
+                this_background = background.copy()
+                this_background.paste(fish, (move_x, move_y), fish)
+                this_background.paste(foreground, (0, 0), foreground)
 
-            # Add a fish to the background image
-            this_background = background.copy()
-            this_background.paste(fish, (move_x, move_y), fish)
-            this_background.paste(foreground, (0, 0), foreground)
+                # Save the generated image to memory
+                f = io.BytesIO()
+                this_background.save(f, format="PNG")
+                f.seek(0)
+                files.append(f)
 
-            # Save the generated image to memory
-            f = io.BytesIO()
-            this_background.save(f, format="PNG")
-            f.seek(0)
-            files.append(f)
+                # Move fish
+                move_x += 10
+                if move_x > 720:
+                    move_x = -360
 
-            # Move fish
-            move_x += 10
-            if move_x > 720:
-                move_x = -360
+            # Save the image sequence to a gif
+            image_handles = [imageio.imread(i) for i in files]
+            imageio.mimsave(gif_filename, image_handles)
 
-        # Save the image sequence to a gif
-        image_handles = [imageio.imread(i) for i in files]
-        imageio.mimsave(gif_filename, image_handles)
-
-        # Close all our file handles because oh no
-        for i in files:
-            i.close()
+            # Close all our file handles because oh no
+            for i in files:
+                i.close()
 
         # Send gif to Discord
         await ctx.send(file=discord.File(gif_filename))

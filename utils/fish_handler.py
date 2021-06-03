@@ -1,6 +1,6 @@
 from utils.load_config import config
 from os import walk
-
+import utils
 
 _RARITY_PERCENTAGES = [
     ("common", 0.6689),
@@ -125,3 +125,16 @@ def make_pure(fish: dict, special: str) -> dict:
     fish["name"] = fish['name'][number:]
     fish["image"] = fish["image"][:16] + fish["image"][number_two:]
     return fish
+
+async def check_price( user_id: int, cost: int) -> bool:
+    """
+    Returns if a user_id has enough money based on the cost.
+    """
+
+    async with utils.DatabaseConnection() as db:
+        user_rows = await db(
+            """SELECT balance FROM user_balance WHERE user_id=$1""",
+            user_id,
+        )
+        user_balance = user_rows[0]['balance']
+    return user_balance >= cost

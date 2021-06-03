@@ -21,12 +21,12 @@ class Fishing(commands.Cog):
         """
 
         # Add the emojis to the message
-        emojis = [844594478392147968, 844594468580491264]
+        emojis = [844594468580491264, 844594478392147968]
         for i in emojis:
             await message.add_reaction(self.bot.get_emoji(i))
 
         # See what reaction the user is adding to the message
-        check = lambda reaction, user: reaction.emoji.id in emojis and user.id == user.id and reaction.message.id == message.id
+        check = lambda reaction, reactor: reaction.emoji.id in emojis and reactor.id == user.id and reaction.message.id == message.id
         try:
             reaction, _ = await self.bot.wait_for("reaction_add", timeout=60.0, check=check)
             choice = "sell" if reaction.emoji.id == 844594478392147968 else "keep"
@@ -40,7 +40,7 @@ class Fishing(commands.Cog):
                 await db(
                     """INSERT INTO user_balance (user_id, balance) VALUES ($1, $2)
                     ON CONFLICT (user_id) DO UPDATE SET balance = user_balance.balance + $2""",
-                    user.id, new_fish["cost"],
+                    user.id, int(new_fish["cost"]),
                 )
             await message.channel.send(f"Sold your **{new_fish['name']}** for **{new_fish['cost']}**!")
             return
@@ -53,7 +53,7 @@ class Fishing(commands.Cog):
 
         # They want to keep - ask what they want to name the fish
         await message.channel.send("What do you want to name your new fish? (32 character limit and cannot be named the same as another fish you own)")
-        check = lambda m: m.author == user and m.channel == message.channel and len(m.content) <= 32 and m.content not in fish_names
+        check = lambda m: m.author == user and m.channel == message.channel and len(m.content) > 1 and len(m.content) <= 32 and m.content not in fish_names
         try:
             name_message = await self.bot.wait_for("message", timeout=60.0, check=check)
             name = name_message.content
@@ -234,14 +234,14 @@ class Fishing(commands.Cog):
 
         # Say how many of those fish they caught previously
         amount = 0
-        owned_unowned = "Owned"
+        owned_unowned = "Unowned"
         a_an = "an" if rarity[0].lower() in ("a", "e", "i", "o", "u") else "a"
         async with utils.DatabaseConnection() as db:
             user_inventory = await db("""SELECT * FROM user_fish_inventory WHERE user_id=$1""", ctx.author.id)
         for row in user_inventory:
             if row['fish'] == new_fish['raw_name']:
                 amount = amount + 1
-                owned_unowned = "Unowned"
+                owned_unowned = "Owwned"
 
         # Tell the user about the fish they caught
         embed = discord.Embed()
@@ -291,15 +291,22 @@ class Fishing(commands.Cog):
         Renames your fish.
         """
 
+
         async with utils.DatabaseConnection() as db:
-            await db(
-                """UPDATE user_fish_inventory SET fish_name=$1 WHERE user_id=$2 and fish_name=$3""",
-                new, ctx.author.id, old,
+            fish_rows = await db("""SELECT fish_name FROM user_fish_inventory WHERE fish_name=$1 and user_id=$2;""", old, ctx.author.id)
+            if fish_rows:
+                await db(
+                    """UPDATE user_fish_inventory SET fish_name=$1 WHERE user_id=$2 and fish_name=$3;""",
+                    new, ctx.author.id, old,
+                )
+                return await ctx.send(
+                    f"Congratulations, you have renamed {old} to {new}!",
+                    allowed_mentions=discord.AllowedMentions.none(),
+                )
+            await ctx.send(
+                f"You have no fish named {old}!",
+                allowed_mentions=discord.AllowedMentions.none(),
             )
-        await ctx.send(
-            f"Congratulations, you have renamed {old} to {new}!",
-            allowed_mentions=discord.AllowedMentions.none(),
-        )
 
     @commands.command()
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
@@ -307,16 +314,22 @@ class Fishing(commands.Cog):
         """
         Releases fish back into the wild.
         """
-
         async with utils.DatabaseConnection() as db:
-            await db(
-                """DELETE FROM user_fish_inventory WHERE fish_name=$1 and user_id=$2""",
-                name, ctx.author.id,
+            fish_rows = await db("""SELECT fish_name FROM user_fish_inventory WHERE fish_name=$1 and user_id=$2;""", name, ctx.author.id)
+        if fish_rows:
+            async with utils.DatabaseConnection() as db:
+                await db(
+                    """DELETE FROM user_fish_inventory WHERE fish_name=$1 and user_id=$2""",
+                    name, ctx.author.id,
+                )
+            return await ctx.send(
+                f"Goodbye {name}!",
+                allowed_mentions=discord.AllowedMentions.none(),
             )
         await ctx.send(
-            f"Goodbye {name}!",
-            allowed_mentions=discord.AllowedMentions.none(),
-        )
+                f"You have no fish named {name}!",
+                allowed_mentions=discord.AllowedMentions.none(),
+            )
 
 
 def setup(bot):
