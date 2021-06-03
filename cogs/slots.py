@@ -32,7 +32,7 @@ class Slots(commands.Cog):
 
         # See if the user has enough money
         if not await utils.check_price(ctx.author.id, 5):
-                return await ctx.send("You don't have enough money for this!")
+                return await ctx.send("You don't have enough money for this! (5)")
 
 
         # Remove money from the user
@@ -71,14 +71,14 @@ class Slots(commands.Cog):
             for i in range(0, 6, 3):
                 row.append(f"<:{chosen_fish[i]}:{emoji_rarities[rarities_of_fish[i]][chosen_fish[i]]}><:{chosen_fish[i+1]}:{emoji_rarities[rarities_of_fish[i+1]][chosen_fish[i+1]]}><:{chosen_fish[i+2]}:{emoji_rarities[rarities_of_fish[i+2]][chosen_fish[i+2]]}>")
             row.append(f"<:{fish_type}:{emoji_id}><:{fish_type}:{emoji_id}><:{fish_type}:{emoji_id}>")
-            embed.add_field(name="** **", value="\n".join(row), inline=False)
+            embed.add_field(name="*spent 5*", value="\n".join(row), inline=False)
             embed.add_field(name="Lucky", value=f"You won {fish_random_name.title()} :)", inline=False)
             message = await ctx.send(embed=embed)
             await self.bot.get_cog("Fishing").ask_to_sell_fish(ctx.author, message, used_fish)
         else:
             for i in range(0, 9, 3):
                 row.append(f"<:{chosen_fish[i]}:{emoji_rarities[rarities_of_fish[i]][chosen_fish[i]]}><:{chosen_fish[i+1]}:{emoji_rarities[rarities_of_fish[i+1]][chosen_fish[i+1]]}><:{chosen_fish[i+2]}:{emoji_rarities[rarities_of_fish[i+2]][chosen_fish[i+2]]}>")
-            embed.add_field(name="** **", value="\n".join(row), inline=False)
+            embed.add_field(name="*spent 5*", value="\n".join(row), inline=False)
             embed.add_field(name="Unlucky", value="You lost :(")
             await ctx.send(embed=embed)
 def setup(bot):
