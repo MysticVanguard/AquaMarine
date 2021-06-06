@@ -8,8 +8,8 @@ import utils
 # Dict of fish emojis
 emoji_rarities = {
     "common": {
-        "clownfish": "<:clownfish:849777027174760448>", "goldfish": "849777027258515456", "tiger_barb": "<:goldfish:849777027413311508>", "royal_blue_betta": "<:royal_blue_betta:849777027472031764>", "pufferfish": "<:pufferfish:849777027501522954>", 
-        "oscar_cichlid": "<:oscar_cichlid:849777027599040522:", "neon_tetra_school": "<:neon_tetra_school:849777027326017586>"
+        "clownfish": "<:clownfish:849777027174760448>", "goldfish": "<:goldfish:849777027258515456>", "tiger_barb": "<:tiger_barb:849777027413311508>", "royal_blue_betta": "<:royal_blue_betta:849777027472031764>", "pufferfish": "<:pufferfish:849777027501522954>", 
+        "oscar_cichlid": "<:oscar_cichlid:849777027599040522>", "neon_tetra_school": "<:neon_tetra_school:849777027326017586>"
         },
     "uncommon": {
         "flowerhorn_cichlid": "<:flowerhorn_cichlid:849777027472293918>", "lionfish": "<:lionfish:849777027765633024>"

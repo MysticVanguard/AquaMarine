@@ -68,6 +68,7 @@ class Shop(commands.Cog):
             "rfb": (RARE_BAG_NAMES, 200, "Rare", inventory_insert_sql.format("rfb")),
             "efb": (EPIC_BAG_NAMES, 400, "Epic", inventory_insert_sql.format("efb")),
             "lfb": (LEGENDARY_BAG_NAMES, 500, "Legendary", inventory_insert_sql.format("lfb")),
+            "mfb": (MYSTERY_BAG_NAMES, 250)
         }
 
         # Work out which of the SQL statements to use
@@ -82,7 +83,7 @@ class Shop(commands.Cog):
                     ["cfb", "ufb", "rfb", "efb", "lfb"],
                     [.5, .3, .125, .05, .025,]
                 )[0]
-                _, rarity_response, db_call = item_name_dict[rarity_type]
+                _, _, rarity_response, db_call = item_name_dict[rarity_type]
                 cost = 250
             else:
                 _, cost, rarity_response, db_call = data
@@ -177,11 +178,20 @@ class Shop(commands.Cog):
             new_fish = utils.make_golden(new_fish)
 
         # Grammar wew
+        amount = 0
+        owned_unowned = "Unowned"
         a_an = "an" if rarity[0].lower() in ("a", "e", "i", "o", "u") else "a"
+        async with utils.DatabaseConnection() as db:
+            user_inventory = await db("""SELECT * FROM user_fish_inventory WHERE user_id=$1""", ctx.author.id)
+        for row in user_inventory:
+            if row['fish'] == new_fish['raw_name']:
+                amount = amount + 1
+                owned_unowned = "Owned"
 
         # Tell the user about the fish they rolled
         embed = discord.Embed()
         embed.title = f"You got {a_an} {rarity} {new_fish['name']}!"
+        embed.add_field(name=owned_unowned, value=f"You have {amount} {new_fish['name']}", inline=False)
         embed.set_image(url="attachment://new_fish.png")
         fish_file = discord.File(new_fish["image"], "new_fish.png")
         message = await ctx.send(file=fish_file, embed=embed)
@@ -210,7 +220,7 @@ class Shop(commands.Cog):
         embed = discord.Embed()
         embed.title = f"{ctx.author.display_name}'s Inventory"
         for name in bags:
-            embed.add_field(name=f'{name}\'s',value=fetched_info[count], inline=False)
+            embed.add_field(name=f'{name}s',value=fetched_info[count], inline=False)
             count += 1
         await ctx.send(embed=embed)
 
