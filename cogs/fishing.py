@@ -155,18 +155,17 @@ class Fishing(commands.Cog):
                 chosen_reaction = chosen_reaction.emoji
             except asyncio.TimeoutError:
                 chosen_reaction = "⏹️"
-
-            if chosen_reaction == "◀️":
-                curr_index = max(1, curr_index - 1)  # Keep the index in bounds
+            
+            index_chooser = {
+                "◀️": max(1, curr_index - 1),
+                "▶️": min(len(fields), curr_index + 1)
+            }
+            
+            if chosen_reaction in index_chooser.keys():
+                curr_index = index_chooser[chosen_reaction]  # Keep the index in bounds
                 curr_field = fields[curr_index - 1]
 
-                await fish_message.edit(embed=self.create_fish_embed(user, curr_field))
-
-            elif chosen_reaction == "▶️":
-                curr_index = min(len(fields), curr_index + 1)  # Keep the index in bounds
-                curr_field = fields[curr_index - 1]
-
-                await fish_message.edit(embed=self.create_fish_embed(user, curr_field))
+                await fish_message.edit(embed=self.create_bucket_embed(user, curr_field))
 
             elif chosen_reaction == "⏹️":
                 await fish_message.clear_reactions()
@@ -185,15 +184,11 @@ class Fishing(commands.Cog):
                 curr_index = min(len(fields), max(1, user_input))
                 curr_field = fields[curr_index - 1]
 
-                await fish_message.edit(embed=self.create_fish_embed(user, curr_field))
+                await fish_message.edit(embed=self.create_bucket_embed(user, curr_field))
                 await number_message.delete()
+                await user_message.delete()
 
-                try:
-                    await user_message.delete()
-                except Exception:
-                    pass
-
-    def create_fish_embed(self, user, field):
+    def create_bucket_embed(self, user, field):
         embed = discord.Embed()  # Create a new embed to edit the message
         embed.title = f"**{user.display_name}'s Fish Bucket**\n"
         embed.add_field(name=f"__{field[0]}__", value=field[1], inline=False)
@@ -227,21 +222,25 @@ class Fishing(commands.Cog):
 
         # See which fish they caught
         new_fish = random.choice(list(self.bot.fish[rarity].values())).copy()
-        if special == "inverted":
-            new_fish = utils.make_inverted(new_fish)
-        elif special == "golden":
-            new_fish = utils.make_golden(new_fish)
+        
+        special_functions = {
+            "inverted": utils.make_inverted(new_fish),
+            "golden": utils.make_golden(new_fish)
+        }
+        
+        if special in special_functions.keys():
+            new_fish = special_functions[special]    
 
         # Say how many of those fish they caught previously
         amount = 0
-        owned_unowned = "Unowned"
         a_an = "an" if rarity[0].lower() in ("a", "e", "i", "o", "u") else "a"
         async with utils.DatabaseConnection() as db:
-            user_inventory = await db("""SELECT * FROM user_fish_inventory WHERE user_id=$1""", ctx.author.id)
+            user_inventory = await db("SELECT * FROM user_fish_inventory WHERE user_id=$1", ctx.author.id)
         for row in user_inventory:
             if row['fish'] == new_fish['raw_name']:
                 amount = amount + 1
-                owned_unowned = "Owwned"
+                
+        owned_unowned = "Owned" if amount > 0 else "Unowned"
 
         # Tell the user about the fish they caught
         embed = discord.Embed()
@@ -290,23 +289,28 @@ class Fishing(commands.Cog):
         """
         Renames your fish.
         """
-
-
+        
+        # Get the user's fish inventory based on the fish's name
         async with utils.DatabaseConnection() as db:
             fish_rows = await db("""SELECT fish_name FROM user_fish_inventory WHERE fish_name=$1 and user_id=$2;""", old, ctx.author.id)
-            if fish_rows:
-                await db(
-                    """UPDATE user_fish_inventory SET fish_name=$1 WHERE user_id=$2 and fish_name=$3;""",
-                    new, ctx.author.id, old,
-                )
-                return await ctx.send(
-                    f"Congratulations, you have renamed {old} to {new}!",
-                    allowed_mentions=discord.AllowedMentions.none(),
-                )
-            await ctx.send(
+            
+        # Check ifthe user doesn't have the fish   
+        if not fish_rows: 
+            return await ctx.send(
                 f"You have no fish named {old}!",
-                allowed_mentions=discord.AllowedMentions.none(),
+                allowed_mentions=discord.AllowedMentions.none()
             )
+        
+        # Update the database
+        await db(
+            """UPDATE user_fish_inventory SET fish_name=$1 WHERE user_id=$2 and fish_name=$3;""",
+            new, ctx.author.id, old,
+        )
+        # Send confirmation message
+        await ctx.send(
+            f"Congratulations, you have renamed {old} to {new}!",
+            allowed_mentions=discord.AllowedMentions.none(),
+        )
 
     @commands.command()
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
@@ -314,6 +318,7 @@ class Fishing(commands.Cog):
         """
         Releases fish back into the wild.
         """
+        
         async with utils.DatabaseConnection() as db:
             fish_rows = await db("""SELECT fish_name FROM user_fish_inventory WHERE fish_name=$1 and user_id=$2;""", name, ctx.author.id)
         if fish_rows:
