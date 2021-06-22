@@ -34,11 +34,11 @@ def parse_fish_filename(filename: str) -> dict:
     # Initial filename splitterboi
     filename = filename[:-4]  # Remove file extension
     modifier = None
-    rarity, cost, *raw_name = filename.split("_")
+    rarity, cost, size, *raw_name = filename.split("_")
 
     # See if our fish name has a modifier on it
     if rarity in ["inverted", "golden"]:
-        modifier, rarity, cost, raw_name = rarity, cost, raw_name[0], raw_name[1:]
+        modifier, rarity, cost, size, raw_name = rarity, cost, size, raw_name[0], raw_name[1:]
     raw_name = "_".join(raw_name)
 
     # And we done
@@ -46,6 +46,7 @@ def parse_fish_filename(filename: str) -> dict:
         "modifier": modifier,
         "rarity": rarity,
         "cost": cost,
+        "size": size,
         "raw_name": raw_name,
         "name": raw_name.replace("_", " ").title(),
     }
@@ -130,7 +131,6 @@ async def check_price( user_id: int, cost: int) -> bool:
     """
     Returns if a user_id has enough money based on the cost.
     """
-
     async with utils.DatabaseConnection() as db:
         user_rows = await db(
             """SELECT balance FROM user_balance WHERE user_id=$1""",

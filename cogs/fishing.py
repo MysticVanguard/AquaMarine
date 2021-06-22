@@ -42,7 +42,7 @@ class Fishing(commands.Cog):
                     ON CONFLICT (user_id) DO UPDATE SET balance = user_balance.balance + $2""",
                     user.id, int(new_fish["cost"]),
                 )
-            await message.channel.send(f"Sold your **{new_fish['name']}** for **{new_fish['cost']}**!")
+            await message.channel.send(f"Sold your **{new_fish['name']}** for **{new_fish['cost']}** Sand Dollars <:sand_dollar:852057443503964201>!")
             return
 
         # Get their current fish names
@@ -65,8 +65,8 @@ class Fishing(commands.Cog):
         # Save the fish name
         async with utils.DatabaseConnection() as db:
             await db(
-                """INSERT INTO user_fish_inventory (user_id, fish, fish_name) VALUES ($1, $2, $3)""",
-                user.id, new_fish["raw_name"], name,
+                """INSERT INTO user_fish_inventory (user_id, fish, fish_name, fish_size) VALUES ($1, $2, $3, $4)""",
+                user.id, new_fish["raw_name"], name, new_fish["size"]
             )
 
     @commands.command(aliases=["bal"])
@@ -79,10 +79,10 @@ class Fishing(commands.Cog):
         async with utils.DatabaseConnection() as db:
             if user:
                 fetched = await db("""SELECT * FROM user_balance WHERE user_id = $1""", user.id)
-                return await ctx.send(f"{user.display_name} has {fetched[0]['balance']} money!" if fetched else f"{user.display_name} has no money!")
+                return await ctx.send(f"{user.display_name} has {fetched[0]['balance']} Sand Dollars <:sand_dollar:852057443503964201>!" if fetched else f"{user.display_name} has no Sand Dollars <:sand_dollar:852057443503964201>!")
 
             fetched = await db("""SELECT * FROM user_balance WHERE user_id = $1""", ctx.author.id)
-            return await ctx.send(f"You have {fetched[0]['balance']} money!" if fetched else "You have no money!")
+            return await ctx.send(f"You have {fetched[0]['balance']} Sand Dollars!" if fetched else "You have no Sand Dollars <:sand_dollar:852057443503964201>!")
 
     @commands.command(aliases=["bucket"])
     @commands.bot_has_permissions(send_messages=True, embed_links=True, manage_messages=True)
@@ -95,7 +95,7 @@ class Fishing(commands.Cog):
         user = user or ctx.author
 
         async with utils.DatabaseConnection() as db:
-            fish_rows = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1""", user.id)
+            fish_rows = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND tank_fish=''""", user.id)
 
         if not fish_rows:
             return await ctx.send("You have no fish in your bucket!" if user == ctx.author else f"{user.display_name} has no fish in their bucket!")
@@ -109,6 +109,7 @@ class Fishing(commands.Cog):
         # embed.set_footer(text=f"page {page}/{totalpages}")
 
         fish_list = [(i['fish_name'], i['fish']) for i in fish_rows]  # List of tuples (Fish Name, Fish Type)
+        xp_list = {i['fish_name']: [i['fish_level'], i['fish_xp'], i['fish_xp_max']] for i in fish_rows}
         fish_list = sorted(fish_list, key=lambda x: x[1])
 
         fields = []  # The "pages" that the user can scroll through are the different rarity levels
@@ -121,7 +122,7 @@ class Fishing(commands.Cog):
             "legendary": [],
             "mythic": []
         }
-
+        
         # Sorted Fish will become a dictionary of {rarity: [list of fish names of fish in that category]} if the fish is in the user's inventory
         for rarity, fish_types in self.bot.fish.items():  # For each rarity level
             for _, fish_detail in fish_types.items():  # For each fish in that level
@@ -133,13 +134,13 @@ class Fishing(commands.Cog):
         # Get the display string for each field
         for rarity, fish_list in sorted_fish.items():
             if fish_list:
-                fish_string = [f"\"{fish_name}\": **{' '.join(fish_type.split('_')).title()}**" for fish_name, fish_type in fish_list]
+                fish_string = [f"\"{fish_name}\": **{' '.join(fish_type.split('_')).title()}** *Level {xp_list[fish_name][0]}, {xp_list[fish_name][1]}/{xp_list[fish_name][2]}XP*" for fish_name, fish_type in fish_list]
                 fields.append((rarity.title(), "\n".join(fish_string)))
 
         # Create an embed
         curr_index = 1
         curr_field = fields[curr_index - 1]
-        embed = self.create_fish_embed(user, curr_field)
+        embed = self.create_bucket_embed(user, curr_field)
 
         fish_message = await ctx.send(embed=embed)
 
@@ -224,8 +225,8 @@ class Fishing(commands.Cog):
         new_fish = random.choice(list(self.bot.fish[rarity].values())).copy()
         
         special_functions = {
-            "inverted": utils.make_inverted(new_fish),
-            "golden": utils.make_golden(new_fish)
+            "inverted": utils.make_inverted(new_fish.copy()),
+            "golden": utils.make_golden(new_fish.copy())
         }
         
         if special in special_functions.keys():
@@ -241,7 +242,7 @@ class Fishing(commands.Cog):
                 amount = amount + 1
                 
         owned_unowned = "Owned" if amount > 0 else "Unowned"
-
+        print(new_fish["image"])
         # Tell the user about the fish they caught
         embed = discord.Embed()
         embed.title = f"You caught {a_an} {rarity} {new_fish['name']}!"
@@ -294,7 +295,7 @@ class Fishing(commands.Cog):
         async with utils.DatabaseConnection() as db:
             fish_rows = await db("""SELECT fish_name FROM user_fish_inventory WHERE fish_name=$1 and user_id=$2;""", old, ctx.author.id)
             
-        # Check ifthe user doesn't have the fish   
+        # Check if the user doesn't have the fish   
         if not fish_rows: 
             return await ctx.send(
                 f"You have no fish named {old}!",
@@ -318,15 +319,22 @@ class Fishing(commands.Cog):
         """
         Releases fish back into the wild.
         """
-        
+
+        # Get the user's fish inventory based on the fish's name
         async with utils.DatabaseConnection() as db:
             fish_rows = await db("""SELECT fish_name FROM user_fish_inventory WHERE fish_name=$1 and user_id=$2;""", name, ctx.author.id)
+        
+        # Check if the user has the fish
         if fish_rows:
+
+            # Update the database
             async with utils.DatabaseConnection() as db:
                 await db(
                     """DELETE FROM user_fish_inventory WHERE fish_name=$1 and user_id=$2""",
                     name, ctx.author.id,
                 )
+            
+            # Send confirmation message
             return await ctx.send(
                 f"Goodbye {name}!",
                 allowed_mentions=discord.AllowedMentions.none(),

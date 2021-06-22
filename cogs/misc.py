@@ -43,12 +43,16 @@ class Misc(commands.Cog):
     @commands.cooldown(1, 60 * 60 * 24, commands.BucketType.user)
     @commands.bot_has_permissions(send_messages=True)
     async def daily(self, ctx:commands.Context):
+
+        # adds the money to the users bal
         async with utils.DatabaseConnection() as db:
             await db(
                 """INSERT INTO user_balance (user_id, balance) VALUES ($1, 100)
                 ON CONFLICT (user_id) DO UPDATE SET balance = user_balance.balance + 100""",
                 ctx.author.id)
-        return await ctx.send("Daily reward of 100 claimed!")
+
+        # confirmation message
+        return await ctx.send("Daily reward of 100 Sand Dollars <:sand_dollar:852057443503964201> claimed!")
 
     @daily.error
     async def daily_error(self, ctx, error):

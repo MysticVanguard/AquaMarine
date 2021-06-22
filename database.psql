@@ -7,8 +7,12 @@ CREATE TABLE user_balance (
 CREATE TABLE user_fish_inventory (
   user_id BIGINT,
   fish TEXT,
-  fish_name TEXT
-  tank_fish BOOLEAN[]
+  fish_name TEXT,
+  tank_fish TEXT NOT NULL DEFAULT '',
+  fish_level INT NOT NULL DEFAULT 1,
+  fish_xp INT NOT NULL DEFAULT 0,
+  fish_xp_max INT NOT NULL DEFAULT 25,
+  fish_size TEXT
 );
 
 CREATE TABLE user_item_inventory (
@@ -18,6 +22,9 @@ CREATE TABLE user_item_inventory (
   rfb INT NOT NULL DEFAULT 0,
   efb INT NOT NULL DEFAULT 0,
   lfb INT NOT NULL DEFAULT 0,
+  flakes INT NOT NULL DEFAULT 0,
+  pellets INT NOT NULL DEFAULT 0,
+  wafers INT NOT NULL DEFAULT 0,
   PRIMARY KEY (user_id)
 );
 
@@ -26,7 +33,10 @@ CREATE TABLE user_item_inventory (
 CREATE TABLE user_tank_inventory (
   user_id BIGINT,
   tank BOOLEAN[] NOT NULL DEFAULT '{FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE}',
-  tank_type text[] NOT NULL DEFAULT '{}',
-  tank_name text[] NOT NULL DEFAULT '{}',
+  tank_type TEXT[] NOT NULL DEFAULT '{"", "", "", "", "", "", "", "", "", ""}',
+  tank_name TEXT[] NOT NULL DEFAULT '{"", "", "", "", "", "", "", "", "", ""}',
+  fish_room INT[] NOT NULL DEFAULT '{0, 0, 0, 0, 0, 0, 0, 0, 0, 0}',
+  xl_fish_room INT[] NOT NULL DEFAULT '{0, 0, 0, 0, 0, 0, 0, 0, 0, 0}',
+  tiny_fish_room INT[] NOT NULL DEFAULT '{0, 0, 0, 0, 0, 0, 0, 0, 0, 0}',
   PRIMARY KEY (user_id)
 );
