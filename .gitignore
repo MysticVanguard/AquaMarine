@@ -4,3 +4,4 @@
 __pycache__/
 
 !.example
+assets/images/gifs/actual_gifs/*.gif
