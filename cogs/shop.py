@@ -21,6 +21,12 @@ FISH_SHOP_EMBED.add_field(name="Fish Food", value="This is food that can be fed 
 FISH_SHOP_EMBED.add_field(name="Fish Flakes <:fish_flakes:852053373111894017>", value="This gives you fish flakes to feed your fish, giving them XP \n __5 Sand Dollars <:sand_dollar:852057443503964201>__", inline=True)
 FISH_SHOP_EMBED.add_field(name="Fish Pellets <:fish_pellets:852053384986099715>", value="This gives you fish pellets to feed your fish, giving them more XP \n __10 Sand Dollars <:sand_dollar:852057443503964201>__", inline=True)
 FISH_SHOP_EMBED.add_field(name="Fish Wafers <:fish_wafers:852053392733634572>", value="This gives you fish wafers to feed your fish, giving them even more XP \n __25 Sand Dollars <:sand_dollar:852057443503964201>__", inline=True)
+FISH_SHOP_EMBED.add_field(name="Tanks", value="These are tanks you can buy to put your fish into, can only be purchased one at a time", inline=False)
+FISH_SHOP_EMBED.add_field(name="Fish Bowl", value="This gives you a Fish Bowl Tank that you can deposit one small fish into \n __100 Sand Dollars <:sand_dollar:852057443503964201>__", inline=True)
+FISH_SHOP_EMBED.add_field(name="Small Tank", value="This gives you a Small Tank that you can deposit five small fish or one medium fish into\n __500 Sand Dollars <:sand_dollar:852057443503964201>__", inline=True)
+FISH_SHOP_EMBED.add_field(name="Medium Tank", value="This gives you a Medium Tank that you can deposit twenty five small fish, five medium fish, or one large fish into \n __2500 Sand Dollars <:sand_dollar:852057443503964201>__", inline=True)
+FISH_SHOP_EMBED.add_field(name="Tank Themes", value="These are themes you can buy for your tanks", inline=False)
+FISH_SHOP_EMBED.add_field(name="Plant Life", value="This gives you the plant life theme for one of your tanks \n __1000 Sand Dollars <:sand_dollar:852057443503964201>__", inline=True)
 
 
 COMMON_BAG_NAMES = ["Common Fish Bag", "Common", "Cfb"]
@@ -29,9 +35,13 @@ RARE_BAG_NAMES = ["Rare Fish Bag", "Rare", "Rfb"]
 EPIC_BAG_NAMES = ["Epic Fish Bag", "Epic", "Efb"]
 LEGENDARY_BAG_NAMES = ["Legendary Fish Bag", "Legendary", "Lfb"]
 MYSTERY_BAG_NAMES = ["Mystery Fish Bag", "Mystery", "Mfb"]
-FISH_FLAKES_NAMES = ["Fish Flakes", "FF", "Flakes"]
-FISH_PELLETS_NAMES = ["Fish Pellets", "FP", "Pellets"]
-FISH_WAFERS_NAMES = ["Fish Wafers", "FW", "Wafers"]
+FISH_FLAKES_NAMES = ["Fish Flakes", "Ff", "Flakes"]
+FISH_PELLETS_NAMES = ["Fish Pellets", "Fp", "Pellets"]
+FISH_WAFERS_NAMES = ["Fish Wafers", "Fw", "Wafers"]
+FISH_BOWL_NAMES = ["Fish Bowl", "Bowl", "Fb"]
+SMALL_TANK_NAMES = ["Small Tank", "Small", "St"]
+MEDIUM_TANK_NAMES = ["Medium Tank", "Medium", "Mt"]
+PLANT_LIFE_NAMES = ["Plant Life", "Pl", "Plant"]
 
 class Shop(commands.Cog):
 
@@ -58,7 +68,7 @@ class Shop(commands.Cog):
         all_names = [
             COMMON_BAG_NAMES, UNCOMMON_BAG_NAMES, RARE_BAG_NAMES, EPIC_BAG_NAMES,
             LEGENDARY_BAG_NAMES, MYSTERY_BAG_NAMES, FISH_FLAKES_NAMES, FISH_PELLETS_NAMES,
-            FISH_WAFERS_NAMES,
+            FISH_WAFERS_NAMES, FISH_BOWL_NAMES, SMALL_TANK_NAMES, MEDIUM_TANK_NAMES, PLANT_LIFE_NAMES
         ]
 
         # See if they gave a valid item
@@ -79,8 +89,15 @@ class Shop(commands.Cog):
             "mfb": (MYSTERY_BAG_NAMES, 250),
             "flakes": (FISH_FLAKES_NAMES, 5, "Fish Flakes", inventory_insert_sql.format("flakes")),
             "pellets": (FISH_PELLETS_NAMES, 10, "Fish Pellets", inventory_insert_sql.format("pellets")),
-            "wafers": (FISH_WAFERS_NAMES, 25, "Fish Wafers", inventory_insert_sql.format("wafers"))
+            "wafers": (FISH_WAFERS_NAMES, 25, "Fish Wafers", inventory_insert_sql.format("wafers")),
+            "Fish Bowl": (FISH_BOWL_NAMES, 100, "Fish Bowl", ""),
+            "Small Tank": (SMALL_TANK_NAMES, 500, "Small Tank", ""),
+            "Medium Tank": (MEDIUM_TANK_NAMES, 2500, "Medium Tank", ""),
+            "Plant Life": (PLANT_LIFE_NAMES, 1000, "Plant Life", "")
         }
+        item_name_singular = [
+            FISH_BOWL_NAMES, SMALL_TANK_NAMES, MEDIUM_TANK_NAMES, PLANT_LIFE_NAMES
+        ]
 
         # Work out which of the SQL statements to use
         for table, data in item_name_dict.items():
@@ -98,15 +115,22 @@ class Shop(commands.Cog):
                 cost = 250
             else:
                 _, cost, response, db_call = data
-
+            if item.title in item_name_singular:
+                amount = 1
             # See if the user has enough money
             full_cost = cost * amount
             if not await utils.check_price(ctx.author.id, full_cost):
                 return await ctx.send("You don't have enough Sand Dollars <:sand_dollar:852057443503964201> for this!")
 
-            # Add fish bag to user
-            async with utils.DatabaseConnection() as db:
-                await db(db_call, ctx.author.id, amount)
+            # here
+
+            # Add item to user, check if item is a singular item and if so runs that function
+            if not any([item.title() not in item_name_singular_line for item_name_singular_line in item_name_singular]):
+                async with utils.DatabaseConnection() as db:
+                    await db(db_call, ctx.author.id, amount)
+            else:
+                if await utils.buying_singular(ctx, str(response)) == False:
+                    return
 
         # Remove money from the user
         async with utils.DatabaseConnection() as db:
@@ -114,7 +138,7 @@ class Shop(commands.Cog):
                 UPDATE user_balance SET balance=balance-$1 WHERE user_id = $2""", full_cost, ctx.author.id)
 
         # And tell the user we're done
-        await ctx.send(f"You Bought {amount:,} {response} for {full_cost:,} Sand Dollars <:sand_dollar:852057443503964201>!")
+        await ctx.send(f"You bought {amount:,} {response} for {full_cost:,} Sand Dollars <:sand_dollar:852057443503964201>!")
 
     @commands.command(aliases=["u"])
     @commands.bot_has_permissions(send_messages=True, embed_links=True)

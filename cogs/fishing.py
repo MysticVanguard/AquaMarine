@@ -45,12 +45,43 @@ class Fishing(commands.Cog):
             await message.channel.send(f"Sold your **{new_fish['name']}** for **{new_fish['cost']}** Sand Dollars <:sand_dollar:852057443503964201>!")
             return
 
+        
         # Get their current fish names
         fish_names = []
+
         async with utils.DatabaseConnection() as db:
             fish_rows = await db("""SELECT * FROM user_fish_inventory WHERE user_id=$1""", user.id)
         fish_names = [i['fish_name'] for i in fish_rows]
+        fish_list = [(i['fish_name'], i['fish']) for i in fish_rows]
+        fish_list = sorted(fish_list, key=lambda x: x[1])
+        sorted_fish = {
+            "common": [],
+            "uncommon": [],
+            "rare": [],
+            "epic": [],
+            "legendary": [],
+            "mythic": []
+        }
+        
+        # Sorted Fish will become a dictionary of {rarity: [list of fish names of fish in that category]} if the fish is in the user's inventory
+        for rarity, fish_types in self.bot.fish.items():  # For each rarity level
+            for _, fish_detail in fish_types.items():  # For each fish in that level
+                raw_name = fish_detail["raw_name"]
+                for user_fish_name, user_fish in fish_list:
+                    if raw_name == self.get_normal_name(user_fish):  # If the fish in the user's list matches the name of a fish in the rarity catgeory
+                        sorted_fish[rarity].append((user_fish_name, user_fish))  # Append to the dictionary
 
+        for rarity in sorted_fish:
+            if rarity == new_fish['rarity']:
+                if len(sorted_fish[rarity]) >= 10:
+                    async with utils.DatabaseConnection() as db:
+                        await db(
+                            """INSERT INTO user_balance (user_id, balance) VALUES ($1, $2)
+                            ON CONFLICT (user_id) DO UPDATE SET balance = user_balance.balance + $2""",
+                            user.id, int(new_fish["cost"]),
+                        )
+                    await message.channel.send(f"You have the max amount of fish in your fish bucket for that rarity (10). Sold your **{new_fish['name']}** for **{new_fish['cost']}** Sand Dollars <:sand_dollar:852057443503964201>!")
+                    return
         # They want to keep - ask what they want to name the fish
         await message.channel.send("What do you want to name your new fish? (32 character limit and cannot be named the same as another fish you own)")
         check = lambda m: m.author == user and m.channel == message.channel and len(m.content) > 1 and len(m.content) <= 32 and m.content not in fish_names
@@ -109,7 +140,6 @@ class Fishing(commands.Cog):
         # embed.set_footer(text=f"page {page}/{totalpages}")
 
         fish_list = [(i['fish_name'], i['fish']) for i in fish_rows]  # List of tuples (Fish Name, Fish Type)
-        xp_list = {i['fish_name']: [i['fish_level'], i['fish_xp'], i['fish_xp_max']] for i in fish_rows}
         fish_list = sorted(fish_list, key=lambda x: x[1])
 
         fields = []  # The "pages" that the user can scroll through are the different rarity levels
@@ -134,7 +164,7 @@ class Fishing(commands.Cog):
         # Get the display string for each field
         for rarity, fish_list in sorted_fish.items():
             if fish_list:
-                fish_string = [f"\"{fish_name}\": **{' '.join(fish_type.split('_')).title()}** *Level {xp_list[fish_name][0]}, {xp_list[fish_name][1]}/{xp_list[fish_name][2]}XP*" for fish_name, fish_type in fish_list]
+                fish_string = [f"\"{fish_name}\": **{' '.join(fish_type.split('_')).title()}**" for fish_name, fish_type in fish_list]
                 fields.append((rarity.title(), "\n".join(fish_string)))
 
         # Create an embed
@@ -202,7 +232,7 @@ class Fishing(commands.Cog):
         return fish_name
 
     @commands.command()
-    @commands.cooldown(1, 30 * 60, commands.BucketType.user)
+    @commands.cooldown(1, 0, commands.BucketType.user)
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def fish(self, ctx: commands.Context):
         """

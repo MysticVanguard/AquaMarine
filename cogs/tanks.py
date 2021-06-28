@@ -44,8 +44,9 @@ class Tanks(commands.Cog):
                 message.author == ctx.author,
                 message.channel == ctx.channel,
                 len(message.content) <= 32,
+                message.content != "none",
             ])
-        await ctx.send("What do you want to name your first tank? (32 character limit)")
+        await ctx.send("What do you want to name your first tank? (32 character limit and cannot be \"none\")")
         try:
             name_message = await self.bot.wait_for("message", timeout=60.0, check=check)
             name = name_message.content
