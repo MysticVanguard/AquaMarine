@@ -232,7 +232,7 @@ class Fishing(commands.Cog):
         return fish_name
 
     @commands.command()
-    @commands.cooldown(1, 0, commands.BucketType.user)
+    @commands.cooldown(1, 30 * 60, commands.BucketType.user)
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def fish(self, ctx: commands.Context):
         """

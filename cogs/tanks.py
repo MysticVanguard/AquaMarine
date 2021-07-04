@@ -36,7 +36,7 @@ class Tanks(commands.Cog):
                 """INSERT INTO user_tank_inventory VALUES ($1);""", ctx.author.id)
             await db(
                 """UPDATE user_tank_inventory SET tank[1]=TRUE, tank_type[1]=$2,
-                fish_room[1] = 1 WHERE user_id=$1""", ctx.author.id, type_of_tank)
+                fish_room[1] = 1, tank_theme[1] = 'Aqua' WHERE user_id=$1""", ctx.author.id, type_of_tank)
 
         # Ask the user what they want to name their tank
         def check(message):
@@ -88,7 +88,9 @@ class Tanks(commands.Cog):
             return await ctx.send(f"You have no fish named {fish_deposited}!")
         if not tank_row or tank_row[0]['tank'] == ['False', 'False', 'False', 'False', 'False', 'False', 'False', 'False', 'False', 'False']:
             return await ctx.send(f"You have no tanks!")
-        
+        if fish_row[0]['fish_alive'] == False:
+            return await ctx.send("That fish is dead!")
+
         # finds the tank slot the tank in question is at
         for tank_slot_in in tank_row[0]['tank_name']:
             if tank_slot_in == tank_name:
@@ -192,12 +194,14 @@ class Tanks(commands.Cog):
 
             # variables
             move_x = []
-            min_max_y = {"Fish Bowl": (50, 50), "Small Tank": (15, 200), "Medium Tank": (25, 200)}
-            min_max_x = {"Fish Bowl": (-180, 150), "Small Tank": (-180, 360), "Medium Tank": (-180, 720)}
+            min_max_y = {"Fish Bowl": (50, 50), "Small Tank": (15, 200), "Medium Tank": (20, 200)}
+            min_max_x = {"Fish Bowl": (-180, 150), "Small Tank": (-180, 360), "Medium Tank": (-800, 720)}
+            fish_size_speed = {"small": 25, "medium": 25, "large": 25, "xl": 0, "tiny": 0}
             im = []
             fish_y_value = []
             files = []
             golden_inverted_normal = 'normal'
+            fish_sizes = []
             fish_selections = []
             gif_name = random.randint(1, 1000)
             tank_types = {"Fish Bowl": "fishbowl", "Small Tank": "Small_Tank_2D", "Medium Tank": "Medium_Tank_2D"}
@@ -218,6 +222,7 @@ class Tanks(commands.Cog):
             # finds the type of tank it is
             tank_info = tank_row[0]['tank_type'][tank_slot]
 
+
             # finds what type of fish it is, then adds the paths to a list, as well as finding the fish's random starting position
             for selected_fish_types in selected_fish:
                 if "golden" in selected_fish_types['fish']:
@@ -229,6 +234,7 @@ class Tanks(commands.Cog):
                 for _, fish_types in self.bot.fish.items():
                     for fish_type, fish_data in fish_types.items():
                         if selected_fish_types['fish'] == fish_data['raw_name']:
+                            fish_sizes.append(selected_fish_types['fish_size'])
                             move_x.append(random.randint(min_max_x[tank_info][0], min_max_x[tank_info][1]))
                             fish_y_value.append(random.randint(min_max_y[tank_info][0], min_max_y[tank_info][1]))
                             fish_selections.append(f"C:/Users/JT/Pictures/Aqua{fish_data['image'][1:16]}{golden_inverted_normal}_fish_size{fish_data['image'][20:]}")
@@ -257,7 +263,7 @@ class Tanks(commands.Cog):
                 # adds multiple fish and a midground if its a fishbowl
                 for x in range(0, len(im)):
                     this_background.paste(im[x], (move_x[x], fish_y_value[x]), im[x])
-                    move_x[x] += 15
+                    move_x[x] += fish_size_speed[fish_sizes[x]]
                     if move_x[x] > min_max_x[tank_info][1]:
                         move_x[x] = min_max_x[tank_info][0]
                 this_background.paste(midground, (0, 0), midground)

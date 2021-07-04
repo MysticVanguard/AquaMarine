@@ -12,7 +12,10 @@ CREATE TABLE user_fish_inventory (
   fish_level INT NOT NULL DEFAULT 1,
   fish_xp INT NOT NULL DEFAULT 0,
   fish_xp_max INT NOT NULL DEFAULT 25,
-  fish_size TEXT
+  fish_size TEXT,
+  fish_days TIMESTAMP,
+  fish_alive BOOLEAN DEFAULT TRUE,
+  death_days TIMESTAMP
 );
 
 CREATE TABLE user_item_inventory (
