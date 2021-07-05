@@ -23,7 +23,7 @@ class Leveling(commands.Cog):
     # does all the xp stuff
     async def xp_finder_adder(self, user: discord.User, played_with_fish):
         # ranges of how much will be added
-        total_xp_to_add = random.randint(25, 100)
+        total_xp_to_add = random.randint(1, 25)
 
         # initial acquired fish data
         async with utils.DatabaseConnection() as db:
@@ -75,7 +75,7 @@ class Leveling(commands.Cog):
 
     @commands.command()
     @commands.bot_has_permissions(send_messages=True)
-    @commands.cooldown(1, 15 * 60, commands.BucketType.user)
+    @commands.cooldown(1, 1 * 60, commands.BucketType.user)
     async def entertain(self, ctx: commands.Context, fish_played_with):
         """
         Play with your fish!
@@ -131,7 +131,7 @@ class Leveling(commands.Cog):
 
     @commands.command()
     @commands.bot_has_permissions(send_messages=True)
-    @commands.cooldown(1, 6 * 60 * 60, commands.BucketType.user)
+    @commands.cooldown(1, 12 * 60 * 60, commands.BucketType.user)
     async def feed(self, ctx: commands.Context, fish_fed):
         """
             Feed your fish to make sure they survive
@@ -189,6 +189,44 @@ class Leveling(commands.Cog):
         else:
             form = 'seconds'
         await ctx.send(f'This fish isn\'t hungry, please try again in {round(time)} {form}.')
+    
+    @commands.command()
+    @commands.bot_has_permissions(send_messages=True)
+    @commands.cooldown(1,  5 * 60, commands.BucketType.user)
+    async def clean(self, ctx: commands.Context, tank_cleaned):
+        money_gained = 0
+        async with utils.DatabaseConnection() as db:
+            fish_rows = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND tank_fish = $2 AND fish_alive = TRUE""", ctx.author.id, tank_cleaned)
+        if not fish_rows:
+            return await ctx.send("You have no alive fish in this tank, or it does not exist!")
+        for fish in fish_rows:
+            money_gained += fish["fish_level"]
+
+    @clean.error
+    async def clean_error(self, ctx, error):
+
+        # Only handle cooldown errors
+        if not isinstance(error, commands.CommandOnCooldown):
+            raise error
+
+        time = error.retry_after
+        if 5_400 > time >= 3_600:
+            form = 'hour'
+            time /= 60 * 60
+        elif time > 3_600:
+            form = 'hours'
+            time /= 60 * 60
+        elif 90 > time >= 60:
+            form = 'minute'
+            time /= 60
+        elif time >= 60:
+            form = 'minutes'
+            time /= 60
+        elif time < 1.5:
+            form = 'second'
+        else:
+            form = 'seconds'
+        await ctx.send(f'This tank is cleaned, please try again in {round(time)} {form}.')
 
 def setup(bot):
     bot.add_cog(Leveling(bot))

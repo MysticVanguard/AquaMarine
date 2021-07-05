@@ -114,7 +114,7 @@ class Fishing(commands.Cog):
 
             fetched = await db("""SELECT * FROM user_balance WHERE user_id = $1""", ctx.author.id)
             return await ctx.send(f"You have {fetched[0]['balance']} Sand Dollars!" if fetched else "You have no Sand Dollars <:sand_dollar:852057443503964201>!")
-
+ 
     @commands.command(aliases=["bucket"])
     @commands.bot_has_permissions(send_messages=True, embed_links=True, manage_messages=True)
     async def fishbucket(self, ctx: commands.Context, user: discord.User = None):
