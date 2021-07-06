@@ -15,7 +15,7 @@ class RunSQL(commands.Cog):
     @commands.is_owner()
     @commands.bot_has_permissions(send_messages=True)
     async def runsql(self, ctx, *, sql:str):
-        """Runs a line of SQL into the sparcli database"""
+        """`a.runsql "code"` Runs a line of SQL into the sparcli database"""
 
         # Get the data we asked for
         async with utils.DatabaseConnection() as db:

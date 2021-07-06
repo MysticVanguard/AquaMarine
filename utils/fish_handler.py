@@ -226,3 +226,4 @@ async def buying_singular(ctx, item: str):
             return False
         async with utils.DatabaseConnection() as db:
                 await db("""UPDATE user_tank_inventory SET tank_theme[$1] = $2 WHERE user_id=$3""", tank_names.index(theme_message), item.replace(" ", "_"), ctx.author.id)
+

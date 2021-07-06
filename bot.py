@@ -15,7 +15,7 @@ bot = commands.AutoShardedBot(
 
 bot.fish = utils.fetch_fish()
 bot.config = utils.config
-
+bot.remove_command("help")
 
 @bot.event
 async def on_ready():

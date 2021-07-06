@@ -1,26 +1,254 @@
 import random
 import asyncio
+import math
+from datetime import datetime as dt, timedelta
 import io
-import numpy as np
-
-import discord
-from discord.ext import commands
 from PIL import Image
 import imageio
+
+import discord
+from discord.ext import commands, tasks
 
 import utils
 
 
-class Tanks(commands.Cog):
+class Aquarium(commands.Cog):
 
-    def __init__(self, bot):
+    def __init__(self, bot: commands.AutoShardedBot):
         self.bot = bot
+        self.fish_food_death_loop.start()
+
+    def cog_unload(self):
+        self.fish_food_death_loop.cancel()
+
+    # does all the xp stuff
+    async def xp_finder_adder(self, user: discord.User, played_with_fish):
+        # ranges of how much will be added
+        total_xp_to_add = random.randint(1, 25)
+
+        # initial acquired fish data
+        async with utils.DatabaseConnection() as db:
+            fish_rows = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2""", user.id, played_with_fish)
+                        
+        # level increase xp calculator
+        xp_per_level = math.floor(25 * fish_rows[0]['fish_level'] ** 1.5)
+        
+        # for each tick of xp...
+        for i in range(total_xp_to_add):
+
+            # if the xp is higher or equal to the xp recquired to level up...
+            if fish_rows[0]['fish_xp'] >= fish_rows[0]['fish_xp_max']:
+
+                # update the level to increase by one, reset fish xp, and set fish xp max to the next level xp needed
+                async with utils.DatabaseConnection() as db:
+                    await db("""UPDATE user_fish_inventory SET fish_level = fish_level + 1 WHERE user_id = $1 AND fish_name = $2""", user.id, played_with_fish)
+                    await db("""UPDATE user_fish_inventory SET fish_xp = 0 WHERE user_id = $1 AND fish_name = $2""", user.id, played_with_fish)
+                    await db("""UPDATE user_fish_inventory SET fish_xp_max = $1 WHERE user_id = $2 AND fish_name = $3""", int(xp_per_level), user.id, played_with_fish)
+            
+            # adds one xp regets new fish_rows
+            async with utils.DatabaseConnection() as db:
+                await db("""UPDATE user_fish_inventory SET fish_xp = fish_xp + 1 WHERE user_id = $1 AND fish_name = $2""", user.id, played_with_fish)
+                fish_rows = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2""", user.id, played_with_fish)
+    
+        return total_xp_to_add
+
+    @tasks.loop(minutes=1)
+    async def fish_food_death_loop(self):
+        
+        async with utils.DatabaseConnection() as db:
+            fish_rows = await db("""SELECT * FROM user_fish_inventory WHERE tank_fish != ''""")
+            for fish_row in fish_rows:
+                if fish_row['death_days']:
+                    if dt.utcnow() > fish_row['death_days']:
+                        await db("""UPDATE user_fish_inventory SET fish_alive=TRUE WHERE fish_name = $1 RETURNING fish_alive""", fish_row['fish_name'])      
+
+    @fish_food_death_loop.before_loop
+    async def before_fish_food_death_loop(self):
+        await self.bot.wait_until_ready()
+
+
+    # @commands.command()
+    # @commands.bot_has_permissions(send_messages=True)
+    # async def death(self, ctx: commands.Context, fish_name):
+    #     """
+    #     kills fish.
+    #     """
+    #     async with utils.DatabaseConnection() as db:
+    #         await db("""UPDATE user_fish_inventory SET death_days=$1 WHERE fish_name = $2""", dt(1900, 12, 12), fish_name) 
+
+
+
+    @commands.command()
+    @commands.bot_has_permissions(send_messages=True)
+    @commands.cooldown(1, 1 * 60, commands.BucketType.user)
+    async def entertain(self, ctx: commands.Context, fish_played_with):
+        """
+        `a.entertain \"fish name\"` This command entertains a fish in a tank. Entertaining a fish gives the fish XP, which levels it up. The level of a fish determines how much money you earn when you clean its tank, and how much it can sell for.
+        """        
+        # fetches needed row
+        async with utils.DatabaseConnection() as db:
+            fish_rows = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2 AND tank_fish != ''""", ctx.author.id, fish_played_with)
+
+
+        # other various checks
+        if not fish_rows:
+            return await ctx.send("You have no fish in a tank named that!")
+        if fish_rows[0]['fish_alive'] == False:
+            return await ctx.send("That fish is dead!")
+
+        #Typing Indicator
+        async with ctx.typing():
+
+            
+            # calls the xp finder adder to the fish
+            xp_added = await self.xp_finder_adder(ctx.author, fish_played_with)
+
+            # gets the new data and uses it in sent message
+            async with utils.DatabaseConnection() as db:
+                new_fish_rows = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2""", ctx.author.id, fish_played_with)
+        return await ctx.send(f"**{new_fish_rows[0]['fish_name']}** has gained *{str(xp_added)} XP* and is now level *{new_fish_rows[0]['fish_level']}, {new_fish_rows[0]['fish_xp']}/{new_fish_rows[0]['fish_xp_max']} XP*")
+
+    @entertain.error
+    async def entertain_error(self, ctx, error):
+
+        # Only handle cooldown errors
+        if not isinstance(error, commands.CommandOnCooldown):
+            raise error
+
+        time = error.retry_after
+        if 5_400 > time >= 3_600:
+            form = 'hour'
+            time /= 60 * 60
+        elif time > 3_600:
+            form = 'hours'
+            time /= 60 * 60
+        elif 90 > time >= 60:
+            form = 'minute'
+            time /= 60
+        elif time >= 60:
+            form = 'minutes'
+            time /= 60
+        elif time < 1.5:
+            form = 'second'
+        else:
+            form = 'seconds'
+        await ctx.send(f'This fish is tired, please try again in {round(time)} {form}.')
+
+    @commands.command()
+    @commands.bot_has_permissions(send_messages=True)
+    @commands.cooldown(1, 12 * 60 * 60, commands.BucketType.user)
+    async def feed(self, ctx: commands.Context, fish_fed):
+        """
+        `a.feed \"fish name\"` This command feeds a fish in a tank with fish food, that can be bought. Fish food is needed to keep fish in tanks alive, and if a fish in a tank isnt feed once every five days, it dies.
+        """
+        
+        # fetches needed rows and gets the users amount of food
+        async with utils.DatabaseConnection() as db:
+            fish_rows = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2 AND tank_fish != ''""", ctx.author.id, fish_fed)
+            item_rows = await db("""SELECT * FROM user_item_inventory WHERE user_id = $1""", ctx.author.id)
+            user_food_count = item_rows[0]['flakes']
+
+        # other various checks
+        if not fish_rows:
+            return await ctx.send("You have no fish in a tank named that!")
+        if not user_food_count:
+            return await ctx.send("You have no fish flakes!")
+        if fish_rows[0]['fish_alive'] == False:
+            return await ctx.send("That fish is dead!")
+
+        #Typing Indicator
+        async with ctx.typing():
+            
+            death_date = dt.utcnow() + timedelta(days=3)
+
+            async with utils.DatabaseConnection() as db:
+                await db("""UPDATE user_fish_inventory SET fish_days = $1, death_days = $4 WHERE user_id = $2 AND fish_name = $3""", dt.utcnow(), ctx.author.id, fish_fed, death_date)
+                await db("""UPDATE user_item_inventory SET flakes=flakes-1 WHERE user_id=$1""", ctx.author.id)
+
+
+
+        return await ctx.send(f"**{fish_rows[0]['fish_name']}** has been fed!")
+
+    @feed.error
+    async def feed_error(self, ctx, error):
+
+        # Only handle cooldown errors
+        if not isinstance(error, commands.CommandOnCooldown):
+            raise error
+
+        time = error.retry_after
+        if 5_400 > time >= 3_600:
+            form = 'hour'
+            time /= 60 * 60
+        elif time > 3_600:
+            form = 'hours'
+            time /= 60 * 60
+        elif 90 > time >= 60:
+            form = 'minute'
+            time /= 60
+        elif time >= 60:
+            form = 'minutes'
+            time /= 60
+        elif time < 1.5:
+            form = 'second'
+        else:
+            form = 'seconds'
+        await ctx.send(f'This fish isn\'t hungry, please try again in {round(time)} {form}.')
+    
+    @commands.command()
+    @commands.bot_has_permissions(send_messages=True)
+    @commands.cooldown(1,  5 * 60, commands.BucketType.user)
+    async def clean(self, ctx: commands.Context, tank_cleaned):
+        """
+        `a.clean \"tank name\"` This command cleans a tank, which gives you sand dollars based on the level of the fish in the tank
+        """
+        money_gained = 0
+        async with utils.DatabaseConnection() as db:
+            fish_rows = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND tank_fish = $2 AND fish_alive = TRUE""", ctx.author.id, tank_cleaned)
+        if not fish_rows:
+            return await ctx.send("You have no alive fish in this tank, or it does not exist!")
+        for fish in fish_rows:
+            money_gained += (fish["fish_level"] * 5)
+        async with utils.DatabaseConnection() as db:
+            await db(
+                """INSERT INTO user_balance (user_id, balance) VALUES ($1, $2)
+                ON CONFLICT (user_id) DO UPDATE SET balance = user_balance.balance + $2""",
+                ctx.author.id, int(money_gained),
+                )
+        await ctx.send(f"You earned {money_gained} Sand Dollars <:sand_dollar:852057443503964201> for cleaning that tank!")
+        
+
+    @clean.error
+    async def clean_error(self, ctx, error):
+
+        # Only handle cooldown errors
+        if not isinstance(error, commands.CommandOnCooldown):
+            raise error
+
+        time = error.retry_after
+        if 5_400 > time >= 3_600:
+            form = 'hour'
+            time /= 60 * 60
+        elif time > 3_600:
+            form = 'hours'
+            time /= 60 * 60
+        elif 90 > time >= 60:
+            form = 'minute'
+            time /= 60
+        elif time >= 60:
+            form = 'minutes'
+            time /= 60
+        elif time < 1.5:
+            form = 'second'
+        else:
+            form = 'seconds'
+        await ctx.send(f'This tank is cleaned, please try again in {round(time)} {form}.')
 
     @commands.command()
     @commands.bot_has_permissions(send_messages=True)
     async def firsttank(self, ctx:commands.Context):
         """
-        Gives your your first tank.
+        `a.firsttank` This command gives you your first starter tank, a fish bowl. It needs to be done before you can buy tanks and themes.
         """
 
         # See if they already have a tank
@@ -69,7 +297,7 @@ class Tanks(commands.Cog):
     @commands.bot_has_permissions(send_messages=True)
     async def deposit(self, ctx:commands.Context, tank_name, fish_deposited):
         '''
-        Deposits target fish into target tank
+        `a.deposit \"tank name\" \"fish name\"` This command deposits a specified fish into a specified tank.
         '''
 
         # variables for size value and the slot the tank is in
@@ -130,64 +358,12 @@ class Tanks(commands.Cog):
                 """UPDATE user_fish_inventory SET tank_fish = $3 WHERE fish_name=$1 AND user_id=$2""", fish_deposited, ctx.author.id, tank_name)
             return await ctx.send("Fish deposited!")
 
-    @commands.command()
-    @commands.bot_has_permissions(send_messages=True, embed_links=True)
-    async def testtank(self, ctx:commands.Context):
-        """
-        A test of the tank gifs.
-        """
-        #Typing Indicator
-        async with ctx.typing():
-            move_x = -360
-            move_y = random.randint(50, 150)
-            files = []
-            path_of_fish = random.choices(*utils.RARITY_PERCENTAGE_LIST)[0]
-            new_fish = random.choice(list(self.bot.fish[path_of_fish].values())).copy()
-            random_fish_path = f"C:/Users/JT/Pictures/Aqua{new_fish['image'][1:16]}normal_fish_size{new_fish['image'][20:]}"
-            file_prefix = "C:/Users/JT/Pictures/Aqua/assets/images"
-            gif_filename = f'{file_prefix}/gifs/actual_gifs/testtank.gif'
-
-            
-            # Open our constant images
-            background = Image.open(f"{file_prefix}/background/aqua_background_Medium_Tank_2D.png.png")
-            foreground = Image.open(f"{file_prefix}/background/medium_tank_2D.png")
-            fish = Image.open(random_fish_path)
-
-            # For each frame of the gif...
-            for _ in range(108):
-
-                # Add a fish to the background image
-                this_background = background.copy()
-                this_background.paste(fish, (move_x, move_y), fish)
-                this_background.paste(foreground, (0, 0), foreground)
-
-                # Save the generated image to memory
-                f = io.BytesIO()
-                this_background.save(f, format="PNG")
-                f.seek(0)
-                files.append(f)
-
-                # Move fish
-                move_x += 15
-                if move_x > 720:
-                    move_x = -360
-
-            # Save the image sequence to a gif
-            image_handles = [imageio.imread(i) for i in files]
-            imageio.mimsave(gif_filename, image_handles)
-
-            # Close all our file handles because oh no
-            for i in files:
-                i.close()
-
-        # Send gif to Discord
-        await ctx.send(file=discord.File(gif_filename))
-
+    
     @commands.command()
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def show(self, ctx:commands.Context, tank_name):
         """
-        Shows a users tanks
+        `a.show \"tank name\"` This command produces a gif of the specified tank.
         """
         #Typing Indicator
         async with ctx.typing():
@@ -288,7 +464,6 @@ class Tanks(commands.Cog):
 
         # Send gif to Discord
         await ctx.send(file=discord.File(gif_filename))
-
-
+    
 def setup(bot):
-    bot.add_cog(Tanks(bot))
+    bot.add_cog(Aquarium(bot))

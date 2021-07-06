@@ -12,21 +12,21 @@ class Misc(commands.Cog):
     @commands.command(aliases=["latency"])
     @commands.bot_has_permissions(send_messages=True)
     async def ping(self, ctx:commands.Context):
-        '''Checks the ping of the bot'''
+        '''`a.ping` Checks the ping of the bot'''
 
         return await ctx.send(f'🏓 pong! Latency: `{round(self.bot.latency, 8)}ms`')
 
     @commands.command(aliases=["github"])
     @commands.bot_has_permissions(send_messages=True)
     async def git(self, ctx:commands.Context):
-        '''Sends Github link'''
+        '''`a.git` This command shows the github link for the bot.'''
 
         return await ctx.send(config["github"])
 
     @commands.command(aliases=["say"])
     @commands.bot_has_permissions(send_messages=True)
     async def echo(self, ctx:commands.Context, *, content:str):
-        '''Repeats users message'''
+        '''`a.echo` Repeats users message'''
 
         return await ctx.send(content)
 
@@ -34,7 +34,7 @@ class Misc(commands.Cog):
     @commands.bot_has_permissions(send_messages=True)
     @commands.is_owner()
     async def activity(self, ctx:commands.Context, *, activity:str):
-        '''Changes the status of the bot (owner command only)'''
+        '''`a.activity` Changes the status of the bot (owner command only)'''
 
         await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=activity))
         return await ctx.message.add_reaction('👌')
@@ -43,6 +43,9 @@ class Misc(commands.Cog):
     @commands.cooldown(1, 60 * 60 * 24, commands.BucketType.user)
     @commands.bot_has_permissions(send_messages=True)
     async def daily(self, ctx:commands.Context):
+        """
+        `a.daily` This command gives you a daily reward of **100** sand dollars.
+        """
 
         # adds the money to the users bal
         async with utils.DatabaseConnection() as db:

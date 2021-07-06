@@ -1,5 +1,5 @@
 import random
-import typing
+
 import re
 import asyncio
 
@@ -100,26 +100,12 @@ class Fishing(commands.Cog):
                 user.id, new_fish["raw_name"], name, new_fish["size"]
             )
 
-    @commands.command(aliases=["bal"])
-    @commands.bot_has_permissions(send_messages=True)
-    async def balance(self, ctx: commands.Context, user: typing.Optional[discord.Member]):
-        """
-        Checks the user or member's balance.
-        """
 
-        async with utils.DatabaseConnection() as db:
-            if user:
-                fetched = await db("""SELECT * FROM user_balance WHERE user_id = $1""", user.id)
-                return await ctx.send(f"{user.display_name} has {fetched[0]['balance']} Sand Dollars <:sand_dollar:852057443503964201>!" if fetched else f"{user.display_name} has no Sand Dollars <:sand_dollar:852057443503964201>!")
-
-            fetched = await db("""SELECT * FROM user_balance WHERE user_id = $1""", ctx.author.id)
-            return await ctx.send(f"You have {fetched[0]['balance']} Sand Dollars!" if fetched else "You have no Sand Dollars <:sand_dollar:852057443503964201>!")
- 
     @commands.command(aliases=["bucket"])
     @commands.bot_has_permissions(send_messages=True, embed_links=True, manage_messages=True)
     async def fishbucket(self, ctx: commands.Context, user: discord.User = None):
         """
-        Shows a user's fish bucket.
+        `a.fishbucket \"user(optional)\"` This command checks your fish bucket or another users. A user can only have ten max in each rarity in their fish bucket, but fish buckets don\'t include your deposited fish.
         """
 
         # Default the user to the author of the command
@@ -236,7 +222,7 @@ class Fishing(commands.Cog):
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def fish(self, ctx: commands.Context):
         """
-        Fishes for a fish.
+        `a.fish` This command catches a fish. You then react with the emoji choice you want, either \"keep\" or \"sell\". If keep is chosen the fish will be added to your fish bucket if you have less than ten fish of the same rarity, otherwise it will be sold. If you choose sell the fish will be sold.
         """
 
         # Make sure they can't fish twice
@@ -318,7 +304,7 @@ class Fishing(commands.Cog):
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def rename(self, ctx: commands.Context, old: str, new: str):
         """
-        Renames your fish.
+        `a.rename "fish name"` Renames specified fish.
         """
         
         # Get the user's fish inventory based on the fish's name
@@ -347,7 +333,7 @@ class Fishing(commands.Cog):
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def release(self, ctx: commands.Context, name: str):
         """
-        Releases fish back into the wild.
+        `a.release "fish name"` Releases specified fish back into the wild.
         """
 
         # Get the user's fish inventory based on the fish's name
