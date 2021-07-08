@@ -174,6 +174,8 @@ class Fishing(commands.Cog):
             else:
                 fixed_fields.append(field)
 
+        fields = fixed_fields
+
         # Create an embed
         curr_index = 1
         curr_field = fields[curr_index - 1]
