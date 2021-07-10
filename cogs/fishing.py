@@ -164,17 +164,8 @@ class Fishing(commands.Cog):
         for rarity, fish_list in sorted_fish.items():
             if fish_list:
                 fish_string = [f"\"{fish_name}\": **{' '.join(fish_type.split('_')).title()}**" for fish_name, fish_type in fish_list]
-                fields.append((rarity.title(), "\n".join(fish_string)))
-
-        # Fix fields that are too long
-        fixed_fields = []
-        for field in fields:
-            if len(field[0]) + len(field[1]) > 2_000:
-                [fixed_fields.append(i) for i in self.get_fixed_field(field)]
-            else:
-                fixed_fields.append(field)
-
-        fields = fixed_fields
+                field = (rarity.title(), "\n".join(fish_string))
+                [fields.append(i) for i in self.get_fixed_field(field)]
 
         # Create an embed
         curr_index = 1
