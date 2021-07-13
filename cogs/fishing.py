@@ -227,19 +227,22 @@ class Fishing(commands.Cog):
         """
         Return a list of tuples for the rarity-level in the pagination to fix fields that are too large
         """
+        fish_string_split = field[1].split('\n')
         fixed_field = []
         current_string = ""
         fish_character_sum = 0
 
-        for fish_string in field[1].split("\n"):
+        for index, fish_string in enumerate(fish_string_split):
             fish_character_sum += len("\n" + fish_string)
             if fish_character_sum < 1020:
                 current_string += "\n" + fish_string
+                if index == len(fish_string_split) - 1:
+                    fixed_field.append((field[0], current_string))
             else:
                 fixed_field.append((field[0], current_string))
                 current_string = fish_string
                 fish_character_sum = 0
-
+            
         if not fixed_field:
             fixed_field = [field]
 
