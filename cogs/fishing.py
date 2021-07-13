@@ -236,7 +236,7 @@ class Fishing(commands.Cog):
             if fish_character_sum < 2000:
                 current_string += fish_string
             else:
-                fixed_field.append(field[0], current_string)
+                fixed_field.append((field[0], current_string))
                 current_string = fish_string
                 fish_character_sum = 0
 
