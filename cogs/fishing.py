@@ -232,7 +232,7 @@ class Fishing(commands.Cog):
         fish_character_sum = 0
 
         for fish_string in field[1].split("\n"):
-            fish_character_sum += len(fish_string)
+            fish_character_sum += len("\n" + fish_string)
             if fish_character_sum < 1020:
                 current_string += "\n" + fish_string
             else:
