@@ -101,7 +101,7 @@ class Fishing(commands.Cog):
             )
 
 
-    @commands.command(aliases=["bucket"])
+    @commands.command(aliases=["bucket", "fb"])
     @commands.bot_has_permissions(send_messages=True, embed_links=True, manage_messages=True)
     async def fishbucket(self, ctx: commands.Context, user: discord.User = None):
         """
@@ -233,7 +233,7 @@ class Fishing(commands.Cog):
 
         for fish_string in field[1].split("\n"):
             fish_character_sum += len(fish_string)
-            if fish_character_sum < 2000:
+            if fish_character_sum < 1024:
                 current_string += fish_string
             else:
                 fixed_field.append((field[0], current_string))
