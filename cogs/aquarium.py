@@ -271,6 +271,7 @@ class Aquarium(commands.Cog):
             return all([
                 message.author == ctx.author,
                 message.channel == ctx.channel,
+                message.content,
                 len(message.content) <= 32,
                 message.content != "none",
             ])

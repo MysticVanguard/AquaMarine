@@ -123,7 +123,6 @@ class Fishing(commands.Cog):
 
         embed = discord.Embed()
         embed.title = f"{user.display_name}'s Fish Bucket"
-        # embed.set_footer(text=f"page {page}/{totalpages}")
 
         fish_list = [(i['fish_name'], i['fish']) for i in fish_rows]  # List of tuples (Fish Name, Fish Type)
         fish_list = sorted(fish_list, key=lambda x: x[1])
@@ -151,7 +150,8 @@ class Fishing(commands.Cog):
         for rarity, fish_list in sorted_fish.items():
             if fish_list:
                 fish_string = [f"\"{fish_name}\": **{' '.join(fish_type.split('_')).title()}**" for fish_name, fish_type in fish_list]
-                fields.append((rarity.title(), "\n".join(fish_string)))
+                field = (rarity.title(), "\n".join(fish_string))
+                [fields.append(i) for i in self.get_fixed_field(field)]
 
         # Create an embed
         curr_index = 1
@@ -206,16 +206,41 @@ class Fishing(commands.Cog):
                 await user_message.delete()
 
     def create_bucket_embed(self, user, field):
+        """
+        Creates the embed for the pagination page for the fishbucket
+        """
         embed = discord.Embed()  # Create a new embed to edit the message
         embed.title = f"**{user.display_name}'s Fish Bucket**\n"
         embed.add_field(name=f"__{field[0]}__", value=field[1], inline=False)
         return embed
 
     def get_normal_name(self, fish_name):
+        """
+        Get the non-inverted/golden name for the fish
+        """
         match = re.match(r"(inverted_|golden_)(?P<fish_name>.*)", fish_name)
         if match:
             return match.group("fish_name")
         return fish_name
+        
+    def get_fixed_field(self, field):
+        """
+        Return a list of tuples for the rarity-level in the pagination to fix fields that are too large
+        """
+        fixed_field = []
+        current_string = ""
+        fish_character_sum = 0
+
+        for fish_string in field[1].split("\n"):
+            fish_character_sum += len(fish_string)
+            if fish_character_sum < 2000:
+                current_string += fish_string
+            else:
+                fixed_field.append((field[0], current_string))
+                current_string = ""
+                fish_character_sum = 0
+
+        return fixed_field
 
     @commands.command()
     @commands.cooldown(1, 30 * 60, commands.BucketType.user)

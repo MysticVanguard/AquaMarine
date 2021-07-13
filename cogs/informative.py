@@ -4,7 +4,8 @@ import asyncio
 import typing
 
 HELP_TEXT_GENERAL = """
-**For a list of commands, run `a.commands`!**\n Welcome to Aquamarine, your virtual fishing, fish care, and aquarium bot! 
+**For a list of commands, run `a.commands`!**
+Welcome to Aquamarine, your virtual fishing, fish care, and aquarium bot! 
 To start off run the `a.fish` command and react to one of the options. run the `a.firsttank` command to get your first tank for free, and start your adventure owning tanks. 
 To deposit a fish into a tank use `a.dep "tank name" "fish name"` (although remember, each tank has a limited capacity). 
 Once a fish is in a tank you can feed them (`a.feed "fish name"`) to keep them alive and entertain them (`a.entertain "fish name"`) to give them XP. 
