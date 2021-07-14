@@ -21,7 +21,7 @@ class Informative(commands.Cog):
     @commands.command()
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def bestiary(self, ctx:commands.Context, fish_name: typing.Optional[str]):
-        '''`a.bestiary \"fish type (optional)\"` This command shows you a list of all the fish in the bot. If a fish is specified information about that fish is shown'''
+        '''`a.bestiary \"fish type(optional)\"` This command shows you a list of all the fish in the bot. If a fish is specified information about that fish is shown'''
         new_fish = {}
         fields = []
         if not fish_name:
@@ -34,7 +34,7 @@ class Informative(commands.Cog):
             # Create an embed
             curr_index = 1
             curr_field = fields[curr_index - 1]
-            embed = self.create_bucket_embed(ctx.author, curr_field)
+            embed = self.create_bucket_embed(ctx.author, curr_field, "**Bestiary**\n")
 
             fish_message = await ctx.send(embed=embed)
 
@@ -60,7 +60,7 @@ class Informative(commands.Cog):
                     curr_index = index_chooser[chosen_reaction]  # Keep the index in bounds
                     curr_field = fields[curr_index - 1]
 
-                    await fish_message.edit(embed=self.create_bucket_embed(ctx.author, curr_field))
+                    await fish_message.edit(embed=self.create_bucket_embed(ctx.author, curr_field, "**Bestiary**\n"))
 
                 elif chosen_reaction == "⏹️":
                     await fish_message.clear_reactions()
@@ -79,7 +79,7 @@ class Informative(commands.Cog):
                     curr_index = min(len(fields), max(1, user_input))
                     curr_field = fields[curr_index - 1]
 
-                    await fish_message.edit(embed=self.create_bucket_embed(ctx.author, curr_field))
+                    await fish_message.edit(embed=self.create_bucket_embed(ctx.author, curr_field, "**Bestiary**\n"))
                     await number_message.delete()
                     await user_message.delete()
 
@@ -106,9 +106,9 @@ class Informative(commands.Cog):
             fish_file = discord.File(new_fish["image"], "new_fish.png")
             await ctx.send(file=fish_file, embed=embed)
 
-    def create_bucket_embed(self, user, field):
+    def create_bucket_embed(self, user, field, title):
         embed = discord.Embed()  # Create a new embed to edit the message
-        embed.title = f"**Bestiary**\n"
+        embed.title = title
         embed.add_field(name=f"__{field[0]}__", value=field[1], inline=False)
         return embed
 
@@ -175,7 +175,7 @@ class Informative(commands.Cog):
                 curr_index = index_chooser[chosen_reaction]  # Keep the index in bounds
                 curr_field = fields[curr_index - 1]
 
-                await command_message.edit(embed=self.create_bucket_embed(ctx.author, curr_field))
+                await command_message.edit(embed=self.create_bucket_embed(ctx.author, curr_field, "Commands (anything in quotes is a variable, and the quotes may or may not be needed)"))
 
             elif chosen_reaction == "⏹️":
                 await command_message.clear_reactions()

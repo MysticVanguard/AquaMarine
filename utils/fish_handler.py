@@ -157,22 +157,28 @@ async def buying_singular(ctx, item: str):
     tank_slot = 0
     nonavailable_slots = []
     available_slots = []
+    nonavailable_tank_types = []
     tank_names = []
     tank_size_values = {"Fish Bowl": 1, "Small Tank": 5, "Medium Tank": 25}
 
     # Finds the slots and names of tanks and puts them where they need to be in the list
+    for type in tanks:
+        if item == type:
+            break
+        nonavailable_tank_types.append(type)
     for tank_named in tank_row[0]['tank_name']:
         tank_slot += 1
         if tank_row[0]['tank_type'][tank_slot-1] == "":
             tank_names.append("none")
         tank_names.append(tank_named)
         if tank_named:
-            if tank_row[0]['tank_type'][tank_slot-1] == item:
+            print(nonavailable_tank_types)
+            if tank_row[0]['tank_type'][tank_slot-1] not in nonavailable_tank_types:
                 continue
             nonavailable_slots.append(str(tank_slot))
             continue
         available_slots.append(str(tank_slot))
-
+    
     # If the item is a tank...
     if item in tanks:
 

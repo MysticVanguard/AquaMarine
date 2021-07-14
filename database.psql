@@ -13,9 +13,11 @@ CREATE TABLE user_fish_inventory (
   fish_xp INT NOT NULL DEFAULT 0,
   fish_xp_max INT NOT NULL DEFAULT 25,
   fish_size TEXT,
-  fish_days TIMESTAMP,
+  fish_alive_days INT NOT NULL DEFAULT 0,
+  fish_entertain_time TIMESTAMP,
+  fish_feed_time TIMESTAMP,
   fish_alive BOOLEAN DEFAULT TRUE,
-  death_days TIMESTAMP
+  death_time TIMESTAMP
 );
 
 CREATE TABLE user_item_inventory (
@@ -26,8 +28,6 @@ CREATE TABLE user_item_inventory (
   efb INT NOT NULL DEFAULT 0,
   lfb INT NOT NULL DEFAULT 0,
   flakes INT NOT NULL DEFAULT 0,
-  pellets INT NOT NULL DEFAULT 0,
-  wafers INT NOT NULL DEFAULT 0,
   PRIMARY KEY (user_id)
 );
 
@@ -42,5 +42,6 @@ CREATE TABLE user_tank_inventory (
   xl_fish_room INT[] NOT NULL DEFAULT '{0, 0, 0, 0, 0, 0, 0, 0, 0, 0}',
   tiny_fish_room INT[] NOT NULL DEFAULT '{0, 0, 0, 0, 0, 0, 0, 0, 0, 0}',
   tank_theme TEXT[] NOT NULL DEFAULT '{"", "", "", "", "", "", "", "", "", ""}',
+  tank_clean_time TIMESTAMP[] NOT NULL DEFAULT '{NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL}',
   PRIMARY KEY (user_id)
 );

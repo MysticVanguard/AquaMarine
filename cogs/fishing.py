@@ -71,17 +71,6 @@ class Fishing(commands.Cog):
                     if raw_name == self.get_normal_name(user_fish):  # If the fish in the user's list matches the name of a fish in the rarity catgeory
                         sorted_fish[rarity].append((user_fish_name, user_fish))  # Append to the dictionary
 
-        for rarity in sorted_fish:
-            if rarity == new_fish['rarity']:
-                if len(sorted_fish[rarity]) >= 10:
-                    async with utils.DatabaseConnection() as db:
-                        await db(
-                            """INSERT INTO user_balance (user_id, balance) VALUES ($1, $2)
-                            ON CONFLICT (user_id) DO UPDATE SET balance = user_balance.balance + $2""",
-                            user.id, int(new_fish["cost"]),
-                        )
-                    await message.channel.send(f"You have the max amount of fish in your fish bucket for that rarity (10). Sold your **{new_fish['name']}** for **{new_fish['cost']}** Sand Dollars <:sand_dollar:852057443503964201>!")
-                    return
         # They want to keep - ask what they want to name the fish
         await message.channel.send("What do you want to name your new fish? (32 character limit and cannot be named the same as another fish you own)")
         check = lambda m: m.author == user and m.channel == message.channel and len(m.content) > 1 and len(m.content) <= 32 and m.content not in fish_names

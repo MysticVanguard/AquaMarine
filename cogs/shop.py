@@ -16,9 +16,7 @@ FISH_SHOP_EMBED.add_field(name="Epic Fish Bag <:epic_fish_bag:851974770467930118
 FISH_SHOP_EMBED.add_field(name="Legendary Fish Bag <:legendary_fish_bag:851974777567838258>", value="This gives you one fish with extremely better chances \n __500 Sand Dollars <:sand_dollar:852057443503964201>__", inline=True)
 FISH_SHOP_EMBED.add_field(name="Mystery Fish Bag <:mystery_fish_bag:851975891659391006>", value="This gives you one bag of a random rarity \n __250 Sand Dollars <:sand_dollar:852057443503964201>__", inline=True)
 FISH_SHOP_EMBED.add_field(name="Fish Food", value="This is food that can be fed to fish to level them up", inline=False)
-FISH_SHOP_EMBED.add_field(name="Fish Flakes <:fish_flakes:852053373111894017>", value="This gives you fish flakes to feed your fish, giving them XP \n __5 Sand Dollars <:sand_dollar:852057443503964201>__", inline=True)
-FISH_SHOP_EMBED.add_field(name="Fish Pellets <:fish_pellets:852053384986099715>", value="This gives you fish pellets to feed your fish, giving them more XP \n __10 Sand Dollars <:sand_dollar:852057443503964201>__", inline=True)
-FISH_SHOP_EMBED.add_field(name="Fish Wafers <:fish_wafers:852053392733634572>", value="This gives you fish wafers to feed your fish, giving them even more XP \n __25 Sand Dollars <:sand_dollar:852057443503964201>__", inline=True)
+FISH_SHOP_EMBED.add_field(name="Fish Flakes <:fish_flakes:852053373111894017>", value="This gives you fish flakes to feed your fish, keeping them alive \n __5 Sand Dollars <:sand_dollar:852057443503964201>__", inline=True)
 FISH_SHOP_EMBED.add_field(name="Tanks", value="These are tanks you can buy to put your fish into, can only be purchased one at a time", inline=False)
 FISH_SHOP_EMBED.add_field(name="Fish Bowl", value="This gives you a Fish Bowl Tank that you can deposit one small fish into \n __100 Sand Dollars <:sand_dollar:852057443503964201>__", inline=True)
 FISH_SHOP_EMBED.add_field(name="Small Tank", value="This gives you a Small Tank that you can deposit five small fish or one medium fish into\n __500 Sand Dollars <:sand_dollar:852057443503964201>__", inline=True)
@@ -34,8 +32,6 @@ EPIC_BAG_NAMES = ["Epic Fish Bag", "Epic", "Efb"]
 LEGENDARY_BAG_NAMES = ["Legendary Fish Bag", "Legendary", "Lfb"]
 MYSTERY_BAG_NAMES = ["Mystery Fish Bag", "Mystery", "Mfb"]
 FISH_FLAKES_NAMES = ["Fish Flakes", "Ff", "Flakes"]
-FISH_PELLETS_NAMES = ["Fish Pellets", "Fp", "Pellets"]
-FISH_WAFERS_NAMES = ["Fish Wafers", "Fw", "Wafers"]
 FISH_BOWL_NAMES = ["Fish Bowl", "Bowl", "Fb"]
 SMALL_TANK_NAMES = ["Small Tank", "Small", "St"]
 MEDIUM_TANK_NAMES = ["Medium Tank", "Medium", "Mt"]
@@ -94,8 +90,7 @@ class Shop(commands.Cog):
         # Say what's valid
         all_names = [
             COMMON_BAG_NAMES, UNCOMMON_BAG_NAMES, RARE_BAG_NAMES, EPIC_BAG_NAMES,
-            LEGENDARY_BAG_NAMES, MYSTERY_BAG_NAMES, FISH_FLAKES_NAMES, FISH_PELLETS_NAMES,
-            FISH_WAFERS_NAMES, FISH_BOWL_NAMES, SMALL_TANK_NAMES, MEDIUM_TANK_NAMES, PLANT_LIFE_NAMES
+            LEGENDARY_BAG_NAMES, MYSTERY_BAG_NAMES, FISH_FLAKES_NAMES, FISH_BOWL_NAMES, SMALL_TANK_NAMES, MEDIUM_TANK_NAMES, PLANT_LIFE_NAMES
         ]
 
         # See if they gave a valid item
@@ -115,8 +110,6 @@ class Shop(commands.Cog):
             "lfb": (LEGENDARY_BAG_NAMES, 500, "Legendary Fish Bag", inventory_insert_sql.format("lfb")),
             "mfb": (MYSTERY_BAG_NAMES, 250),
             "flakes": (FISH_FLAKES_NAMES, 5, "Fish Flakes", inventory_insert_sql.format("flakes")),
-            "pellets": (FISH_PELLETS_NAMES, 10, "Fish Pellets", inventory_insert_sql.format("pellets")),
-            "wafers": (FISH_WAFERS_NAMES, 25, "Fish Wafers", inventory_insert_sql.format("wafers")),
             "Fish Bowl": (FISH_BOWL_NAMES, 100, "Fish Bowl", ""),
             "Small Tank": (SMALL_TANK_NAMES, 500, "Small Tank", ""),
             "Medium Tank": (MEDIUM_TANK_NAMES, 2500, "Medium Tank", ""),
@@ -280,7 +273,7 @@ class Shop(commands.Cog):
             for values in info:
                 if values < 1000000:
                     fetched_info.append(values)
-        bags = ["Common Fish Bag", "Uncommon Fish Bag", "Rare Fish Bag", "Epic Fish Bag", "Legendary Fish Bag", "Fish Flake", "Fish Pellet", "Fish Wafer"]
+        bags = ["Common Fish Bag", "Uncommon Fish Bag", "Rare Fish Bag", "Epic Fish Bag", "Legendary Fish Bag", "Fish Flake"]
         count = 0
         embed = discord.Embed()
         embed.title = f"{ctx.author.display_name}'s Inventory"
