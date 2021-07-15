@@ -3,20 +3,97 @@ from os import walk
 import utils
 import discord
 import asyncio
+SPECIAL_RARITY_PERCENTAGES = {
+    1:
+    [
+        ("normal", .94),
+        ("inverted", .05),
+        ("golden", .01)
+    ],
+    2:
+    [
+        ("normal", .94),
+        ("inverted", .05),
+        ("golden", .01)
+    ],
+    3:
+    [
+        ("normal", .94),
+        ("inverted", .05),
+        ("golden", .01)
+    ],
+    4:
+    [
+        ("normal", .94),
+        ("inverted", .05),
+        ("golden", .01)
+    ],
+    5:
+    [
+        ("normal", .94),
+        ("inverted", .05),
+        ("golden", .01)
+    ]
+}
+_RARITY_PERCENTAGES = {
+    1:
+    [
+        ("common", 0.6689),
+        ("uncommon", 0.2230),
+        ("rare", 0.0743),
+        ("epic", 0.0248),
+        ("legendary", 0.0082),
+        ("mythic", 0.0008),
+    ],
+    2:
+    [
+        ("common", 0.6689),
+        ("uncommon", 0.2230),
+        ("rare", 0.0743),
+        ("epic", 0.0248),
+        ("legendary", 0.0082),
+        ("mythic", 0.0008),
+    ],
+    3:
+    [
+        ("common", 0.6689),
+        ("uncommon", 0.2230),
+        ("rare", 0.0743),
+        ("epic", 0.0248),
+        ("legendary", 0.0082),
+        ("mythic", 0.0008),
+    ],
+    4:
+    [
+        ("common", 0.6689),
+        ("uncommon", 0.2230),
+        ("rare", 0.0743),
+        ("epic", 0.0248),
+        ("legendary", 0.0082),
+        ("mythic", 0.0008),
+    ],
+    5:
+    [
+        ("common", 0.6689),
+        ("uncommon", 0.2230),
+        ("rare", 0.0743),
+        ("epic", 0.0248),
+        ("legendary", 0.0082),
+        ("mythic", 0.0008),
+    ]}
 
-_RARITY_PERCENTAGES = [
-    ("common", 0.6689),
-    ("uncommon", 0.2230),
-    ("rare", 0.0743),
-    ("epic", 0.0248),
-    ("legendary", 0.0082),
-    ("mythic", 0.0008),
-]
+
 RARITY_PERCENTAGE_DICT = dict(_RARITY_PERCENTAGES)  # A dictionary of `rarity: percentage`
-RARITY_PERCENTAGE_LIST = [
-    list(i[0] for i in _RARITY_PERCENTAGES),
-    list(i[1] for i in _RARITY_PERCENTAGES),
-]  # A nested list of `[[...rarity], [...percentage]]`
+def rarity_percentage_finder(upgrade_level):
+    return [
+    list(i[0] for i in _RARITY_PERCENTAGES[upgrade_level]),
+    list(i[1] for i in _RARITY_PERCENTAGES[upgrade_level]),
+]
+def special_percentage_finder(upgrade_level):
+    return [
+    list(i[0] for i in SPECIAL_RARITY_PERCENTAGES[upgrade_level]),
+    list(i[1] for i in SPECIAL_RARITY_PERCENTAGES[upgrade_level]),
+]
 RARITY_CULERS = {
     "common": 0xFFFFFE,  # White - FFFFFF doesn't work with Discord
     "uncommon": 0x75FE66,  # Green

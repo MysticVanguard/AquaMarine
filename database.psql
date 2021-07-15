@@ -45,3 +45,13 @@ CREATE TABLE user_tank_inventory (
   tank_clean_time TIMESTAMP[] NOT NULL DEFAULT '{NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL}',
   PRIMARY KEY (user_id)
 );
+
+CREATE TABLE user_upgrades (
+  user_id BIGINT,
+  rod_upgrade INT NOT NULL DEFAULT 1,
+  bait_upgrade INT NOT NULL DEFAULT 1,
+  weight_upgrade INT NOT NULL DEFAULT 1,
+  line_upgrade INT NOT NULL DEFAULT 1,
+  lure_upgrade INT NOT NULL DEFAULT 1,
+  PRIMARY KEY (user_id)
+);

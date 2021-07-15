@@ -5,6 +5,7 @@ import asyncio
 
 import discord
 from discord.ext import commands
+import math
 
 import utils
 
@@ -34,26 +35,36 @@ class Fishing(commands.Cog):
             await message.channel.send("Did you forget about me? I've been waiting for a while now! I'll just assume you wanted to sell the fish.")
             choice = "sell"
 
+        async with utils.DatabaseConnection() as db:
+            fish_rows = await db("""SELECT * FROM user_fish_inventory WHERE user_id=$1""", user.id)
+            upgrades = await db("""SELECT rod_upgrade, bait_upgrade, weight_upgrade, line_upgrade, lure_upgrade FROM user_upgrades WHERE user_id = $1""", user.id)
+            if not upgrades:
+                await db("""INSERT INTO user_upgrades (user_id) VALUES ($1)""", user.id)
+                upgrades = await db("""SELECT rod_upgrade, bait_upgrade, weight_upgrade, line_upgrade, lure_upgrade FROM user_upgrades WHERE user_id = $1""", user.id)
+
         # See if they want to sell the fish
         if choice == "sell":
+            sell_multipliers = { 1: 1.0, 2: 1.3, 3: 1.5, 4: 1.7, 5: 2.0}
+            money_earned = math.floor(int(new_fish['cost']) * sell_multipliers[upgrades[0]['rod_upgrade']])
             async with utils.DatabaseConnection() as db:
                 await db(
                     """INSERT INTO user_balance (user_id, balance) VALUES ($1, $2)
                     ON CONFLICT (user_id) DO UPDATE SET balance = user_balance.balance + $2""",
-                    user.id, int(new_fish["cost"]),
+                    user.id, money_earned,
                 )
-            await message.channel.send(f"Sold your **{new_fish['name']}** for **{new_fish['cost']}** Sand Dollars <:sand_dollar:852057443503964201>!")
+            await message.channel.send(f"Sold your **{new_fish['name']}** for **{money_earned}** Sand Dollars <:sand_dollar:852057443503964201>!")
             return
 
         
         # Get their current fish names
         fish_names = []
 
-        async with utils.DatabaseConnection() as db:
-            fish_rows = await db("""SELECT * FROM user_fish_inventory WHERE user_id=$1""", user.id)
         fish_names = [i['fish_name'] for i in fish_rows]
         fish_list = [(i['fish_name'], i['fish']) for i in fish_rows]
         fish_list = sorted(fish_list, key=lambda x: x[1])
+        levels_start = {1: (1,5), 2: (5,10), 3: (10,15), 4: (15,20), 5: (20,25)}
+        level = random.randint(levels_start[upgrades[0]['weight_upgrade']][0], levels_start[upgrades[0]['weight_upgrade']][1])
+        xp_max = math.floor(25 * level ** 1.5)
         sorted_fish = {
             "common": [],
             "uncommon": [],
@@ -77,16 +88,16 @@ class Fishing(commands.Cog):
         try:
             name_message = await self.bot.wait_for("message", timeout=60.0, check=check)
             name = name_message.content
-            await message.channel.send(f"Your new fish **{name}** has been added to your bucket!")
+            await message.channel.send(f"Your new fish **{name}** (Lvl. {level}) has been added to your bucket!")
         except asyncio.TimeoutError:
             name = f"{random.choice(['Captain', 'Mr.', 'Mrs.', 'Commander'])} {random.choice(['Nemo', 'Bubbles', 'Jack', 'Finley', 'Coral'])}"
-            await message.channel.send(f"Did you forget about me? I've been waiting for a while now! I'll name the fish for you. Let's call it **{name}**")
+            await message.channel.send(f"Did you forget about me? I've been waiting for a while now! I'll name the fish for you. Let's call it **{name}** (Lvl. {level})")
 
         # Save the fish name
         async with utils.DatabaseConnection() as db:
             await db(
-                """INSERT INTO user_fish_inventory (user_id, fish, fish_name, fish_size) VALUES ($1, $2, $3, $4)""",
-                user.id, new_fish["raw_name"], name, new_fish["size"]
+                """INSERT INTO user_fish_inventory (user_id, fish, fish_name, fish_size, fish_level, fish_xp_max) VALUES ($1, $2, $3, $4, $5, $6)""",
+                user.id, new_fish["raw_name"], name, new_fish["size"], level, xp_max
             )
 
 
@@ -249,47 +260,56 @@ class Fishing(commands.Cog):
         if ctx.author.id in self.current_fishers:
             return await ctx.send(f"{ctx.author.display_name}, you're already fishing!")
         self.current_fishers.append(ctx.author.id)
+        catches = 1
 
-        # See what our chances of getting each fish are
-        rarity = random.choices(*utils.RARITY_PERCENTAGE_LIST)[0]  # Chance of each rarity
-        special = random.choices(
-            ["normal", "inverted", "golden",],
-            [.94, .05, .01]
-        )[0]  # Chance of modifier
-
-        # See which fish they caught
-        new_fish = random.choice(list(self.bot.fish[rarity].values())).copy()
-        
-        special_functions = {
-            "inverted": utils.make_inverted(new_fish.copy()),
-            "golden": utils.make_golden(new_fish.copy())
-        }
-        
-        if special in special_functions.keys():
-            new_fish = special_functions[special]    
-
-        # Say how many of those fish they caught previously
-        amount = 0
-        a_an = "an" if rarity[0].lower() in ("a", "e", "i", "o", "u") else "a"
+        #upgrades be like
         async with utils.DatabaseConnection() as db:
-            user_inventory = await db("SELECT * FROM user_fish_inventory WHERE user_id=$1", ctx.author.id)
-        for row in user_inventory:
-            if row['fish'] == new_fish['raw_name']:
-                amount = amount + 1
-                
-        owned_unowned = "Owned" if amount > 0 else "Unowned"
-        print(new_fish["image"])
-        # Tell the user about the fish they caught
-        embed = discord.Embed()
-        embed.title = f"You caught {a_an} {rarity} {new_fish['name']}!"
-        embed.add_field(name=owned_unowned, value=f"You have {amount} {new_fish['name']}", inline=False)
-        embed.set_image(url="attachment://new_fish.png")
-        embed.color = utils.RARITY_CULERS[rarity]
-        fish_file = discord.File(new_fish["image"], "new_fish.png")
-        message = await ctx.send(file=fish_file, embed=embed)
+            upgrades = await db("""SELECT rod_upgrade, bait_upgrade, weight_upgrade, line_upgrade, lure_upgrade FROM user_upgrades WHERE user_id = $1""", ctx.author.id)
+            if not upgrades:
+                await db("""INSERT INTO user_upgrades (user_id) VALUES ($1)""", ctx.author.id)
+                upgrades = await db("""SELECT rod_upgrade, bait_upgrade, weight_upgrade, line_upgrade, lure_upgrade FROM user_upgrades WHERE user_id = $1""", ctx.author.id)
+        two_in_one_chance = { 1: (1, 500), 2: (1, 400), 3: (1, 300), 4: (1, 200), 5: (1, 100)}
+        two_in_one_roll = random.randint(two_in_one_chance[upgrades[0]['line_upgrade']][0], two_in_one_chance[upgrades[0]['line_upgrade']][1])
+        if two_in_one_roll == 1:
+            catches = 2
+        for x in range(catches):
+            # See what our chances of getting each fish are
+            rarity = random.choices(*utils.rarity_percentage_finder(upgrades[0]['bait_upgrade']))[0]  # Chance of each rarity
+            special = random.choices(*utils.special_percentage_finder(upgrades[0]['lure_upgrade']))[0]  # Chance of modifier
 
-        # Ask if they want to sell the fish they just caught
-        await self.ask_to_sell_fish(ctx.author, message, new_fish)
+            # See which fish they caught
+            new_fish = random.choice(list(self.bot.fish[rarity].values())).copy()
+            
+            special_functions = {
+                "inverted": utils.make_inverted(new_fish.copy()),
+                "golden": utils.make_golden(new_fish.copy())
+            }
+            
+            if special in special_functions.keys():
+                new_fish = special_functions[special]    
+
+            # Say how many of those fish they caught previously
+            amount = 0
+            a_an = "an" if rarity[0].lower() in ("a", "e", "i", "o", "u") else "a"
+            async with utils.DatabaseConnection() as db:
+                user_inventory = await db("SELECT * FROM user_fish_inventory WHERE user_id=$1", ctx.author.id)
+            for row in user_inventory:
+                if row['fish'] == new_fish['raw_name']:
+                    amount = amount + 1
+                    
+            owned_unowned = "Owned" if amount > 0 else "Unowned"
+            print(new_fish["image"])
+            # Tell the user about the fish they caught
+            embed = discord.Embed()
+            embed.title = f"You caught {a_an} {rarity} {new_fish['name']}!"
+            embed.add_field(name=owned_unowned, value=f"You have {amount} {new_fish['name']}", inline=False)
+            embed.set_image(url="attachment://new_fish.png")
+            embed.color = utils.RARITY_CULERS[rarity]
+            fish_file = discord.File(new_fish["image"], "new_fish.png")
+            message = await ctx.send(file=fish_file, embed=embed)
+
+            # Ask if they want to sell the fish they just caught
+            await self.ask_to_sell_fish(ctx.author, message, new_fish)
 
         # And now they should be allowed to fish again
         self.current_fishers.remove(ctx.author.id)
