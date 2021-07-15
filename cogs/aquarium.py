@@ -135,7 +135,7 @@ class Aquarium(commands.Cog):
     @commands.bot_has_permissions(send_messages=True)
     async def feed(self, ctx: commands.Context, fish_fed):
         """
-        `a.feed \"fish name\"` This command feeds a fish in a tank with fish food, that can be bought. Fish food is needed to keep fish in tanks alive, and if a fish in a tank isnt feed once every five days, it dies.
+        `a.feed \"fish name\"` This command feeds a fish in a tank with fish flakes. Fish need fed, and if a fish in a tank isnt feed once every five days, it dies.
         """
         
         # fetches needed rows and gets the users amount of food
@@ -174,7 +174,7 @@ class Aquarium(commands.Cog):
     @commands.bot_has_permissions(send_messages=True)
     async def clean(self, ctx: commands.Context, tank_cleaned):
         """
-        `a.clean \"tank name\"` This command cleans a tank, which gives you sand dollars based on the level of the fish in the tank
+        `a.clean \"tank name\"` This command cleans a tank, and gives you sand dollars based on fish's level.
         """
         money_gained = 0
         async with utils.DatabaseConnection() as db:
@@ -208,7 +208,7 @@ class Aquarium(commands.Cog):
     @commands.bot_has_permissions(send_messages=True)
     async def firsttank(self, ctx:commands.Context):
         """
-        `a.firsttank` This command gives you your first starter tank, a fish bowl. It needs to be done before you can buy tanks and themes.
+        `a.firsttank` This command gives you your first tank. It needs to be done before you can buy tanks and themes.
         """
 
         # See if they already have a tank
@@ -358,7 +358,9 @@ class Aquarium(commands.Cog):
     @commands.command()
     @commands.bot_has_permissions(send_messages=True)
     async def sell(self, ctx:commands.Context, fish_sold):
-
+        '''
+        `a.sell "fish name"` This command sells the specified fish, and it must be out of a tank.
+        '''
         cost = 0
         async with utils.DatabaseConnection() as db:
             fish_row = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2""", ctx.author.id, fish_sold)
@@ -458,7 +460,6 @@ class Aquarium(commands.Cog):
             foreground = Image.open(f"{file_prefix}/background/{tank_types[tank_info]}.png")
             for x in range(0, len(fish_selections)):
                 im.append(Image.open(fish_selections[x]))
-            print(fish_y_value)
             # For each frame of the gif...
             for _ in range(60):
 

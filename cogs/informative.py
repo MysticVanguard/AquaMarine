@@ -194,7 +194,7 @@ class Informative(commands.Cog):
                 curr_index = min(len(fields), max(1, user_input))
                 curr_field = fields[curr_index - 1]
 
-                await command_message.edit(embed=self.create_bucket_embed(ctx.author, curr_field))
+                await command_message.edit(embed=self.create_bucket_embed(ctx.author, curr_field, "Commands (anything in quotes is a variable, and the quotes may or may not be needed)"))
                 await number_message.delete()
                 await user_message.delete()
 

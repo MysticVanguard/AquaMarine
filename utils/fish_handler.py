@@ -12,27 +12,27 @@ SPECIAL_RARITY_PERCENTAGES = {
     ],
     2:
     [
-        ("normal", .94),
-        ("inverted", .05),
-        ("golden", .01)
+        ("normal", .90),
+        ("inverted", .08),
+        ("golden", .02)
     ],
     3:
     [
-        ("normal", .94),
-        ("inverted", .05),
-        ("golden", .01)
+        ("normal", .85),
+        ("inverted", .12),
+        ("golden", .03)
     ],
     4:
     [
-        ("normal", .94),
-        ("inverted", .05),
-        ("golden", .01)
+        ("normal", .78),
+        ("inverted", .18),
+        ("golden", .04)
     ],
     5:
     [
-        ("normal", .94),
-        ("inverted", .05),
-        ("golden", .01)
+        ("normal", .67),
+        ("inverted", .27),
+        ("golden", .06)
     ]
 }
 _RARITY_PERCENTAGES = {
@@ -47,39 +47,39 @@ _RARITY_PERCENTAGES = {
     ],
     2:
     [
-        ("common", 0.6689),
-        ("uncommon", 0.2230),
-        ("rare", 0.0743),
-        ("epic", 0.0248),
-        ("legendary", 0.0082),
-        ("mythic", 0.0008),
+        ("common", 0.6062),
+        ("uncommon", 0.2423),
+        ("rare", 0.0967),
+        ("epic", 0.0385),
+        ("legendary", 0.0154),
+        ("mythic", 0.0009),
     ],
     3:
     [
-        ("common", 0.6689),
-        ("uncommon", 0.2230),
-        ("rare", 0.0743),
-        ("epic", 0.0248),
-        ("legendary", 0.0082),
-        ("mythic", 0.0008),
+        ("common", 0.5156),
+        ("uncommon", 0.2578),
+        ("rare", 0.1289),
+        ("epic", 0.0645),
+        ("legendary", 0.0322),
+        ("mythic", 0.0010),
     ],
     4:
     [
-        ("common", 0.6689),
-        ("uncommon", 0.2230),
-        ("rare", 0.0743),
-        ("epic", 0.0248),
-        ("legendary", 0.0082),
-        ("mythic", 0.0008),
+        ("common", 0.4558),
+        ("uncommon", 0.2605),
+        ("rare", 0.1490),
+        ("epic", 0.0850),
+        ("legendary", 0.0486),
+        ("mythic", 0.0011),
     ],
     5:
     [
-        ("common", 0.6689),
-        ("uncommon", 0.2230),
-        ("rare", 0.0743),
-        ("epic", 0.0248),
-        ("legendary", 0.0082),
-        ("mythic", 0.0008),
+        ("common", 0.3843),
+        ("uncommon", 0.2558),
+        ("rare", 0.1701),
+        ("epic", 0.1134),
+        ("legendary", 0.0752),
+        ("mythic", 0.0012),
     ]}
 
 

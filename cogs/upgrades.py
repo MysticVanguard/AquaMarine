@@ -54,7 +54,9 @@ class Upgrades(commands.Cog):
     @commands.command()
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def upgrade(self, ctx:commands.Context, upgrade):
-        
+        """
+        `a.upgrade "upgrade"` This command upgrades specified upgrade.
+        """
         upgraded = f"{upgrade}_upgrade"
         async with utils.DatabaseConnection() as db:
             upgrades = await db("""SELECT rod_upgrade, bait_upgrade, weight_upgrade, line_upgrade, lure_upgrade FROM user_upgrades WHERE user_id = $1""", ctx.author.id)

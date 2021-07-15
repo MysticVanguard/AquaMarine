@@ -213,7 +213,6 @@ class Shop(commands.Cog):
         # Get what rarity of fish they rolled
         rarity_names = ["common", "uncommon", "rare", "epic", "legendary", "mythic"]
         chances = rarity_chances[used_bag]
-        print(chances)
         rarity = random.choices(
             rarity_names,
             [chances[n] for n in rarity_names]

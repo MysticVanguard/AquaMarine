@@ -298,7 +298,6 @@ class Fishing(commands.Cog):
                     amount = amount + 1
                     
             owned_unowned = "Owned" if amount > 0 else "Unowned"
-            print(new_fish["image"])
             # Tell the user about the fish they caught
             embed = discord.Embed()
             embed.title = f"You caught {a_an} {rarity} {new_fish['name']}!"
