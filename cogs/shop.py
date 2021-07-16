@@ -44,7 +44,7 @@ emoji_rarities = {
         "shrimp": "<:shrimp:850970552830787624>", "red_betta": "<:red_betta:850970531216752660>", "paradise_fish": "<:paradise_fish:850970512695361546>", "koi": "<:koi:850970638599323678>", "headshield_slug": "<:headshield_slug:850970724231544833>",
         "guppies": "<:guppies:850970478884814908>", "electric_blue_hap": "<:electric_blue_hap:850970439136182293>", "cowfish": "<:cowfish:850970605276102658>", "clown_triggerfish": "<:clown_triggerfish:850970691628695562>", "angelfish": "<:angelfish:850970572569706526>",
         "pineapple_betta": "<:pineapple_betta:850970524414509056>", "harlequin_rasboras": "<:harlequin_rasboras:850970500686938112>", "electric_yellow_lab": "<:electric_yellow_lab:850970446648311828>", "catfish": "<:catfish:850970683718893578>",
-        "blue_maomao": "<:blue_maomao:850970598784237568>", "blue_diamond_discus": "<:blue_diamond_discus:850970583499538464>", ":black_orchid_betta": "<:black_orchid_betta:850970430487527486>", "banggai_cardinalfish": "<:banggai_cardinalfish:850970420869070868>",
+        "blue_maomao": "<:blue_maomao:850970598784237568>", "blue_diamond_discus": "<:blue_diamond_discus:850970583499538464>", "black_orchid_betta": "<:black_orchid_betta:850970430487527486>", "banggai_cardinalfish": "<:banggai_cardinalfish:850970420869070868>",
         "bottlenose_dolphin": "<:bottlenose_dolphin:850970711634739210>", "starfish": "<:starfish:850970666986766354>"
         },
     "uncommon": {
@@ -145,7 +145,7 @@ class Shop(commands.Cog):
             # here
 
             # Add item to user, check if item is a singular item and if so runs that function
-            if not any([item.title() not in item_name_singular_line for item_name_singular_line in item_name_singular]):
+            if item.title() not in [item_name_singular_line for item_name_singular_line in item_name_singular]:
                 async with utils.DatabaseConnection() as db:
                     await db(db_call, ctx.author.id, amount)
             else:
@@ -302,13 +302,13 @@ class Shop(commands.Cog):
         chosen_fish = []
         rarities_of_fish = []
         for i in range(9):
-            rarity_random = random.choices(*utils.RARITY_PERCENTAGE_LIST)[0]
+            rarity_random = random.choices(*utils.rarity_percentage_finder(1))[0]
             new_fish = random.choice(list(emoji_rarities[rarity_random]))
             rarities_of_fish.append(rarity_random)
             chosen_fish.append(new_fish)
         
         # Chooses winning fish
-        rarity = random.choices(*utils.RARITY_PERCENTAGE_LIST)[0]
+        rarity = random.choices(*utils.rarity_percentage_finder(1))[0]
         fish_type = random.choice(list(emoji_rarities[rarity]))
         emoji_id = emoji_rarities[rarity][fish_type]
 

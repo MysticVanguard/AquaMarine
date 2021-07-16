@@ -249,7 +249,6 @@ async def buying_singular(ctx, item: str):
             tank_names.append("none")
         tank_names.append(tank_named)
         if tank_named:
-            print(nonavailable_tank_types)
             if tank_row[0]['tank_type'][tank_slot-1] not in nonavailable_tank_types:
                 continue
             nonavailable_slots.append(str(tank_slot))

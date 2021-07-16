@@ -47,7 +47,7 @@ class Upgrades(commands.Cog):
             if level == 5:
                 emote_string_list = ["<:full_upgrade_bar:865028622766702602>", "<:full_upgrade_bar:865028622766702602>", "<:full_upgrade_bar:865028622766702602>", "<:full_upgrade_bar:865028622766702602>", "<:full_upgrade_bar:865028622766702602>"]
                 cost_string = "This Upgrade is fully upgraded."
-            message.append(f"**{' '.join(upgrade.split('_')).title()}:** Lvl. {level}. {cost_string}\n{upgrade_description[upgrade]}\n<:left_upgrade_bar:865028588192661504>{''.join(emote_string_list)}<:right_upgrade_bar:865028605863919616>")
+            message.append(f"<:left_upgrade_bar:865028588192661504>{''.join(emote_string_list)}<:right_upgrade_bar:865028605863919616> **{' '.join(upgrade.split('_')).title()}: Lvl. {level}. {cost_string}**\n*{upgrade_description[upgrade]}*")
             emote_string_list = []
         await ctx.send('\n'.join(message))
     
