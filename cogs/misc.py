@@ -1,46 +1,16 @@
 import discord
 from discord.ext import commands
+import voxelbotutils as vbu
 
-from utils import config
 import utils
 
 
-class Misc(commands.Cog):
+class Misc(vbu.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(aliases=["latency"])
-    @commands.bot_has_permissions(send_messages=True)
-    async def ping(self, ctx:commands.Context):
-        '''`a.ping` Checks the ping of the bot'''
-
-        return await ctx.send(f'🏓 pong! Latency: `{round(self.bot.latency, 8)}ms`')
-
-    @commands.command(aliases=["github"])
-    @commands.bot_has_permissions(send_messages=True)
-    async def git(self, ctx:commands.Context):
-        '''`a.git` This command shows the github link for the bot.'''
-
-        return await ctx.send(config["github"])
-
-    @commands.command(aliases=["say"])
-    @commands.bot_has_permissions(send_messages=True)
-    async def echo(self, ctx:commands.Context, *, content:str):
-        '''`a.echo` Repeats users message'''
-
-        return await ctx.send(content)
-
-    @commands.command(aliases=["status"])
-    @commands.bot_has_permissions(send_messages=True)
-    @commands.is_owner()
-    async def activity(self, ctx:commands.Context, *, activity:str):
-        '''`a.activity` Changes the status of the bot (owner command only)'''
-
-        await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=activity))
-        return await ctx.message.add_reaction('👌')
-
-    @commands.command(aliases=["d"])
-    @commands.cooldown(1, 60 * 60 * 24, commands.BucketType.user)
+    @vbu.command(aliases=["d"])
+    @vbu.cooldown.cooldown(1, 60 * 60 * 24, commands.BucketType.user)
     @commands.bot_has_permissions(send_messages=True)
     async def daily(self, ctx:commands.Context):
         """
@@ -48,7 +18,7 @@ class Misc(commands.Cog):
         """
 
         # adds the money to the users bal
-        async with utils.DatabaseConnection() as db:
+        async with self.bot.database() as db:
             await db(
                 """INSERT INTO user_balance (user_id, balance) VALUES ($1, 100)
                 ON CONFLICT (user_id) DO UPDATE SET balance = user_balance.balance + 100""",
@@ -83,7 +53,7 @@ class Misc(commands.Cog):
             form = 'seconds'
         await ctx.send(f'Daily reward claimed, please try again in {round(time)} {form}.')
     
-    @commands.command()
+    @vbu.command()
     @commands.bot_has_permissions(send_messages=True)
     async def stab(self, ctx:commands.Context, user: discord.User = None):
         """

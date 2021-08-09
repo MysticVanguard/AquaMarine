@@ -2,15 +2,16 @@ import random
 
 import re
 import asyncio
+import voxelbotutils as vbu
 
 import discord
 from discord.ext import commands
 import math
 
-import utils
+import utils as utils
 
 
-class Fishing(commands.Cog):
+class Fishing(vbu.Cog):
 
     def __init__(self, bot: commands.AutoShardedBot):
         self.bot = bot
@@ -35,7 +36,7 @@ class Fishing(commands.Cog):
             await message.channel.send("Did you forget about me? I've been waiting for a while now! I'll just assume you wanted to sell the fish.")
             choice = "sell"
 
-        async with utils.DatabaseConnection() as db:
+        async with self.bot.database() as db:
             fish_rows = await db("""SELECT * FROM user_fish_inventory WHERE user_id=$1""", user.id)
             upgrades = await db("""SELECT rod_upgrade, bait_upgrade, weight_upgrade, line_upgrade, lure_upgrade FROM user_upgrades WHERE user_id = $1""", user.id)
             if not upgrades:
@@ -46,7 +47,7 @@ class Fishing(commands.Cog):
         if choice == "sell":
             sell_multipliers = { 1: 1.0, 2: 1.3, 3: 1.5, 4: 1.7, 5: 2.0}
             money_earned = math.floor(int(new_fish['cost']) * sell_multipliers[upgrades[0]['rod_upgrade']])
-            async with utils.DatabaseConnection() as db:
+            async with self.bot.database() as db:
                 await db(
                     """INSERT INTO user_balance (user_id, balance) VALUES ($1, $2)
                     ON CONFLICT (user_id) DO UPDATE SET balance = user_balance.balance + $2""",
@@ -94,14 +95,14 @@ class Fishing(commands.Cog):
             await message.channel.send(f"Did you forget about me? I've been waiting for a while now! I'll name the fish for you. Let's call it **{name}** (Lvl. {level})")
 
         # Save the fish name
-        async with utils.DatabaseConnection() as db:
+        async with self.bot.database() as db:
             await db(
                 """INSERT INTO user_fish_inventory (user_id, fish, fish_name, fish_size, fish_level, fish_xp_max) VALUES ($1, $2, $3, $4, $5, $6)""",
                 user.id, new_fish["raw_name"], name, new_fish["size"], level, xp_max
             )
 
 
-    @commands.command(aliases=["bucket", "fb"])
+    @vbu.command(aliases=["bucket", "fb"])
     @commands.bot_has_permissions(send_messages=True, embed_links=True, manage_messages=True)
     async def fishbucket(self, ctx: commands.Context, user: discord.User = None):
         """
@@ -111,7 +112,7 @@ class Fishing(commands.Cog):
         # Default the user to the author of the command
         user = user or ctx.author
 
-        async with utils.DatabaseConnection() as db:
+        async with self.bot.database() as db:
             fish_rows = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND tank_fish=''""", user.id)
 
         if not fish_rows:
@@ -248,8 +249,8 @@ class Fishing(commands.Cog):
 
         return fixed_field
 
-    @commands.command()
-    @commands.cooldown(1, 30 * 60, commands.BucketType.user)
+    @vbu.command()
+    @vbu.cooldown.cooldown(1, 30 * 60, commands.BucketType.user)
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def fish(self, ctx: commands.Context):
         """
@@ -263,7 +264,7 @@ class Fishing(commands.Cog):
         catches = 1
 
         #upgrades be like
-        async with utils.DatabaseConnection() as db:
+        async with self.bot.database() as db:
             upgrades = await db("""SELECT rod_upgrade, bait_upgrade, weight_upgrade, line_upgrade, lure_upgrade FROM user_upgrades WHERE user_id = $1""", ctx.author.id)
             if not upgrades:
                 await db("""INSERT INTO user_upgrades (user_id) VALUES ($1)""", ctx.author.id)
@@ -292,7 +293,7 @@ class Fishing(commands.Cog):
             # Say how many of those fish they caught previously
             amount = 0
             a_an = "an" if rarity[0].lower() in ("a", "e", "i", "o", "u") else "a"
-            async with utils.DatabaseConnection() as db:
+            async with self.bot.database() as db:
                 user_inventory = await db("SELECT * FROM user_fish_inventory WHERE user_id=$1", ctx.author.id)
             for row in user_inventory:
                 if row['fish'] == new_fish['raw_name']:
@@ -340,7 +341,7 @@ class Fishing(commands.Cog):
             form = 'seconds'
         await ctx.send(f'The fish are scared, please try again in {round(time)} {form}.')
 
-    @commands.command()
+    @vbu.command()
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def rename(self, ctx: commands.Context, old: str, new: str):
         """
@@ -348,7 +349,7 @@ class Fishing(commands.Cog):
         """
         
         # Get the user's fish inventory based on the fish's name
-        async with utils.DatabaseConnection() as db:
+        async with self.bot.database() as db:
             fish_rows = await db("""SELECT fish_name FROM user_fish_inventory WHERE fish_name=$1 and user_id=$2;""", old, ctx.author.id)
             
         # Check if the user doesn't have the fish   
@@ -359,7 +360,7 @@ class Fishing(commands.Cog):
             )
         
         # Update the database
-        async with utils.DatabaseConnection() as db:
+        async with self.bot.database() as db:
             await db(
                 """UPDATE user_fish_inventory SET fish_name=$1 WHERE user_id=$2 and fish_name=$3;""",
                 new, ctx.author.id, old,
@@ -370,7 +371,7 @@ class Fishing(commands.Cog):
             allowed_mentions=discord.AllowedMentions.none(),
         )
 
-    @commands.command()
+    @vbu.command()
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def release(self, ctx: commands.Context, name: str):
         """
@@ -378,14 +379,14 @@ class Fishing(commands.Cog):
         """
 
         # Get the user's fish inventory based on the fish's name
-        async with utils.DatabaseConnection() as db:
+        async with self.bot.database() as db:
             fish_rows = await db("""SELECT fish_name FROM user_fish_inventory WHERE fish_name=$1 and user_id=$2;""", name, ctx.author.id)
         
         # Check if the user has the fish
         if fish_rows:
 
             # Update the database
-            async with utils.DatabaseConnection() as db:
+            async with self.bot.database() as db:
                 await db(
                     """DELETE FROM user_fish_inventory WHERE fish_name=$1 and user_id=$2""",
                     name, ctx.author.id,

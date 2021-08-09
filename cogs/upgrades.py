@@ -5,6 +5,7 @@ from datetime import datetime as dt, timedelta
 import io
 from PIL import Image
 import imageio
+import voxelbotutils as vbu
 
 import discord
 from discord.ext import commands, tasks
@@ -12,13 +13,13 @@ from discord.ext import commands, tasks
 import utils
 
 
-class Upgrades(commands.Cog):
+class Upgrades(vbu.Cog):
     def __init__(self, bot:commands.AutoShardedBot):
         self.bot = bot
         
     cost_to_upgrade_list = [125, 250, 500, 1000, 2000]
 
-    @commands.command()
+    @vbu.command()
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def upgrades(self, ctx:commands.Context):
         """
@@ -33,7 +34,7 @@ class Upgrades(commands.Cog):
             'lure_upgrade': 'This upgrade increases the chance of getting an inverted or golden fish.',
             'weight_upgrade': 'This upgrade increases the possible level a caught fish can be.'
             }
-        async with utils.DatabaseConnection() as db:
+        async with self.bot.database() as db:
             upgrades = await db("""SELECT rod_upgrade, bait_upgrade, weight_upgrade, line_upgrade, lure_upgrade FROM user_upgrades WHERE user_id = $1""", ctx.author.id)
             if not upgrades:
                 await db("""INSERT INTO user_upgrades (user_id) VALUES ($1)""", ctx.author.id)
@@ -51,14 +52,14 @@ class Upgrades(commands.Cog):
             emote_string_list = []
         await ctx.send('\n'.join(message))
     
-    @commands.command()
+    @vbu.command()
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def upgrade(self, ctx:commands.Context, upgrade):
         """
         `a.upgrade "upgrade"` This command upgrades specified upgrade.
         """
         upgraded = f"{upgrade}_upgrade"
-        async with utils.DatabaseConnection() as db:
+        async with self.bot.database() as db:
             upgrades = await db("""SELECT rod_upgrade, bait_upgrade, weight_upgrade, line_upgrade, lure_upgrade FROM user_upgrades WHERE user_id = $1""", ctx.author.id)
         if upgraded not in upgrades[0].keys():
             return await ctx.send("That is not an upgrade.")
@@ -66,9 +67,9 @@ class Upgrades(commands.Cog):
             if upgraded == upgrade_iter:
                 if upgrades[0][upgrade_iter] == 5:
                     return await ctx.send("That upgrade is fully upgraded.")
-                if not await utils.check_price(ctx.author.id, self.cost_to_upgrade_list[upgrades[0][upgraded]]):
+                if not await utils.check_price(ctx.author.id, self.cost_to_upgrade_list[upgrades[0][upgraded]], bot = self.bot):
                     return await ctx.send("You don't have enough Sand Dollars <:sand_dollar:852057443503964201> for this upgrade!")
-        async with utils.DatabaseConnection() as db:
+        async with self.bot.database() as db:
             await db("""UPDATE user_balance SET balance=balance-$1 WHERE user_id = $2""", self.cost_to_upgrade_list[upgrades[0][upgraded]], ctx.author.id)
             await db("""UPDATE user_upgrades SET {0}=user_upgrades.{0}+1 WHERE user_id = $1""".format(upgraded), ctx.author.id)
         await ctx.send(f"{upgrade.title()} has been upgraded!")

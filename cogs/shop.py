@@ -1,5 +1,6 @@
 import random
 import typing
+import voxelbotutils as vbu
 
 import discord
 from discord.ext import commands
@@ -39,12 +40,12 @@ PLANT_LIFE_NAMES = ["Plant Life", "Pl", "Plant"]
 
 
 
-class Shop(commands.Cog):
+class Shop(vbu.Cog):
 
     def __init__(self, bot: commands.AutoShardedBot):
         self.bot = bot
 
-    @commands.command(aliases=["s"])
+    @vbu.command(aliases=["s"])
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def shop(self, ctx: commands.Context):
         """
@@ -53,7 +54,7 @@ class Shop(commands.Cog):
 
         await ctx.send(embed=FISH_SHOP_EMBED)
 
-    @commands.command(aliases=["b"])
+    @vbu.command(aliases=["b"])
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def buy(self, ctx: commands.Context, item: typing.Optional[str], amount: typing.Optional[int] = 1):
         """
@@ -112,7 +113,7 @@ class Shop(commands.Cog):
                 amount = 1
             # See if the user has enough money
             full_cost = cost * amount
-            if not await utils.check_price(ctx.author.id, full_cost):
+            if not await utils.check_price(ctx.author.id, full_cost, bot = self.bot):
                 return await ctx.send("You don't have enough Sand Dollars <:sand_dollar:852057443503964201> for this!")
 
             # here
@@ -124,23 +125,23 @@ class Shop(commands.Cog):
             print(check)
             if check == True:
                 print("yes")
-                if await utils.buying_singular(ctx, str(response)) == False:
+                if await utils.buying_singular(ctx, str(response), bot = self.bot) == False:
                     return
             else:
                 print("no")
-                async with utils.DatabaseConnection() as db:
+                async with self.bot.database() as db:
                     await db(db_call, ctx.author.id, amount)
 
 
         # Remove money from the user
-        async with utils.DatabaseConnection() as db:
+        async with self.bot.database() as db:
             await db("""
                 UPDATE user_balance SET balance=balance-$1 WHERE user_id = $2""", full_cost, ctx.author.id)
 
         # And tell the user we're done
         await ctx.send(f"You bought {amount:,} {response} for {full_cost:,} Sand Dollars <:sand_dollar:852057443503964201>!")
 
-    @commands.command(aliases=["u"])
+    @vbu.command(aliases=["u"])
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def use(self, ctx:commands.Context, item: str):
         """
@@ -173,14 +174,14 @@ class Shop(commands.Cog):
 
             # See if they have the bag they're trying to use
             used_bag = used_bag.lower()
-            async with utils.DatabaseConnection() as db:
+            async with self.bot.database() as db:
                 user_rows = await db("""SELECT * FROM user_item_inventory WHERE user_id=$1""", ctx.author.id)
                 user_bag_count = user_rows[0][used_bag]
             if not user_bag_count:
                 return await ctx.send(f"You have no {used_bag_humanize}s!")
 
             # Remove the bag from their inventory
-            async with utils.DatabaseConnection() as db:
+            async with self.bot.database() as db:
                 await db(
                     """UPDATE user_item_inventory SET {0}={0}-1 WHERE user_id=$1""".format(used_bag),
                     ctx.author.id,
@@ -217,7 +218,7 @@ class Shop(commands.Cog):
         amount = 0
         owned_unowned = "Unowned"
         a_an = "an" if rarity[0].lower() in ("a", "e", "i", "o", "u") else "a"
-        async with utils.DatabaseConnection() as db:
+        async with self.bot.database() as db:
             user_inventory = await db("""SELECT * FROM user_fish_inventory WHERE user_id=$1""", ctx.author.id)
         for row in user_inventory:
             if row['fish'] == new_fish['raw_name']:
@@ -236,7 +237,7 @@ class Shop(commands.Cog):
         # Ask the user if they want to sell the fish
         await self.bot.get_cog("Fishing").ask_to_sell_fish(ctx.author, message, new_fish)
 
-    @commands.command(aliases=["inv"])
+    @vbu.command(aliases=["inv"])
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def inventory(self, ctx:commands.Context):
         """
@@ -244,7 +245,7 @@ class Shop(commands.Cog):
         """
 
         fetched_info = []
-        async with utils.DatabaseConnection() as db:
+        async with self.bot.database() as db:
             fetched = await db("""SELECT * FROM user_item_inventory WHERE user_id = $1""", ctx.author.id)
         if not fetched:
             return await ctx.send("You have no items in your inventory!")
@@ -263,7 +264,7 @@ class Shop(commands.Cog):
     def __init__(self, bot: commands.AutoShardedBot):
         self.bot = bot
 
-    @commands.command()
+    @vbu.command()
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def slots(self, ctx: commands.Context):
         """
@@ -271,11 +272,11 @@ class Shop(commands.Cog):
         """
 
         # See if the user has enough money
-        if not await utils.check_price(ctx.author.id, 5):
+        if not await utils.check_price(ctx.author.id, 5, bot = self.bot):
             return await ctx.send("You don't have enough money for this! (5)")
 
         # Remove money from the user
-        async with utils.DatabaseConnection() as db:
+        async with self.bot.database() as db:
             await db("""UPDATE user_balance SET balance=balance-5 WHERE user_id = $1""", ctx.author.id)
 
         # Chooses the random fish for nonwinning rows
@@ -323,7 +324,7 @@ class Shop(commands.Cog):
             embed.add_field(name="Unlucky", value="You lost :(")
             await ctx.send(embed=embed)
 
-    @commands.command(aliases=["bal"])
+    @vbu.command(aliases=["bal"])
     @commands.bot_has_permissions(send_messages=True)
     async def balance(self, ctx: commands.Context, user: typing.Optional[discord.Member]):
         """
@@ -331,7 +332,7 @@ class Shop(commands.Cog):
     
         """
 
-        async with utils.DatabaseConnection() as db:
+        async with self.bot.database() as db:
             if user:
                 fetched = await db("""SELECT * FROM user_balance WHERE user_id = $1""", user.id)
                 return await ctx.send(f"{user.display_name} has {fetched[0]['balance']} Sand Dollars <:sand_dollar:852057443503964201>!" if fetched else f"{user.display_name} has no Sand Dollars <:sand_dollar:852057443503964201>!")

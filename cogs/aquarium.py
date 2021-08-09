@@ -5,6 +5,7 @@ from datetime import datetime as dt, timedelta
 import io
 from PIL import Image
 import imageio
+import voxelbotutils as vbu
 
 import discord
 from discord.ext import commands, tasks
@@ -12,7 +13,7 @@ from discord.ext import commands, tasks
 import utils
 
 
-class Aquarium(commands.Cog):
+class Aquarium(vbu.Cog):
 
     def __init__(self, bot: commands.AutoShardedBot):
         self.bot = bot
@@ -27,7 +28,7 @@ class Aquarium(commands.Cog):
         total_xp_to_add = random.randint(1, 25)
 
         # initial acquired fish data
-        async with utils.DatabaseConnection() as db:
+        async with self.bot.database() as db:
             fish_rows = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2""", user.id, played_with_fish)
                         
         # level increase xp calculator
@@ -40,13 +41,13 @@ class Aquarium(commands.Cog):
             if fish_rows[0]['fish_xp'] >= fish_rows[0]['fish_xp_max']:
 
                 # update the level to increase by one, reset fish xp, and set fish xp max to the next level xp needed
-                async with utils.DatabaseConnection() as db:
+                async with self.bot.database() as db:
                     await db("""UPDATE user_fish_inventory SET fish_level = fish_level + 1 WHERE user_id = $1 AND fish_name = $2""", user.id, played_with_fish)
                     await db("""UPDATE user_fish_inventory SET fish_xp = 0 WHERE user_id = $1 AND fish_name = $2""", user.id, played_with_fish)
                     await db("""UPDATE user_fish_inventory SET fish_xp_max = $1 WHERE user_id = $2 AND fish_name = $3""", int(xp_per_level), user.id, played_with_fish)
             
             # adds one xp regets new fish_rows
-            async with utils.DatabaseConnection() as db:
+            async with self.bot.database() as db:
                 await db("""UPDATE user_fish_inventory SET fish_xp = fish_xp + 1 WHERE user_id = $1 AND fish_name = $2""", user.id, played_with_fish)
                 fish_rows = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2""", user.id, played_with_fish)
     
@@ -55,7 +56,7 @@ class Aquarium(commands.Cog):
     @tasks.loop(minutes=1)
     async def fish_food_death_loop(self):
         
-        async with utils.DatabaseConnection() as db:
+        async with self.bot.database() as db:
             fish_rows = await db("""SELECT * FROM user_fish_inventory WHERE tank_fish != ''""")
             for fish_row in fish_rows:
                 if fish_row['death_time']:
@@ -67,25 +68,25 @@ class Aquarium(commands.Cog):
         await self.bot.wait_until_ready()
 
 
-    # @commands.command()
+    # @vbu.command()
     # @commands.bot_has_permissions(send_messages=True)
     # async def death(self, ctx: commands.Context, fish_name):
     #     """
     #     kills fish.
     #     """
-    #     async with utils.DatabaseConnection() as db:
+    #     async with self.bot.database() as db:
     #         await db("""UPDATE user_fish_inventory SET death_days=$1 WHERE fish_name = $2""", dt(1900, 12, 12), fish_name) 
 
 
 
-    @commands.command()
+    @vbu.command()
     @commands.bot_has_permissions(send_messages=True)
     async def entertain(self, ctx: commands.Context, fish_played_with):
         """
         `a.entertain \"fish name\"` This command entertains a fish in a tank. Entertaining a fish gives the fish XP, which levels it up. The level of a fish determines how much money you earn when you clean its tank, and how much it can sell for.
         """        
         # fetches needed row
-        async with utils.DatabaseConnection() as db:
+        async with self.bot.database() as db:
             fish_rows = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2 AND tank_fish != ''""", ctx.author.id, fish_played_with)
 
 
@@ -107,7 +108,7 @@ class Aquarium(commands.Cog):
             xp_added = await self.xp_finder_adder(ctx.author, fish_played_with)
 
             # gets the new data and uses it in sent message
-            async with utils.DatabaseConnection() as db:
+            async with self.bot.database() as db:
                 await db("""UPDATE user_fish_inventory SET fish_entertain_time = $3 WHERE user_id = $1 AND fish_name = $2""", ctx.author.id, fish_played_with, dt.utcnow())
                 new_fish_rows = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2""", ctx.author.id, fish_played_with)
         return await ctx.send(f"**{new_fish_rows[0]['fish_name']}** has gained *{str(xp_added)} XP* and is now level *{new_fish_rows[0]['fish_level']}, {new_fish_rows[0]['fish_xp']}/{new_fish_rows[0]['fish_xp_max']} XP*")
@@ -131,7 +132,7 @@ class Aquarium(commands.Cog):
             form = 'seconds'
         return f"{round(time)} {form}"
 
-    @commands.command()
+    @vbu.command()
     @commands.bot_has_permissions(send_messages=True)
     async def feed(self, ctx: commands.Context, fish_fed):
         """
@@ -139,7 +140,7 @@ class Aquarium(commands.Cog):
         """
         
         # fetches needed rows and gets the users amount of food
-        async with utils.DatabaseConnection() as db:
+        async with self.bot.database() as db:
             fish_rows = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2 AND tank_fish != ''""", ctx.author.id, fish_fed)
             item_rows = await db("""SELECT * FROM user_item_inventory WHERE user_id = $1""", ctx.author.id)
             user_food_count = item_rows[0]['flakes']
@@ -161,7 +162,7 @@ class Aquarium(commands.Cog):
             
             death_date = dt.utcnow() + timedelta(days=3)
 
-            async with utils.DatabaseConnection() as db:
+            async with self.bot.database() as db:
                 await db("""UPDATE user_fish_inventory SET death_time = $3, fish_feed_time = $4 WHERE user_id = $1 AND fish_name = $2""", ctx.author.id, fish_fed, death_date, dt.utcnow())
                 await db("""UPDATE user_item_inventory SET flakes=flakes-1 WHERE user_id=$1""", ctx.author.id)
 
@@ -170,14 +171,14 @@ class Aquarium(commands.Cog):
         return await ctx.send(f"**{fish_rows[0]['fish_name']}** has been fed!")
 
     
-    @commands.command()
+    @vbu.command()
     @commands.bot_has_permissions(send_messages=True)
     async def clean(self, ctx: commands.Context, tank_cleaned):
         """
         `a.clean \"tank name\"` This command cleans a tank, and gives you sand dollars based on fish's level.
         """
         money_gained = 0
-        async with utils.DatabaseConnection() as db:
+        async with self.bot.database() as db:
             fish_rows = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND tank_fish = $2 AND fish_alive = TRUE""", ctx.author.id, tank_cleaned)
             tank_rows = await db("""SELECT * FROM user_tank_inventory WHERE user_id = $1""", ctx.author.id)
         tank_slot = 0
@@ -194,7 +195,7 @@ class Aquarium(commands.Cog):
             return await ctx.send("You have no alive fish in this tank, or it does not exist!")
         for fish in fish_rows:
             money_gained += (fish["fish_level"] * 5)
-        async with utils.DatabaseConnection() as db:
+        async with self.bot.database() as db:
             await db("""UPDATE user_tank_inventory SET tank_clean_time[$2] = $3 WHERE user_id = $1""", ctx.author.id, int(tank_slot + 1), dt.utcnow())
             await db(
                 """INSERT INTO user_balance (user_id, balance) VALUES ($1, $2)
@@ -204,7 +205,7 @@ class Aquarium(commands.Cog):
         await ctx.send(f"You earned {money_gained} Sand Dollars <:sand_dollar:852057443503964201> for cleaning that tank!")
         
 
-    @commands.command()
+    @vbu.command()
     @commands.bot_has_permissions(send_messages=True)
     async def firsttank(self, ctx:commands.Context):
         """
@@ -212,14 +213,14 @@ class Aquarium(commands.Cog):
         """
 
         # See if they already have a tank
-        async with utils.DatabaseConnection() as db:
+        async with self.bot.database() as db:
             fetched = await db("""SELECT user_id FROM user_tank_inventory WHERE user_id=$1;""", ctx.author.id)
         if fetched:
             return await ctx.send("You have your first tank already!")
 
         type_of_tank = "Fish Bowl"
         # Add a tank to the user
-        async with utils.DatabaseConnection() as db:
+        async with self.bot.database() as db:
             await db(
                 """INSERT INTO user_tank_inventory VALUES ($1);""", ctx.author.id)
             await db(
@@ -248,13 +249,13 @@ class Aquarium(commands.Cog):
             ))
 
         # Save their tank name
-        async with utils.DatabaseConnection() as db:
+        async with self.bot.database() as db:
             await db(
                 """UPDATE user_tank_inventory SET tank_name[1]=$1 WHERE user_id=$2;""",
                 name, ctx.author.id,
             )
 
-    @commands.command(aliases=["dep"])
+    @vbu.command(aliases=["dep"])
     @commands.bot_has_permissions(send_messages=True)
     async def deposit(self, ctx:commands.Context, tank_name, fish_deposited):
         '''
@@ -266,7 +267,7 @@ class Aquarium(commands.Cog):
         tank_slot = 0
 
         # fetches the two needed rows from the database
-        async with utils.DatabaseConnection() as db:
+        async with self.bot.database() as db:
             fish_row = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2""", ctx.author.id, fish_deposited)
             tank_row = await db("""SELECT * FROM user_tank_inventory WHERE user_id =$1""", ctx.author.id)
 
@@ -299,13 +300,13 @@ class Aquarium(commands.Cog):
 
 
         # add the fish to the tank in the database
-        async with utils.DatabaseConnection() as db:
+        async with self.bot.database() as db:
             await db(
                 """UPDATE user_tank_inventory SET fish_room[$2] = fish_room[$2] - $3 WHERE user_id=$1""", ctx.author.id, tank_slot, int(size_values[fish_row[0]["fish_size"]]))
             await db(
             """UPDATE user_fish_inventory SET tank_fish = $3, death_time = $4 WHERE fish_name=$1 AND user_id=$2""", fish_deposited, ctx.author.id, tank_name, (dt.utcnow() + timedelta(days=3)))
         return await ctx.send("Fish deposited!")
-    @commands.command(aliases=["rem"])
+    @vbu.command(aliases=["rem"])
     @commands.bot_has_permissions(send_messages=True)
     async def remove(self, ctx:commands.Context, tank_name, fish_removed):
         '''
@@ -316,7 +317,7 @@ class Aquarium(commands.Cog):
         tank_slot = 0
 
         # fetches the two needed rows from the database
-        async with utils.DatabaseConnection() as db:
+        async with self.bot.database() as db:
             fish_row = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2 AND tank_fish = $3""", ctx.author.id, fish_removed, tank_name)
             tank_row = await db("""SELECT * FROM user_tank_inventory WHERE user_id =$1""", ctx.author.id)
 
@@ -337,19 +338,19 @@ class Aquarium(commands.Cog):
         # dumb 
         tank_slot += 1
 
-        async with utils.DatabaseConnection() as db:
+        async with self.bot.database() as db:
             await db("""UPDATE user_fish_inventory SET tank_fish = '' WHERE user_id = $1 AND fish_name = $2""", ctx.author.id, fish_removed)
             await db("""UPDATE user_tank_inventory SET fish_room[$3] = fish_room[$3] + $2 WHERE user_id = $1""", ctx.author.id, int(size_values[fish_row[0]['fish_size']]), tank_slot)
         return await ctx.send(f"{fish_removed} removed from {tank_name}!")
 
-    @commands.command()
+    @vbu.command()
     @commands.bot_has_permissions(send_messages=True)
     async def sell(self, ctx:commands.Context, fish_sold):
         '''
         `a.sell "fish name"` This command sells the specified fish, and it must be out of a tank.
         '''
         cost = 0
-        async with utils.DatabaseConnection() as db:
+        async with self.bot.database() as db:
             fish_row = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2""", ctx.author.id, fish_sold)
         
         if not fish_row:
@@ -362,7 +363,7 @@ class Aquarium(commands.Cog):
                 if fish_info["raw_name"] == self.bot.get_cog("Fishing").get_normal_name(fish_row[0]['fish']):
                     cost = int(fish_info['cost'])
         sell_money = int(cost * (1 + multiplier))
-        async with utils.DatabaseConnection() as db:
+        async with self.bot.database() as db:
             await db(
                     """INSERT INTO user_balance (user_id, balance) VALUES ($1, $2)
                     ON CONFLICT (user_id) DO UPDATE SET balance = user_balance.balance + $2""",
@@ -371,7 +372,7 @@ class Aquarium(commands.Cog):
             await db("""DELETE FROM user_fish_inventory WHERE user_id=$1 AND fish_name = $2""", ctx.author.id, fish_sold)
         await ctx.send(f"You have sold {fish_sold} for {sell_money} Sand Dollars <:sand_dollar:852057443503964201>!")
 
-    @commands.command()
+    @vbu.command()
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def show(self, ctx:commands.Context, *, tank_name):
         """
@@ -396,7 +397,7 @@ class Aquarium(commands.Cog):
             tank_slot = 0
 
             # gets database info for tank
-            async with utils.DatabaseConnection() as db:
+            async with self.bot.database() as db:
                 selected_fish = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND tank_fish = $2""", ctx.author.id, tank_name)
                 tank_row = await db("""SELECT * FROM user_tank_inventory WHERE user_id =$1""", ctx.author.id)
 
