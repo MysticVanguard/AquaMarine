@@ -1,4 +1,3 @@
-from config import config
 from os import walk
 import discord
 import asyncio
@@ -162,7 +161,7 @@ def parse_fish_filename(filename: str) -> dict:
     }
 
 
-def fetch_fish(directory: str = config["assets"]["images"]["fish"]) -> dict:
+def fetch_fish(directory: str) -> dict:
     """
     Fetch all of the fish from a given directory.
     """
