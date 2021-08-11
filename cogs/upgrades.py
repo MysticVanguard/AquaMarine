@@ -1,6 +1,5 @@
 import voxelbotutils as vbu
 from discord.ext import commands
-
 from cogs import utils
 
 class Upgrades(vbu.Cog):
