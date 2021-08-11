@@ -3,7 +3,7 @@ import asyncio
 import math
 import random
 
-import utils
+from cogs import utils 
 
 async def ask_to_sell_fish(bot, user: discord.User, message: discord.Message, new_fish: dict):
     """
