@@ -1,4 +1,3 @@
-
 import asyncio
 import typing
 
@@ -11,12 +10,12 @@ class Informative(vbu.Cog):
 
     def __init__(self, bot:commands.AutoShardedBot):
         self.bot = bot
-        
+
     @vbu.command()
     @commands.bot_has_permissions(send_messages=True)
     async def tanks(self, ctx: commands.Context):
         '''
-        `a.tanks` shows information about the users tanks.
+        Shows information about the users tanks.
         '''
         die = '\n'
         count = 0
@@ -39,7 +38,7 @@ class Informative(vbu.Cog):
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def profile(self, ctx: commands.Context):
         '''
-        `a.profile` Shows the users profile.
+        Shows the users profile.
         '''
         rarity_max = 0
         rarity_min = 0
@@ -53,11 +52,11 @@ class Informative(vbu.Cog):
         collection_data = []
         collection_fish = []
         items = [
-            "<:common_fish_bag:851974760510521375>", 
-            "<:uncommon_fish_bag:851974792864595988>", 
-            "<:rare_fish_bag:851974785088618516>", 
-            "<:epic_fish_bag:851974770467930118>", 
-            "<:legendary_fish_bag:851974777567838258>", 
+            "<:common_fish_bag:851974760510521375>",
+            "<:uncommon_fish_bag:851974792864595988>",
+            "<:rare_fish_bag:851974785088618516>",
+            "<:epic_fish_bag:851974770467930118>",
+            "<:legendary_fish_bag:851974777567838258>",
             "<:fish_flakes:852053373111894017>"
             ]
         inventory_number = {}
@@ -66,8 +65,8 @@ class Informative(vbu.Cog):
             fish_row = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1""", ctx.author.id)
             tank_row = await db("""SELECT * FROM user_tank_inventory WHERE user_id =$1""", ctx.author.id)
             balance = await db("""SELECT * FROM user_balance WHERE user_id = $1""", ctx.author.id)
-            inventory_row = await db("""SELECT * FROM user_item_inventory WHERE user_id = $1""", ctx.author.id)  
-         
+            inventory_row = await db("""SELECT * FROM user_item_inventory WHERE user_id = $1""", ctx.author.id)
+
         for row in fish_row:
             user_fish.append(row['fish'])
             user_fish_info.append(row['fish_level'])
@@ -82,7 +81,7 @@ class Informative(vbu.Cog):
                     if name == fish_owned and emoji not in fish_number.keys():
                         fish_number[emoji] = user_fish.count(fish_owned)
         fish_info = [f"{fish_key}: {fish_value}x" for fish_key, fish_value in fish_number.items()]
-    
+
         for rarity, fish in self.bot.fish.items():
             for name, info in fish.items():
                 rarity_max += 1
@@ -93,7 +92,7 @@ class Informative(vbu.Cog):
             collection_data.append([rarity, rarity_max, rarity_min])
             rarity_min = 0
             rarity_max = 0
-                    
+
 
         for info in inventory_row:
             for values in info:
@@ -128,7 +127,21 @@ class Informative(vbu.Cog):
             'Owned Fish': (' '.join(fish_info), True),
             'Items': (' '.join(inventory_info), True),
         }
-        
+
+        if not collection_info:
+            fields_dict['Collection'] = ("none", False)
+        if not balance:
+            fields_dict['Balance'] = ("none", False)
+        if not number_of_tanks:
+            fields_dict['# of Tanks'] = ("none", False)
+        if not highest_level_fish_emoji:
+            fields_dict['Highest Level Fish'] = ("none", False)
+        if not fish_info:
+            fields_dict['Owned Fish'] = ("none", True)
+        if not inventory_info:
+            fields_dict['Items'] = ("none", True)
+
+
         for name, (text, inline) in fields_dict.items():
             embed.add_field(name=name, value=text, inline=inline)
 
@@ -136,9 +149,9 @@ class Informative(vbu.Cog):
 
     @vbu.command()
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
-    async def bestiary(self, ctx:commands.Context, fish_name: typing.Optional[str]):
-        '''`a.bestiary \"fish type(optional)\"` This command shows you a list of all the fish in the bot. If a fish is specified information about that fish is shown'''
-        
+    async def bestiary(self, ctx:commands.Context, *, fish_name: typing.Optional[str]):
+        '''This command shows you info about fish.'''
+
         new_fish = {}
         fields = []
         if not fish_name:
@@ -148,15 +161,17 @@ class Informative(vbu.Cog):
                 fish_string = [f"**{' '.join(fish_type.split('_')).title()}**" for fish_type, fish_info in fish_types.items()]
                 fields.append((rarity.title(), "\n".join(fish_string)))
 
-            utils.paginate(ctx, fields, ctx.author, "**Bestiary**\n")
-        
+            await utils.paginate(ctx, fields, ctx.author, "**Bestiary**\n")
+
         else:
             for rarity, fish_types in self.bot.fish.items():
                 for _, fish_info in fish_types.items():
                     if fish_info["name"] == str(fish_name.title()):
                         new_fish = fish_info
+            if not new_fish:
+                return await ctx.send("no fish bro")
             embed = discord.Embed()
-            embed.title = new_fish['name']
+            embed.title = new_fish["name"]
             embed.set_image(url="attachment://new_fish.png")
             embed.add_field(name='Rarity', value=f"This fish is {new_fish['rarity']}", inline=False)
             embed.add_field(name='Cost', value=f"This fish is {new_fish['cost']}", inline=False)
@@ -171,7 +186,7 @@ class Informative(vbu.Cog):
             }[new_fish['rarity']]
             fish_file = discord.File(new_fish["image"], "new_fish.png")
             await ctx.send(file=fish_file, embed=embed)
-    
+
 
 def setup(bot):
     bot.add_cog(Informative(bot))

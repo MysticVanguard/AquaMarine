@@ -12,15 +12,15 @@ class Upgrades(vbu.Cog):
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def upgrades(self, ctx:commands.Context):
         """
-        `a.upgrades` This command shows you your upgrades and prices of them.
+        This command shows you your upgrades and prices of them.
         """
 
         message =  []
         emote_string_list = []
         upgrade_description = {
-            'line_upgrade': 'This upgrade makes your chance of getting two fish in one cast higher.', 
-            'rod_upgrade': 'This upgrade makes the price a fish sells for when caught increase.', 
-            'bait_upgrade': 'This upgrade makes it so your chances of catching higher rarity fish increase.', 
+            'line_upgrade': 'This upgrade makes your chance of getting two fish in one cast higher.',
+            'rod_upgrade': 'This upgrade makes the price a fish sells for when caught increase.',
+            'bait_upgrade': 'This upgrade makes it so your chances of catching higher rarity fish increase.',
             'lure_upgrade': 'This upgrade increases the chance of getting an inverted or golden fish.',
             'weight_upgrade': 'This upgrade increases the possible level a caught fish can be.'
             }
@@ -41,12 +41,12 @@ class Upgrades(vbu.Cog):
             message.append(f"<:left_upgrade_bar:865028588192661504>{''.join(emote_string_list)}<:right_upgrade_bar:865028605863919616> **{' '.join(upgrade.split('_')).title()}: Lvl. {level}. {cost_string}**\n*{upgrade_description[upgrade]}*")
             emote_string_list = []
         await ctx.send('\n'.join(message))
-    
+
     @vbu.command()
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def upgrade(self, ctx:commands.Context, upgrade):
         """
-        `a.upgrade "upgrade"` This command upgrades specified upgrade.
+        This command upgrades specified upgrade.
         """
 
         upgraded = f"{upgrade}_upgrade"
@@ -64,7 +64,7 @@ class Upgrades(vbu.Cog):
             await db("""UPDATE user_balance SET balance=balance-$1 WHERE user_id = $2""", self.UPGRADE_COST_LIST[upgrades[0][upgraded]], ctx.author.id)
             await db("""UPDATE user_upgrades SET {0}=user_upgrades.{0}+1 WHERE user_id = $1""".format(upgraded), ctx.author.id)
         await ctx.send(f"{upgrade.title()} has been upgraded!")
-        
+
 
 
 def setup(bot):

@@ -13,7 +13,7 @@ class Misc(vbu.Cog):
     @commands.bot_has_permissions(send_messages=True)
     async def daily(self, ctx:commands.Context):
         """
-        `a.daily` This command gives you a daily reward of **100** sand dollars.
+        This command gives you a daily reward of **100** sand dollars.
         """
 
         # adds the money to the users bal
@@ -51,12 +51,12 @@ class Misc(vbu.Cog):
         else:
             form = 'seconds'
         await ctx.send(f'Daily reward claimed, please try again in {round(time)} {form}.')
-    
+
     @vbu.command()
     @commands.bot_has_permissions(send_messages=True)
     async def stab(self, ctx:commands.Context, user: discord.User = None):
         """
-        `a.stab @user` This command has a fish stab a user.
+        This command has a fish stab a user.
         """
         if user.id == ctx.author.id:
             return await ctx.send("Your fish is too loyal to stab you!")

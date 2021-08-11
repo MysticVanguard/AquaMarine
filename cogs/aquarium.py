@@ -24,13 +24,13 @@ class Aquarium(vbu.Cog):
 
     @tasks.loop(minutes=1)
     async def fish_food_death_loop(self):
-        
+
         async with self.bot.database() as db:
             fish_rows = await db("""SELECT * FROM user_fish_inventory WHERE tank_fish != ''""")
             for fish_row in fish_rows:
                 if fish_row['death_time']:
                     if dt.utcnow() > fish_row['death_time']:
-                        await db("""UPDATE user_fish_inventory SET fish_alive=TRUE WHERE fish_name = $1""", fish_row['fish_name'])      
+                        await db("""UPDATE user_fish_inventory SET fish_alive=TRUE WHERE fish_name = $1""", fish_row['fish_name'])
 
     @fish_food_death_loop.before_loop
     async def before_fish_food_death_loop(self):
@@ -40,8 +40,8 @@ class Aquarium(vbu.Cog):
     @commands.bot_has_permissions(send_messages=True)
     async def entertain(self, ctx: commands.Context, fish_played_with):
         """
-        `a.entertain \"fish name\"` This command entertains a fish in a tank. Entertaining a fish gives the fish XP, which levels it up. The level of a fish determines how much money you earn when you clean its tank, and how much it can sell for.
-        """        
+        This command entertains a fish in a tank.
+        """
         # fetches needed row
         async with self.bot.database() as db:
             fish_rows = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2 AND tank_fish != ''""", ctx.author.id, fish_played_with)
@@ -59,7 +59,7 @@ class Aquarium(vbu.Cog):
 
         #Typing Indicator
         async with ctx.typing():
-            
+
             # calls the xp finder adder to the fish
             xp_added = await utils.xp_finder_adder(ctx.author, fish_played_with)
 
@@ -73,9 +73,9 @@ class Aquarium(vbu.Cog):
     @commands.bot_has_permissions(send_messages=True)
     async def feed(self, ctx: commands.Context, fish_fed):
         """
-        `a.feed \"fish name\"` This command feeds a fish in a tank with fish flakes. Fish need fed, and if a fish in a tank isnt feed once every five days, it dies.
+        This command feeds a fish in a tank with fish flakes.
         """
-        
+
         # fetches needed rows and gets the users amount of food
         async with self.bot.database() as db:
             fish_rows = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2 AND tank_fish != ''""", ctx.author.id, fish_fed)
@@ -96,7 +96,7 @@ class Aquarium(vbu.Cog):
 
         #Typing Indicator
         async with ctx.typing():
-            
+
             death_date = dt.utcnow() + timedelta(days=3)
 
             async with self.bot.database() as db:
@@ -104,12 +104,12 @@ class Aquarium(vbu.Cog):
                 await db("""UPDATE user_item_inventory SET flakes=flakes-1 WHERE user_id=$1""", ctx.author.id)
 
         return await ctx.send(f"**{fish_rows[0]['fish_name']}** has been fed!")
-    
+
     @vbu.command()
     @commands.bot_has_permissions(send_messages=True)
     async def clean(self, ctx: commands.Context, tank_cleaned):
         """
-        `a.clean \"tank name\"` This command cleans a tank, and gives you sand dollars based on fish's level.
+        This command cleans a tank.
         """
         money_gained = 0
         async with self.bot.database() as db:
@@ -137,13 +137,13 @@ class Aquarium(vbu.Cog):
                 ctx.author.id, int(money_gained),
                 )
         await ctx.send(f"You earned {money_gained} Sand Dollars <:sand_dollar:852057443503964201> for cleaning that tank!")
-        
+
 
     @vbu.command()
     @commands.bot_has_permissions(send_messages=True)
     async def firsttank(self, ctx:commands.Context):
         """
-        `a.firsttank` This command gives you your first tank. It needs to be done before you can buy tanks and themes.
+        This command gives you your first tank.
         """
 
         # See if they already have a tank
@@ -193,7 +193,7 @@ class Aquarium(vbu.Cog):
     @commands.bot_has_permissions(send_messages=True)
     async def deposit(self, ctx:commands.Context, tank_name, fish_deposited):
         '''
-        `a.deposit \"tank name\" \"fish name\"` This command deposits a specified fish into a specified tank.
+        This command deposits a specified fish into a specified tank.
         '''
 
         # variables for size value and the slot the tank is in
@@ -216,7 +216,7 @@ class Aquarium(vbu.Cog):
             return await ctx.send("This fish is already in a tank!")
         if fish_row[0]['fish_alive'] == False:
             return await ctx.send("That fish is dead!")
- 
+
 
         # finds the tank slot the tank in question is at
         for tank_slot_in in tank_row[0]['tank_name']:
@@ -228,7 +228,7 @@ class Aquarium(vbu.Cog):
         # another check
         if tank_row[0]["fish_room"][tank_slot] < size_values[fish_row[0]["fish_size"]]:
             return await ctx.send(f"You have no room in that tank!")
-        
+
         # tank slot has one added as python indexes start at 0 but database start at 1
         tank_slot += 1
 
@@ -240,12 +240,12 @@ class Aquarium(vbu.Cog):
             await db(
             """UPDATE user_fish_inventory SET tank_fish = $3, death_time = $4 WHERE fish_name=$1 AND user_id=$2""", fish_deposited, ctx.author.id, tank_name, (dt.utcnow() + timedelta(days=3)))
         return await ctx.send("Fish deposited!")
-    
+
     @vbu.command(aliases=["rem"])
     @commands.bot_has_permissions(send_messages=True)
     async def remove(self, ctx:commands.Context, tank_name, fish_removed):
         '''
-        `a.remove \"tank name\" \"fish name\"` This command removes a specified fish from a specified tank.
+        This command removes a specified fish from a specified tank.
         '''
         # variables for size value and the slot the tank is in
         size_values = {"small": 1, "medium": 5, "large": 10}
@@ -269,8 +269,8 @@ class Aquarium(vbu.Cog):
                 break
             else:
                 tank_slot += 1
-        
-        # dumb 
+
+        # dumb
         tank_slot += 1
 
         async with self.bot.database() as db:
@@ -282,12 +282,12 @@ class Aquarium(vbu.Cog):
     @commands.bot_has_permissions(send_messages=True)
     async def sell(self, ctx:commands.Context, fish_sold):
         '''
-        `a.sell "fish name"` This command sells the specified fish, and it must be out of a tank.
+        This command sells the specified fish, and it must be out of a tank.
         '''
         cost = 0
         async with self.bot.database() as db:
             fish_row = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2""", ctx.author.id, fish_sold)
-        
+
         if not fish_row:
             return await ctx.send(f"You have no fish named {fish_sold}!")
         if fish_row[0]['tank_fish']:
@@ -311,7 +311,7 @@ class Aquarium(vbu.Cog):
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def show(self, ctx:commands.Context, *, tank_name):
         """
-        `a.show \"tank name\"` This command produces a gif of the specified tank.
+        This command produces a gif of the specified tank.
         """
         #Typing Indicator
         async with ctx.typing():
@@ -336,7 +336,7 @@ class Aquarium(vbu.Cog):
                 selected_fish = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND tank_fish = $2""", ctx.author.id, tank_name)
                 tank_row = await db("""SELECT * FROM user_tank_inventory WHERE user_id =$1""", ctx.author.id)
 
-            
+
             # finds the tank slot
             for tank_slot_in in tank_row[0]['tank_name']:
                 if tank_slot_in == tank_name:
@@ -349,7 +349,7 @@ class Aquarium(vbu.Cog):
 
             # finds what type of fish it is, then adds the paths to a list, as well as finding the fish's random starting position
             for selected_fish_types in selected_fish:
-                fishes[selected_fish_types['fish']] = [] 
+                fishes[selected_fish_types['fish']] = []
             for name, info in fishes.items():
                 if "golden" in name:
                         fishes[name].append(name.lstrip("golden_"))
@@ -413,6 +413,6 @@ class Aquarium(vbu.Cog):
 
         # Send gif to Discord
         await ctx.send(file=discord.File(gif_filename))
-    
+
 def setup(bot):
     bot.add_cog(Aquarium(bot))

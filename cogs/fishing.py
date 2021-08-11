@@ -19,7 +19,7 @@ class Fishing(vbu.Cog):
     @commands.bot_has_permissions(send_messages=True, embed_links=True, manage_messages=True)
     async def fishbucket(self, ctx: commands.Context, user: discord.User = None):
         """
-        `a.fishbucket \"user(optional)\"` This command checks your fish bucket or another users. A user can only have ten max in each rarity in their fish bucket, but fish buckets don\'t include your deposited fish.
+        This command checks your fish bucket or another users.
         """
 
         # Default the user to the author of the command
@@ -51,7 +51,7 @@ class Fishing(vbu.Cog):
             "legendary": [],
             "mythic": []
         }
-        
+
         # Sorted Fish will become a dictionary of {rarity: [list of fish names of fish in that category]} if the fish is in the user's inventory
         for rarity, fish_types in self.bot.fish.items():  # For each rarity level
             for _, fish_detail in fish_types.items():  # For each fish in that level
@@ -68,14 +68,14 @@ class Fishing(vbu.Cog):
                 [fields.append(i) for i in utils.get_fixed_field(field)]
 
         # Create an embed
-        utils.paginate(ctx, fields, user)
+        await utils.paginate(ctx, fields, user)
 
     @vbu.command()
     @vbu.cooldown.cooldown(1, 30 * 60, commands.BucketType.user)
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def fish(self, ctx: commands.Context):
         """
-        `a.fish` This command catches a fish. You then react with the emoji choice you want, either \"keep\" or \"sell\". If keep is chosen the fish will be added to your fish bucket if you have less than ten fish of the same rarity, otherwise it will be sold. If you choose sell the fish will be sold.
+        This command catches a fish.
         """
 
         # Make sure they can't fish twice
@@ -102,14 +102,14 @@ class Fishing(vbu.Cog):
 
             # See which fish they caught
             new_fish = random.choice(list(self.bot.fish[rarity].values())).copy()
-            
+
             special_functions = {
                 "inverted": utils.make_inverted(new_fish.copy()),
                 "golden": utils.make_golden(new_fish.copy())
             }
-            
+
             if special in special_functions.keys():
-                new_fish = special_functions[special]    
+                new_fish = special_functions[special]
 
             # Say how many of those fish they caught previously
             amount = 0
@@ -119,7 +119,7 @@ class Fishing(vbu.Cog):
             for row in user_inventory:
                 if row['fish'] == new_fish['raw_name']:
                     amount = amount + 1
-                    
+
             owned_unowned = "Owned" if amount > 0 else "Unowned"
             # Tell the user about the fish they caught
             embed = discord.Embed()
@@ -166,21 +166,21 @@ class Fishing(vbu.Cog):
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def rename(self, ctx: commands.Context, old: str, new: str):
         """
-        `a.rename "fish name"` Renames specified fish.
+        Renames specified fish.
         """
-        
+
         # Get the user's fish inventory based on the fish's name
         async with self.bot.database() as db:
             fish_row = await db("""SELECT fish_name FROM user_fish_inventory WHERE fish_name=$1 and user_id=$2;""", old, ctx.author.id)
             fish_rows = await db("""SELECT fish_name FROM user_fish_inventory WHERE user_id=$2;""", ctx.author.id)
-            
-        # Check if the user doesn't have the fish   
-        if not fish_row: 
+
+        # Check if the user doesn't have the fish
+        if not fish_row:
             return await ctx.send(
                 f"You have no fish named {old}!",
                 allowed_mentions=discord.AllowedMentions.none()
             )
-        
+
         # Check of fish is being changed to a name of a new fish
         for fish_name in fish_rows['fish_name']:
             if new == fish_name:
@@ -188,7 +188,7 @@ class Fishing(vbu.Cog):
                     f"You already have a fish named {new}!",
                     allowed_mentions=discord.AllowedMentions.none()
                 )
-        
+
         # Update the database
         async with self.bot.database() as db:
             await db(
@@ -205,13 +205,13 @@ class Fishing(vbu.Cog):
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def release(self, ctx: commands.Context, name: str):
         """
-        `a.release "fish name"` Releases specified fish back into the wild.
+        Releases specified fish back into the wild.
         """
 
         # Get the user's fish inventory based on the fish's name
         async with self.bot.database() as db:
             fish_rows = await db("""SELECT fish_name FROM user_fish_inventory WHERE fish_name=$1 and user_id=$2;""", name, ctx.author.id)
-        
+
         # Check if the user has the fish
         if fish_rows:
 
@@ -221,7 +221,7 @@ class Fishing(vbu.Cog):
                     """DELETE FROM user_fish_inventory WHERE fish_name=$1 and user_id=$2""",
                     name, ctx.author.id,
                 )
-            
+
             # Send confirmation message
             return await ctx.send(
                 f"Goodbye {name}!",

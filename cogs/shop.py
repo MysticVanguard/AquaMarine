@@ -33,7 +33,7 @@ class Shop(vbu.Cog):
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def shop(self, ctx: commands.Context):
         """
-        `a.shop` This command shows everything buyable in the shop, along with their prices.
+        This command shows everything buyable in the shop, along with their prices.
         """
 
         await ctx.send(embed=FISH_SHOP_EMBED)
@@ -42,7 +42,7 @@ class Shop(vbu.Cog):
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def buy(self, ctx: commands.Context, item: typing.Optional[str], amount: typing.Optional[int] = 1):
         """
-        `a.buy \"item\" \"amount(optional)\"` This command buys an item from a shop, with the given value (default one, tanks and themes are always one).
+        This command buys an item from a shop with the given value.
         """
 
         # Say what's valid
@@ -129,7 +129,7 @@ class Shop(vbu.Cog):
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def use(self, ctx:commands.Context, item: str):
         """
-        `a.use \"item\"` This command is only for using fish bags, using a fish bag is just like using the fish command.
+        This command is only for using fish bags, it is just like using the fish command.
         """
 
         rarity_chances = {
@@ -225,7 +225,7 @@ class Shop(vbu.Cog):
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def inventory(self, ctx:commands.Context):
         """
-        `a.inventory` Shows your bag inventory.
+        Shows your bag inventory.
         """
 
         fetched_info = []
@@ -250,7 +250,7 @@ class Shop(vbu.Cog):
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def slots(self, ctx: commands.Context):
         """
-        `a.slots` This command roles the slots, which costs **5** sand dollars and can win you a fish.
+        This command roles the slots.
         """
 
         # See if the user has enough money
@@ -269,7 +269,7 @@ class Shop(vbu.Cog):
             new_fish = random.choice(list(utils.utils.EMOJI_RARITIES[rarity_random]))
             rarities_of_fish.append(rarity_random)
             chosen_fish.append(new_fish)
-        
+
         # Chooses winning fish
         rarity = random.choices(*utils.rarity_percentage_finder(1))[0]
         fish_type = random.choice(list(utils.EMOJI_RARITIES[rarity]))
@@ -308,10 +308,9 @@ class Shop(vbu.Cog):
 
     @vbu.command(aliases=["bal"])
     @commands.bot_has_permissions(send_messages=True)
-    async def balance(self, ctx: commands.Context, user: typing.Optional[discord.Member]):
+    async def balance(self, ctx: commands.Context, user: discord.Member = None):
         """
-        `a.balance \"user(optional)\"` This command checks your balance or another users.
-    
+        This command checks your balance or another users.
         """
 
         async with self.bot.database() as db:
@@ -321,6 +320,6 @@ class Shop(vbu.Cog):
 
             fetched = await db("""SELECT * FROM user_balance WHERE user_id = $1""", ctx.author.id)
             return await ctx.send(f"You have {fetched[0]['balance']} Sand Dollars!" if fetched else "You have no Sand Dollars <:sand_dollar:852057443503964201>!")
- 
+
 def setup(bot):
     bot.add_cog(Shop(bot))
