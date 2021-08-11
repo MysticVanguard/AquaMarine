@@ -2,6 +2,7 @@ import discord
 import random
 import math
 import asyncio
+import voxelbotutils as vbu
 
 # Does all the xp stuff
 async def xp_finder_adder(self, user: discord.User, played_with_fish):
@@ -79,40 +80,57 @@ async def paginate(ctx, fields, user, custom_str=None):
     curr_index = 1
     curr_field = fields[curr_index - 1]
     embed = create_bucket_embed(user, curr_field, custom_str)
+    
+    # Set up the buttons
+    left = vbu.Button(custom_id = "left",  emoji = "◀️", style=vbu.ButtonStyle.PRIMARY)
+    right = vbu.Button(custom_id = "right",  emoji = "▶️", style=vbu.ButtonStyle.PRIMARY)
+    stop = vbu.Button(custom_id = "stop",  emoji = "⏹️", style=vbu.ButtonStyle.DANGER)
+    numbers = vbu.Button(custom_id = "numbers",  emoji = "🔢", style=vbu.ButtonStyle.PRIMARY)
 
-    fish_message = await ctx.send(embed=embed)
-
-    valid_reactions = ["◀️", "▶️", "⏹️"]
+    valid_buttons = [left, right, stop]
     if len(fields) > 1:
-        valid_reactions.append("🔢")
-    [await fish_message.add_reaction(reaction) for reaction in valid_reactions]  # Add the pagination reactions to the message
+        valid_buttons.append(numbers)
 
-    def reaction_check(reaction, user):
-        return user == ctx.author and str(reaction.emoji) in valid_reactions and reaction.message.id == fish_message.id
+    # Put the buttons together 
+    components = vbu.MessageComponents(
+        vbu.ActionRow(*valid_buttons)
+    )  
+
+    fish_message = await ctx.send(embed=embed, components=components)
+
+    def button_check(payload):
+        
+        if payload.message.id != fish_message.id:
+            return False
+        
+        if payload.component.custom_id in [left.custom_id, right.custom_id, stop.custom_id, numbers.custom_id]:
+            bot.loop.create_task(payload.ack())
+
+        return payload.user.id == ctx.author.id
 
     while True:  # Keep paginating until the user clicks stop
         try:
-            chosen_reaction, _ = await bot.wait_for('reaction_add', timeout=60.0, check=reaction_check)
-            chosen_reaction = chosen_reaction.emoji
+            chosen_button_payload = await bot.wait_for('component_interaction', timeout=60.0, check=button_check)
+            chosen_button =  chosen_button_payload.component.custom_id.lower()
         except asyncio.TimeoutError:
-            chosen_reaction = "⏹️"
+            chosen_button = "stop"
         
         index_chooser = {
-            "◀️": max(1, curr_index - 1),
-            "▶️": min(len(fields), curr_index + 1)
+            'left': max(1, curr_index - 1),
+            'right': min(len(fields), curr_index + 1)
         }
         
-        if chosen_reaction in index_chooser.keys():
-            curr_index = index_chooser[chosen_reaction]  # Keep the index in bounds
+        if chosen_button in index_chooser.keys():
+            curr_index = index_chooser[chosen_button]  # Keep the index in bounds
             curr_field = fields[curr_index - 1]
 
             await fish_message.edit(embed=create_bucket_embed(user, curr_field, custom_str))
 
-        elif chosen_reaction == "⏹️":
-            await fish_message.clear_reactions()
+        elif chosen_button == "stop":
+            await fish_message.edit(components=components.disable_components())
             break  # End the while loop
 
-        elif chosen_reaction == "🔢" and len(fields) > 1:
+        elif chosen_button == "numbers" and len(fields) > 1:
             number_message = await ctx.send(f"What page would you like to go to? (1-{len(fields)}) ")
 
             # Check for custom message
@@ -128,7 +146,7 @@ async def paginate(ctx, fields, user, custom_str=None):
             await fish_message.edit(embed=create_bucket_embed(user, curr_field, custom_str))
             await number_message.delete()
             await user_message.delete()
-        
+
 def seconds_converter(time):
     if 5_400 > time >= 3_600:
         form = 'hour'
