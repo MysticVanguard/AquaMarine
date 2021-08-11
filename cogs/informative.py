@@ -78,7 +78,7 @@ class Informative(vbu.Cog):
         highest_level_index = user_fish_info.index(max(user_fish_info))
         highest_level_fish = fish_row[highest_level_index]
 
-        for rarity, fish in utils.EMOJI_RARITIES.items():
+        for rarity, fish in self.bot.get_cog("Shop").EMOJI_RARITIES.items():
             for name, emoji in fish.items():
                 if highest_level_fish['fish'] == name:
                     highest_level_fish_emoji = emoji

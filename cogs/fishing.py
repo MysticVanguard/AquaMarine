@@ -1,5 +1,6 @@
 import random
 
+from os import walk
 import re
 import asyncio
 import voxelbotutils as vbu
@@ -10,12 +11,190 @@ import math
 
 import utils as utils
 
+SPECIAL_RARITY_PERCENTAGES = {
+    1:
+    [
+        ("normal", .94),
+        ("inverted", .05),
+        ("golden", .01)
+    ],
+    2:
+    [
+        ("normal", .90),
+        ("inverted", .08),
+        ("golden", .02)
+    ],
+    3:
+    [
+        ("normal", .85),
+        ("inverted", .12),
+        ("golden", .03)
+    ],
+    4:
+    [
+        ("normal", .78),
+        ("inverted", .18),
+        ("golden", .04)
+    ],
+    5:
+    [
+        ("normal", .67),
+        ("inverted", .27),
+        ("golden", .06)
+    ]
+}
+_RARITY_PERCENTAGES = {
+    1:
+    [
+        ("common", 0.6689),
+        ("uncommon", 0.2230),
+        ("rare", 0.0743),
+        ("epic", 0.0248),
+        ("legendary", 0.0082),
+        ("mythic", 0.0008),
+    ],
+    2:
+    [
+        ("common", 0.6062),
+        ("uncommon", 0.2423),
+        ("rare", 0.0967),
+        ("epic", 0.0385),
+        ("legendary", 0.0154),
+        ("mythic", 0.0009),
+    ],
+    3:
+    [
+        ("common", 0.5156),
+        ("uncommon", 0.2578),
+        ("rare", 0.1289),
+        ("epic", 0.0645),
+        ("legendary", 0.0322),
+        ("mythic", 0.0010),
+    ],
+    4:
+    [
+        ("common", 0.4558),
+        ("uncommon", 0.2605),
+        ("rare", 0.1490),
+        ("epic", 0.0850),
+        ("legendary", 0.0486),
+        ("mythic", 0.0011),
+    ],
+    5:
+    [
+        ("common", 0.3843),
+        ("uncommon", 0.2558),
+        ("rare", 0.1701),
+        ("epic", 0.1134),
+        ("legendary", 0.0752),
+        ("mythic", 0.0012),
+    ]}
+
+def rarity_percentage_finder(upgrade_level):
+    return [
+    list(i[0] for i in _RARITY_PERCENTAGES[upgrade_level]),
+    list(i[1] for i in _RARITY_PERCENTAGES[upgrade_level]),
+]
+def special_percentage_finder(upgrade_level):
+    return [
+    list(i[0] for i in SPECIAL_RARITY_PERCENTAGES[upgrade_level]),
+    list(i[1] for i in SPECIAL_RARITY_PERCENTAGES[upgrade_level]),
+]
+RARITY_CULERS = {
+    "common": 0xFFFFFE,  # White - FFFFFF doesn't work with Discord
+    "uncommon": 0x75FE66,  # Green
+    "rare": 0x4AFBEF,  # Blue
+    "epic": 0xE379FF,  # Light Purple
+    "legendary": 0xFFE80D,  # Gold
+    "mythic": 0xFF0090  # Hot Pink
+}
+
+def parse_fish_filename(filename: str) -> dict:
+    """
+    Parse a given fish filename into a dict of `modifier`, `rarity`, `cost`,
+    `raw_name`, and `name`.
+    """
+
+    # Initial filename splitterboi
+    filename = filename[:-4]  # Remove file extension
+    modifier = None
+    rarity, cost, size, *raw_name = filename.split("_")
+
+    # See if our fish name has a modifier on it
+    if rarity in ["inverted", "golden"]:
+        modifier, rarity, cost, size, raw_name = rarity, cost, size, raw_name[0], raw_name[1:]
+    raw_name = "_".join(raw_name)
+
+    # And we done
+    return {
+        "modifier": modifier,
+        "rarity": rarity,
+        "cost": cost,
+        "size": size,
+        "raw_name": raw_name,
+        "name": raw_name.replace("_", " ").title(),
+    }
+
+def fetch_fish(directory: str) -> dict:
+    """
+    Fetch all of the fish from a given directory.
+    """
+
+    # Set up a dict of fish the we want to append/return to
+    fetched_fish = {
+        "common": {},
+        "uncommon": {},
+        "rare": {},
+        "epic": {},
+        "legendary": {},
+        "mythic": {},
+    }
+
+    # Grab all the filenames from the given directory
+    _, _, fish_filenames = next(walk(directory))
+
+    # Go through each filename
+    for filename in fish_filenames:
+
+        # Add the fish to the dict
+        fish_data = parse_fish_filename(filename)
+        if fish_data['modifier']:
+            continue  # We don't care about inverted/golden fish here
+        fetched_fish[fish_data['rarity']][fish_data['name'].lower()] = {
+            "image": f"{directory}/{filename}",
+            **fish_data,
+        }
+
+    return fetched_fish
+
+def make_golden(fish: dict) -> dict:
+    """
+    Take the given fish and change the dict to make it golden.
+    """
+
+    fish["raw_name"] = f"golden_{fish['raw_name']}"
+    fish["name"] = f"Golden {fish['name']}"
+    fish["image"] = fish["image"][:16] + "golden_" + fish["image"][16:]
+    return fish
+
+
+def make_inverted(fish: dict) -> dict:
+    """
+    Take the given fish and change the dict to make it inverted.
+    """
+
+    fish["raw_name"] = f"inverted_{fish['raw_name']}"
+    fish["name"] = f"Inverted {fish['name']}"
+    fish["image"] = fish["image"][:16] + "inverted_" + fish["image"][16:]
+    return fish
+
 
 class Fishing(vbu.Cog):
 
     def __init__(self, bot: commands.AutoShardedBot):
         self.bot = bot
         self.current_fishers = []
+
 
     async def ask_to_sell_fish(self, user: discord.User, message: discord.Message, new_fish: dict):
         """
@@ -275,16 +454,16 @@ class Fishing(vbu.Cog):
             catches = 2
         for x in range(catches):
             # See what our chances of getting each fish are
-            print(utils.rarity_percentage_finder(upgrades[0]['bait_upgrade']))
-            rarity = random.choices(*utils.rarity_percentage_finder(upgrades[0]['bait_upgrade']))[0]  # Chance of each rarity
-            special = random.choices(*utils.special_percentage_finder(upgrades[0]['lure_upgrade']))[0]  # Chance of modifier
+            print(rarity_percentage_finder(upgrades[0]['bait_upgrade']))
+            rarity = random.choices(*rarity_percentage_finder(upgrades[0]['bait_upgrade']))[0]  # Chance of each rarity
+            special = random.choices(*special_percentage_finder(upgrades[0]['lure_upgrade']))[0]  # Chance of modifier
 
             # See which fish they caught
             new_fish = random.choice(list(self.bot.fish[rarity].values())).copy()
             
             special_functions = {
-                "inverted": utils.make_inverted(new_fish.copy()),
-                "golden": utils.make_golden(new_fish.copy())
+                "inverted": make_inverted(new_fish.copy()),
+                "golden": make_golden(new_fish.copy())
             }
             
             if special in special_functions.keys():
@@ -305,7 +484,7 @@ class Fishing(vbu.Cog):
             embed.title = f"You caught {a_an} {rarity} {new_fish['size']} {new_fish['name']}!"
             embed.add_field(name=owned_unowned, value=f"You have {amount} {new_fish['name']}", inline=False)
             embed.set_image(url="attachment://new_fish.png")
-            embed.color = utils.RARITY_CULERS[rarity]
+            embed.color = RARITY_CULERS[rarity]
             fish_file = discord.File(new_fish["image"], "new_fish.png")
             message = await ctx.send(file=fish_file, embed=embed)
 
@@ -350,14 +529,23 @@ class Fishing(vbu.Cog):
         
         # Get the user's fish inventory based on the fish's name
         async with self.bot.database() as db:
-            fish_rows = await db("""SELECT fish_name FROM user_fish_inventory WHERE fish_name=$1 and user_id=$2;""", old, ctx.author.id)
+            fish_row = await db("""SELECT fish_name FROM user_fish_inventory WHERE fish_name=$1 and user_id=$2;""", old, ctx.author.id)
+            fish_rows = await db("""SELECT fish_name FROM user_fish_inventory WHERE user_id=$2;""", ctx.author.id)
             
         # Check if the user doesn't have the fish   
-        if not fish_rows: 
+        if not fish_row: 
             return await ctx.send(
                 f"You have no fish named {old}!",
                 allowed_mentions=discord.AllowedMentions.none()
             )
+        
+        # Check of fish is being changed to a name of a new fish
+        for fish_name in fish_rows['fish_name']:
+            if new == fish_name:
+                return await ctx.send(
+                    f"You already have a fish named {new}!",
+                    allowed_mentions=discord.AllowedMentions.none()
+                )
         
         # Update the database
         async with self.bot.database() as db:
@@ -405,3 +593,4 @@ class Fishing(vbu.Cog):
 
 def setup(bot):
     bot.add_cog(Fishing(bot))
+    bot.fish = fetch_fish("C:/Users/JT/Pictures/Aqua/assets/images/fish")
