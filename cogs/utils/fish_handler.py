@@ -243,7 +243,7 @@ def make_pure(fish: dict, special: str) -> dict:
     fish["image"] = fish["image"][:16] + fish["image"][number_two:]
     return fish
 
-def get_normal_name(self, fish_name):
+def get_normal_name(fish_name):
     """
     Get the non-inverted/golden name for the fish
     """

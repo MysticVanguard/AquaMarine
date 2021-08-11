@@ -138,6 +138,7 @@ class Informative(vbu.Cog):
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def bestiary(self, ctx:commands.Context, fish_name: typing.Optional[str]):
         '''`a.bestiary \"fish type(optional)\"` This command shows you a list of all the fish in the bot. If a fish is specified information about that fish is shown'''
+        
         new_fish = {}
         fields = []
         if not fish_name:

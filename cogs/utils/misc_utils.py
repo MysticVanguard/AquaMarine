@@ -88,7 +88,7 @@ async def paginate(ctx, fields, user, custom_str=None):
     [await fish_message.add_reaction(reaction) for reaction in valid_reactions]  # Add the pagination reactions to the message
 
     def reaction_check(reaction, user):
-        return user == ctx.author and str(reaction.emoji) in valid_reactions and reaction.message == fish_message
+        return user == ctx.author and str(reaction.emoji) in valid_reactions and reaction.message.id == fish_message.id
 
     while True:  # Keep paginating until the user clicks stop
         try:
