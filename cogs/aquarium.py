@@ -10,7 +10,7 @@ import voxelbotutils as vbu
 import discord
 from discord.ext import commands, tasks
 
-import utils
+from cogs import utils
 
 
 class Aquarium(vbu.Cog):

@@ -1,13 +1,11 @@
 import random
 import typing
 import voxelbotutils as vbu
-import asyncio
 
 import discord
 from discord.ext import commands
 
-import utils
-
+from cogs import utils
 
 FISH_SHOP_EMBED = discord.Embed(title="Fish Shop")
 FISH_SHOP_EMBED.add_field(name="Fish Bags", value="These are bags containing a fish of a random rarity", inline=False)
