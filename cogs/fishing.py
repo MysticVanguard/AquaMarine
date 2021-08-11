@@ -6,9 +6,8 @@ import voxelbotutils as vbu
 
 import discord
 from discord.ext import commands
-import math
 
-import utils
+from cogs import utils
 
 class Fishing(vbu.Cog):
 
