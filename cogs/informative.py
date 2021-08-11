@@ -1,18 +1,13 @@
-from gc import collect
-import random
+import discord
+from discord.ext import commands
 import voxelbotutils as vbu
+import utils
 
-import re
 import asyncio
 import typing
 
-import discord
-from discord.ext import commands
-import math
-
-import utils
-
 class Informative(vbu.Cog):
+
     def __init__(self, bot:commands.AutoShardedBot):
         self.bot = bot
         
@@ -78,7 +73,7 @@ class Informative(vbu.Cog):
         highest_level_index = user_fish_info.index(max(user_fish_info))
         highest_level_fish = fish_row[highest_level_index]
 
-        for rarity, fish in self.bot.get_cog("Shop").EMOJI_RARITIES.items():
+        for rarity, fish in utils.EMOJI_RARITIES.items():
             for name, emoji in fish.items():
                 if highest_level_fish['fish'] == name:
                     highest_level_fish_emoji = emoji
@@ -120,16 +115,22 @@ class Informative(vbu.Cog):
         inventory_info = [f"{inv_key}: {inv_value}x" for inv_key, inv_value in inventory_number.items()]
         collection_info = [f"{x[0]}: {x[2]}/{x[1]}" for x in collection_data]
 
-        embed = discord.Embed()
-        embed.title = f"{ctx.author.display_name}'s Profile"
+        embed = vbu.Embed(title=f"{ctx.author.display_name}'s Profile")
         embed.set_thumbnail(url='https://imgur.com/a/7sGHrse')
-        embed.add_field(name='Collection', value="\n".join(collection_info), inline=False)
-        embed.add_field(name='Balance', value=f'<:sand_dollar:852057443503964201>: {balance[0]["balance"]}x Sand Dollars', inline=False)
-        embed.add_field(name='# of Tanks:', value=number_of_tanks, inline=False)
-        embed.add_field(name='Highest Level Fish:', value=f'{highest_level_fish_emoji} {highest_level_fish["fish_name"]}: Lvl. {highest_level_fish["fish_level"]} {highest_level_fish["fish_xp"]}/ {highest_level_fish["fish_xp_max"]}', inline=False)
-        embed.add_field(name="Achievements:", value= "Soon To Be Added.", inline=True)
-        embed.add_field(name='Owned Fish', value=' '.join(fish_info), inline=True)
-        embed.add_field(name='Items', value=' '.join(inventory_info), inline=True)
+
+        fields_dict = {
+            'Collection': ("\n".join(collection_info), False),
+            'Balance': (f'<:sand_dollar:852057443503964201>: {balance[0]["balance"]}x Sand Dollars', False),
+            '# of Tanks': (number_of_tanks, False),
+            'Highest Level Fish': (f'{highest_level_fish_emoji} {highest_level_fish["fish_name"]}: Lvl. {highest_level_fish["fish_level"]} {highest_level_fish["fish_xp"]}/ {highest_level_fish["fish_xp_max"]}', False),
+            'Achievements':  ("Soon To Be Added.", True),
+            'Owned Fish': (' '.join(fish_info), True),
+            'Items': (' '.join(inventory_info), True),
+        }
+        
+        for name, (text, inline) in fields_dict.items():
+            embed.add_field(name=name, value=text, inline=inline)
+
         await ctx.send(embed=embed)
 
     @vbu.command()
@@ -148,7 +149,7 @@ class Informative(vbu.Cog):
             # Create an embed
             curr_index = 1
             curr_field = fields[curr_index - 1]
-            embed = self.create_bucket_embed(ctx.author, curr_field, "**Bestiary**\n")
+            embed = utils.create_bucket_embed(ctx.author, curr_field, "**Bestiary**\n")
 
             fish_message = await ctx.send(embed=embed)
 
@@ -174,7 +175,7 @@ class Informative(vbu.Cog):
                     curr_index = index_chooser[chosen_reaction]  # Keep the index in bounds
                     curr_field = fields[curr_index - 1]
 
-                    await fish_message.edit(embed=self.create_bucket_embed(ctx.author, curr_field, "**Bestiary**\n"))
+                    await fish_message.edit(embed=utils.create_bucket_embed(ctx.author, curr_field, "**Bestiary**\n"))
 
                 elif chosen_reaction == "⏹️":
                     await fish_message.clear_reactions()
@@ -193,14 +194,13 @@ class Informative(vbu.Cog):
                     curr_index = min(len(fields), max(1, user_input))
                     curr_field = fields[curr_index - 1]
 
-                    await fish_message.edit(embed=self.create_bucket_embed(ctx.author, curr_field, "**Bestiary**\n"))
+                    await fish_message.edit(embed=utils.create_bucket_embed(ctx.author, curr_field, "**Bestiary**\n"))
                     await number_message.delete()
                     await user_message.delete()
-
-                    
+           
         else:
             for rarity, fish_types in self.bot.fish.items():
-                for fish_type, fish_info in fish_types.items():
+                for _, fish_info in fish_types.items():
                     if fish_info["name"] == str(fish_name.title()):
                         new_fish = fish_info
             embed = discord.Embed()
@@ -219,26 +219,7 @@ class Informative(vbu.Cog):
             }[new_fish['rarity']]
             fish_file = discord.File(new_fish["image"], "new_fish.png")
             await ctx.send(file=fish_file, embed=embed)
-
-    def create_bucket_embed(self, user, field, title):
-        embed = discord.Embed()  # Create a new embed to edit the message
-        embed.title = title
-        embed.add_field(name=f"__{field[0]}__", value=field[1], inline=False)
-        return embed
-
-    def create_info_embed(self, user, field):
-        embed = discord.Embed()  # Create a new embed to edit the message
-        embed.title = "Commands (anything in quotes is a variable, and the quotes may or may not be needed)"
-        embed.add_field(name=f"__{field[0]}__", value=field[1], inline=False)
-        return embed
     
-
-
-
-
-
-
-
 
 def setup(bot):
     bot.add_cog(Informative(bot))

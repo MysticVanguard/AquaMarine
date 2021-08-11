@@ -2,10 +2,9 @@ import discord
 from discord.ext import commands
 import voxelbotutils as vbu
 
-import utils
-
 
 class Misc(vbu.Cog):
+
     def __init__(self, bot):
         self.bot = bot
 
@@ -62,5 +61,7 @@ class Misc(vbu.Cog):
         if user.id == ctx.author.id:
             return await ctx.send("Your fish is too loyal to stab you!")
         await ctx.send(f"Your fish stabs {user.mention} with a knife, nice!", file=discord.File("C:/Users/JT/Pictures/Aqua/assets/images/background/stab.gif"))
+
+
 def setup(bot):
     bot.add_cog(Misc(bot))
