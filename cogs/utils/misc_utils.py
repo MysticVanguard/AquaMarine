@@ -82,7 +82,9 @@ async def paginate(ctx, fields, user, custom_str=None):
 
     fish_message = await ctx.send(embed=embed)
 
-    valid_reactions = ["◀️", "▶️", "⏹️", "🔢"]
+    valid_reactions = ["◀️", "▶️", "⏹️"]
+    if len(fields) > 1:
+        valid_reactions.append("🔢")
     [await fish_message.add_reaction(reaction) for reaction in valid_reactions]  # Add the pagination reactions to the message
 
     def reaction_check(reaction, user):
@@ -110,7 +112,7 @@ async def paginate(ctx, fields, user, custom_str=None):
             await fish_message.clear_reactions()
             break  # End the while loop
 
-        elif chosen_reaction == "🔢":
+        elif chosen_reaction == "🔢" and len(fields) > 1:
             number_message = await ctx.send(f"What page would you like to go to? (1-{len(fields)}) ")
 
             # Check for custom message
