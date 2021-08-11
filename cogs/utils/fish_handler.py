@@ -1,4 +1,5 @@
 from os import walk
+import re
 
 SPECIAL_RARITY_PERCENTAGES = {
     1:
@@ -241,4 +242,13 @@ def make_pure(fish: dict, special: str) -> dict:
     fish["name"] = fish['name'][number:]
     fish["image"] = fish["image"][:16] + fish["image"][number_two:]
     return fish
+
+def get_normal_name(self, fish_name):
+    """
+    Get the non-inverted/golden name for the fish
+    """
+    match = re.match(r"(inverted_|golden_)(?P<fish_name>.*)", fish_name)
+    if match:
+        return match.group("fish_name")
+    return fish_name
 
