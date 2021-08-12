@@ -440,22 +440,25 @@ class Shop(vbu.Cog):
                 break
 
             if chosen_button == "one":
-                emojies[1] = emoji_id[1]
-                await gamble_message.edit(embed=create_bucket_embed(ctx.author.display_name, ("Click the buttons to stop the rolls!", "".join(emojies))))
+                emojies[0] = emoji_id[0]
+                emoji_string = "".join(emojies)
+                await gamble_message.edit(embed=create_bucket_embed(ctx.author, ("Click the buttons to stop the rolls!", emoji_string), f"{ctx.author.display_name}'s roll"))
 
             if chosen_button == "two":
-                emojies[2] = emoji_id[2]
-                await gamble_message.edit(embed=create_bucket_embed(ctx.author.display_name, ("Click the buttons to stop the rolls!", "".join(emojies))))
+                emojies[1] = emoji_id[1]
+                emoji_string = "".join(emojies)
+                await gamble_message.edit(embed=create_bucket_embed(ctx.author, ("Click the buttons to stop the rolls!", emoji_string), f"{ctx.author.display_name}'s roll"))
 
             if chosen_button == "three":
-                emojies[3] = emoji_id[3]
-                await gamble_message.edit(embed=create_bucket_embed(ctx.author.display_name, ("Click the buttons to stop the rolls!", "".join(emojies))))
+                emojies[2] = emoji_id[2]
+                emoji_string = "".join(emojies)
+                await gamble_message.edit(embed=create_bucket_embed(ctx.author, ("Click the buttons to stop the rolls!", emoji_string), f"{ctx.author.display_name}'s roll"))
 
             if "<a:first_set_roll:875259843571748924>" not in emojies:
                 break
 
-            if emojies[1] == emojies[2] and emojies[2] == emojies[3]:
-                fish_won = fish_type[1]
+            if emojies[0] == emojies[1] and emojies[1] == emojies[2]:
+                fish_won = fish_type[0]
                 await ctx.send(f"{ctx.author.mention} has won a {' '.join(fish_won.split('_')).title}!")
 
 
