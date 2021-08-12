@@ -1,6 +1,9 @@
+from discord import emoji
+from cogs.utils.misc_utils import create_bucket_embed
 import random
 import typing
 import voxelbotutils as vbu
+import asyncio
 
 import discord
 from discord.ext import commands
@@ -320,6 +323,143 @@ class Shop(vbu.Cog):
 
             fetched = await db("""SELECT * FROM user_balance WHERE user_id = $1""", ctx.author.id)
             return await ctx.send(f"You have {fetched[0]['balance']} Sand Dollars!" if fetched else "You have no Sand Dollars <:sand_dollar:852057443503964201>!")
+
+    @vbu.command()
+    @commands.bot_has_permissions(send_messages=True)
+    async def sell(self, ctx:commands.Context, fish_sold):
+        '''
+        This command sells the specified fish, and it must be out of a tank.
+        '''
+        cost = 0
+        async with self.bot.database() as db:
+            fish_row = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2""", ctx.author.id, fish_sold)
+
+        if not fish_row:
+            return await ctx.send(f"You have no fish named {fish_sold}!")
+        if fish_row[0]['tank_fish']:
+            return await ctx.send("That fish is in a tank, please remove it to sell it.")
+        multiplier = fish_row[0]['fish_level'] / 10
+        for rarity, fish_types in self.bot.fish.items():
+            for fish_type, fish_info in fish_types.items():
+                if fish_info["raw_name"] == utils.get_normal_name(fish_row[0]['fish']):
+                    cost = int(fish_info['cost'])
+        sell_money = int(cost * (1 + multiplier))
+        async with self.bot.database() as db:
+            await db(
+                    """INSERT INTO user_balance (user_id, balance) VALUES ($1, $2)
+                    ON CONFLICT (user_id) DO UPDATE SET balance = user_balance.balance + $2""",
+                    ctx.author.id, sell_money,
+                )
+            await db("""DELETE FROM user_fish_inventory WHERE user_id=$1 AND fish_name = $2""", ctx.author.id, fish_sold)
+        await ctx.send(f"You have sold {fish_sold} for {sell_money} Sand Dollars <:sand_dollar:852057443503964201>!")
+
+    @vbu.command(aliases=["d"])
+    @vbu.cooldown.cooldown(1, 60 * 60 * 24, commands.BucketType.user)
+    @commands.bot_has_permissions(send_messages=True)
+    async def daily(self, ctx:commands.Context):
+        """
+        This command gives you a daily reward of **100** sand dollars.
+        """
+
+        # adds the money to the users bal
+        async with self.bot.database() as db:
+            await db(
+                """INSERT INTO user_balance (user_id, balance) VALUES ($1, 100)
+                ON CONFLICT (user_id) DO UPDATE SET balance = user_balance.balance + 100""",
+                ctx.author.id)
+
+        # confirmation message
+        return await ctx.send("Daily reward of 100 Sand Dollars <:sand_dollar:852057443503964201> claimed!")
+
+    @daily.error
+    async def daily_error(self, ctx, error):
+
+        # Only handle cooldown errors
+        if not isinstance(error, commands.CommandOnCooldown):
+            raise error
+
+        time = error.retry_after
+        if 5_400 > time >= 3_600:
+            form = 'hour'
+            time /= 60 * 60
+        elif time > 3_600:
+            form = 'hours'
+            time /= 60 * 60
+        elif 90 > time >= 60:
+            form = 'minute'
+            time /= 60
+        elif time >= 60:
+            form = 'minutes'
+            time /= 60
+        elif time < 1.5:
+            form = 'second'
+        else:
+            form = 'seconds'
+        await ctx.send(f'Daily reward claimed, please try again in {round(time)} {form}.')
+
+    @vbu.command()
+    @commands.bot_has_permissions(send_messages=True, embed_links=True)
+    async def gamble(self, ctx: commands.Context):
+        rarity = random.choices(*utils.rarity_percentage_finder(1))[0]
+        if rarity == "epic" or rarity == "rare" or rarity == "mythic":
+            rarity == "uncommon"
+        fish_type = []
+        emoji_id = []
+        for i in range(3):
+            fish_type.append(random.choice(list(utils.EMOJI_RARITIES_SET_ONE[rarity])))
+        emoji_id.append(utils.EMOJI_RARITIES_SET_ONE[rarity][fish_type_single] for fish_type_single in fish_type)
+        emojies = ["<a:first_set_roll:875259843571748924>", "<a:first_set_roll:875259843571748924>", "<a:first_set_roll:875259843571748924>"]
+        embed = vbu.Embed(title=f"{ctx.author.display_name}'s roll")
+        embed.add_field(name="Click the buttons to stop the rolls!", value="".join(emojies))
+        one = vbu.Button(custom_id = "one",  emoji = "1️⃣", style=vbu.ButtonStyle.PRIMARY)
+        two = vbu.Button(custom_id = "two",  emoji = "2️⃣", style=vbu.ButtonStyle.PRIMARY)
+        three = vbu.Button(custom_id = "three",  emoji = "3️⃣", style=vbu.ButtonStyle.PRIMARY)
+
+        valid_buttons = [one, two, three]
+        components = vbu.MessageComponents(
+            vbu.ActionRow(*valid_buttons)
+        )
+
+        gamble_message = await ctx.send(embed=embed, components=components)
+        def button_check(payload):
+
+            if payload.message.id != gamble_message.id:
+                return False
+
+            if payload.component.custom_id in [one.custom_id, two.custom_id, three.custom_id]:
+                self.bot.loop.create_task(payload.ack())
+
+            return payload.user.id == ctx.author.id
+
+        while True:  # Keep paginating until the user clicks stop
+            try:
+                chosen_button_payload = await self.bot.wait_for('component_interaction', timeout=60.0, check=button_check)
+                chosen_button =  chosen_button_payload.component.custom_id.lower()
+            except asyncio.TimeoutError:
+                await gamble_message.edit(components=components.disable_components())
+                break
+
+            if chosen_button == "one":
+                emojies[1] = emoji_id[1]
+                await gamble_message.edit(embed=create_bucket_embed(ctx.author.display_name, ("Click the buttons to stop the rolls!", "".join(emojies))))
+
+            if chosen_button == "two":
+                emojies[2] = emoji_id[2]
+                await gamble_message.edit(embed=create_bucket_embed(ctx.author.display_name, ("Click the buttons to stop the rolls!", "".join(emojies))))
+
+            if chosen_button == "three":
+                emojies[3] = emoji_id[3]
+                await gamble_message.edit(embed=create_bucket_embed(ctx.author.display_name, ("Click the buttons to stop the rolls!", "".join(emojies))))
+
+            if "<a:first_set_roll:875259843571748924>" not in emojies:
+                break
+
+            if emojies[1] == emojies[2] and emojies[2] == emojies[3]:
+                fish_won = fish_type[1]
+                await ctx.send(f"{ctx.author.mention} has won a {' '.join(fish_won.split('_')).title}!")
+
+
+
 
 def setup(bot):
     bot.add_cog(Shop(bot))

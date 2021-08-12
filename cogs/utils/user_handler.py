@@ -3,7 +3,7 @@ import asyncio
 import math
 import random
 
-from cogs import utils 
+from cogs import utils
 
 async def ask_to_sell_fish(bot, user: discord.User, message: discord.Message, new_fish: dict):
     """
@@ -33,7 +33,7 @@ async def ask_to_sell_fish(bot, user: discord.User, message: discord.Message, ne
 
     # See if they want to sell the fish
     if choice == "sell":
-        sell_multipliers = { 1: 1.0, 2: 1.3, 3: 1.5, 4: 1.7, 5: 2.0}
+        sell_multipliers = { 1: 1.0, 2: 1.1, 3: 1.3, 4: 1.6, 5: 2.0}
         money_earned = math.floor(int(new_fish['cost']) * sell_multipliers[upgrades[0]['rod_upgrade']])
         async with bot.database() as db:
             await db(
@@ -50,7 +50,7 @@ async def ask_to_sell_fish(bot, user: discord.User, message: discord.Message, ne
     fish_names = [i['fish_name'] for i in fish_rows]
     fish_list = [(i['fish_name'], i['fish']) for i in fish_rows]
     fish_list = sorted(fish_list, key=lambda x: x[1])
-    levels_start = {1: (1,5), 2: (5,10), 3: (10,15), 4: (15,20), 5: (20,25)}
+    levels_start = {1: (1,2), 2: (2,4), 3: (3,6), 4: (4,8), 5: (5,10)}
     level = random.randint(levels_start[upgrades[0]['weight_upgrade']][0], levels_start[upgrades[0]['weight_upgrade']][1])
     xp_max = math.floor(25 * level ** 1.5)
     sorted_fish = {
@@ -61,7 +61,7 @@ async def ask_to_sell_fish(bot, user: discord.User, message: discord.Message, ne
         "legendary": [],
         "mythic": []
     }
-    
+
     # Sorted Fish will become a dictionary of {rarity: [list of fish names of fish in that category]} if the fish is in the user's inventory
     for rarity, fish_types in bot.fish.items():  # For each rarity level
         for _, fish_detail in fish_types.items():  # For each fish in that level
@@ -111,7 +111,7 @@ async def buying_singular(bot, ctx, item: str):
     # Gets the tank info for user
     async with bot.database() as db:
         tank_row = await db("""SELECT * FROM user_tank_inventory WHERE user_id=$1""", ctx.author.id)
-    
+
     # Tank slot/name info variables
     tank_slot = 0
     nonavailable_slots = []
@@ -136,7 +136,7 @@ async def buying_singular(bot, ctx, item: str):
             nonavailable_slots.append(str(tank_slot))
             continue
         available_slots.append(str(tank_slot))
-    
+
     # If the item is a tank...
     if item in tanks:
 
@@ -150,7 +150,7 @@ async def buying_singular(bot, ctx, item: str):
         except asyncio.TimeoutError:
             await ctx.send("Timed out asking for tank slot, no available slots given.")
             return False
-        
+
         # Checks if it is creating a brand new tank
         if message in available_slots:
 
@@ -164,7 +164,7 @@ async def buying_singular(bot, ctx, item: str):
             except asyncio.TimeoutError:
                 await ctx.send("Timed out asking for tank name, no available name given.")
                 return False
-            
+
             # Adds the tank to the users tanks
             async with bot.database() as db:
                 await db("""UPDATE user_tank_inventory SET tank[$1] = TRUE, tank_type[$1] = $2, tank_name[$1]=$3, fish_room[$1]=$4, tank_theme[$1]='Aqua' WHERE user_id=$5""", int(message), item, name, tank_size_values[item], ctx.author.id)
@@ -174,7 +174,7 @@ async def buying_singular(bot, ctx, item: str):
             await ctx.send(f"Tank {tank_names[int(message)-1]} has been updated to {item}!")
             async with bot.database() as db:
                 await db("""UPDATE user_tank_inventory SET tank_type[$1] = $2, fish_room[$1]=fish_room[$1]+$3 WHERE user_id=$4 AND tank_name[$1]=$5""", int(message), item, int(tank_size_values[item] - tank_size_values[tank_row[0]['tank_type'][int(message)-1]]), ctx.author.id, tank_names[int(message)-1])
-    
+
     # If the item is a theme...
     elif item in themes:
 

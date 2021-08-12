@@ -15,61 +15,6 @@ class Fishing(vbu.Cog):
         self.bot = bot
         self.current_fishers = []
 
-    @vbu.command(aliases=["bucket", "fb"])
-    @commands.bot_has_permissions(send_messages=True, embed_links=True, manage_messages=True)
-    async def fishbucket(self, ctx: commands.Context, user: discord.User = None):
-        """
-        This command checks your fish bucket or another users.
-        """
-
-        # Default the user to the author of the command
-        user = user or ctx.author
-
-        async with self.bot.database() as db:
-            fish_rows = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND tank_fish=''""", user.id)
-
-        if not fish_rows:
-            return await ctx.send("You have no fish in your bucket!" if user == ctx.author else f"{user.display_name} has no fish in their bucket!")
-
-        # totalpages = len(fetched) // 5 + (len(fetched) % 5 > 0)
-        # if page < 1 or page > totalpages:
-        #     return await ctx.send("That page is doesn't exist.")
-
-        embed = discord.Embed()
-        embed.title = f"{user.display_name}'s Fish Bucket"
-
-        fish_list = [(i['fish_name'], i['fish']) for i in fish_rows]  # List of tuples (Fish Name, Fish Type)
-        fish_list = sorted(fish_list, key=lambda x: x[1])
-
-        fields = []  # The "pages" that the user can scroll through are the different rarity levels
-
-        sorted_fish = {
-            "common": [],
-            "uncommon": [],
-            "rare": [],
-            "epic": [],
-            "legendary": [],
-            "mythic": []
-        }
-
-        # Sorted Fish will become a dictionary of {rarity: [list of fish names of fish in that category]} if the fish is in the user's inventory
-        for rarity, fish_types in self.bot.fish.items():  # For each rarity level
-            for _, fish_detail in fish_types.items():  # For each fish in that level
-                raw_name = fish_detail["raw_name"]
-                for user_fish_name, user_fish in fish_list:
-                    if raw_name == utils.get_normal_name(user_fish):  # If the fish in the user's list matches the name of a fish in the rarity catgeory
-                        sorted_fish[rarity].append((user_fish_name, user_fish, fish_detail['size']))  # Append to the dictionary
-
-        # Get the display string for each field
-        for rarity, fish_list in sorted_fish.items():
-            if fish_list:
-                fish_string = [f"\"{fish_name}\": **{' '.join(fish_type.split('_')).title()}** ({fish_size.title()})" for fish_name, fish_type, fish_size in fish_list]
-                field = (rarity.title(), "\n".join(fish_string))
-                [fields.append(i) for i in utils.get_fixed_field(field)]
-
-        # Create an embed
-        await utils.paginate(ctx, fields, user)
-
     @vbu.command()
     @vbu.cooldown.cooldown(1, 30 * 60, commands.BucketType.user)
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
@@ -231,7 +176,6 @@ class Fishing(vbu.Cog):
                 f"You have no fish named {name}!",
                 allowed_mentions=discord.AllowedMentions.none(),
             )
-
 
 def setup(bot):
     bot.add_cog(Fishing(bot))
