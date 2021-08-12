@@ -1,5 +1,7 @@
 from os import walk
 import re
+import typing
+
 
 SPECIAL_RARITY_PERCENTAGES = {
     1:
@@ -122,15 +124,23 @@ EMOJI_RARITIES = {
 }
 EMOJI_RARITIES_SET_ONE = {
     "common": {
-        "clownfish": "<:clownfish:849777027174760448>", "goldfish": "<:goldfish:849777027258515456>", "tiger_barb": "<:tiger_barb:849777027413311508>", "royal_blue_betta": "<:royal_blue_betta:849777027472031764>", "pufferfish": "<:pufferfish:849777027501522954>",
-        "oscar_cichlid": "<:oscar_cichlid:849777027599040522>", "neon_tetra_school": "<:neon_tetra_school:849777027326017586>"
-        },
-    "uncommon": {"flowerhorn_cichlid": "<:flowerhorn_cichlid:849777027472293918>", "lionfish": "<:lionfish:849777027765633024>"
-        },
+        "clownfish": "<:clownfish:849777027174760448>",
+        "goldfish": "<:goldfish:849777027258515456>",
+        "tiger_barb": "<:tiger_barb:849777027413311508>",
+        "royal_blue_betta": "<:royal_blue_betta:849777027472031764>",
+        "pufferfish": "<:pufferfish:849777027501522954>",
+        "oscar_cichlid": "<:oscar_cichlid:849777027599040522>",
+        "neon_tetra_school": "<:neon_tetra_school:849777027326017586>",
+    },
+    "uncommon": {
+        "flowerhorn_cichlid": "<:flowerhorn_cichlid:849777027472293918>",
+        "lionfish": "<:lionfish:849777027765633024>"
+    },
     "legendary": {
         "anglerfish": "<:anglerfish:849777027769696297>"
-        },
+    },
 }
+
 COMMON_BAG_NAMES = ["Common Fish Bag", "Common", "Cfb"]
 UNCOMMON_BAG_NAMES = ["Uncommon Fish Bag", "Uncommon", "Ufb"]
 RARE_BAG_NAMES = ["Rare Fish Bag", "Rare", "Rfb"]
@@ -143,17 +153,24 @@ SMALL_TANK_NAMES = ["Small Tank", "Small", "St"]
 MEDIUM_TANK_NAMES = ["Medium Tank", "Medium", "Mt"]
 PLANT_LIFE_NAMES = ["Plant Life", "Pl", "Plant"]
 
+
 def special_percentage_finder(upgrade_level):
     return [
         list(i[0] for i in SPECIAL_RARITY_PERCENTAGES[upgrade_level]),
         list(i[1] for i in SPECIAL_RARITY_PERCENTAGES[upgrade_level]),
     ]
 
-def rarity_percentage_finder(upgrade_level):
+
+def rarity_percentage_finder(upgrade_level: int) -> typing.List[float]:
+    """
+    Gets a list of rarities for each level of commodity, per level.
+    """
+
     return [
-    list(i[0] for i in _RARITY_PERCENTAGES[upgrade_level]),
-    list(i[1] for i in _RARITY_PERCENTAGES[upgrade_level]),
-]
+        list(i[0] for i in _RARITY_PERCENTAGES[upgrade_level]),
+        list(i[1] for i in _RARITY_PERCENTAGES[upgrade_level]),
+    ]
+
 
 def parse_fish_filename(filename: str) -> dict:
     """
