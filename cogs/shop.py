@@ -405,6 +405,9 @@ class Shop(vbu.Cog):
             rarity == "uncommon"
         fish_type = []
         emoji_id = []
+        one_chosen = False
+        two_chosen = False
+        three_chosen = False
         for i in range(3):
             fish_type.append(random.choice(list(utils.EMOJI_RARITIES_SET_ONE[rarity])))
         emoji_id.append(utils.EMOJI_RARITIES_SET_ONE[rarity][fish_type_single] for fish_type_single in fish_type)
@@ -439,20 +442,23 @@ class Shop(vbu.Cog):
                 await gamble_message.edit(components=components.disable_components())
                 break
 
-            if chosen_button == "one":
+            if chosen_button == "one" and one_chosen == False:
                 emojies[0] = emoji_id[0]
-                emoji_string = "".join(emojies)
-                await gamble_message.edit(embed=create_bucket_embed(ctx.author, ("Click the buttons to stop the rolls!", emoji_string), f"{ctx.author.display_name}'s roll"))
+                await gamble_message.edit(embed=create_bucket_embed(ctx.author, ("Click the buttons to stop the rolls!", "".join(list(emojies))), f"{ctx.author.display_name}'s roll"))
+                one_chosen = True
 
-            if chosen_button == "two":
+
+            if chosen_button == "two" and two_chosen == False:
                 emojies[1] = emoji_id[1]
-                emoji_string = "".join(emojies)
-                await gamble_message.edit(embed=create_bucket_embed(ctx.author, ("Click the buttons to stop the rolls!", emoji_string), f"{ctx.author.display_name}'s roll"))
+                await gamble_message.edit(embed=create_bucket_embed(ctx.author, ("Click the buttons to stop the rolls!", "".join(list(emojies))), f"{ctx.author.display_name}'s roll"))
+                two_chosen = True
 
-            if chosen_button == "three":
+
+            if chosen_button == "three" and three_chosen == False:
                 emojies[2] = emoji_id[2]
-                emoji_string = "".join(emojies)
-                await gamble_message.edit(embed=create_bucket_embed(ctx.author, ("Click the buttons to stop the rolls!", emoji_string), f"{ctx.author.display_name}'s roll"))
+                await gamble_message.edit(embed=create_bucket_embed(ctx.author, ("Click the buttons to stop the rolls!", "".join(list(emojies))), f"{ctx.author.display_name}'s roll"))
+                three_chosen = True
+
 
             if "<a:first_set_roll:875259843571748924>" not in emojies:
                 break
