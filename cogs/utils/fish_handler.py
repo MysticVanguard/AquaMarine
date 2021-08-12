@@ -225,6 +225,7 @@ def parse_fish_filename(filename: str) -> dict:
         "name": raw_name.replace("_", " ").title(),
     }
 
+
 def fetch_fish(directory: str) -> dict:
     """
     Fetch all of the fish from a given directory.
@@ -257,6 +258,7 @@ def fetch_fish(directory: str) -> dict:
 
     return fetched_fish
 
+
 def make_golden(fish: dict) -> dict:
     """
     Take the given fish and change the dict to make it golden.
@@ -267,6 +269,7 @@ def make_golden(fish: dict) -> dict:
     fish["image"] = fish["image"][:16] + "golden_" + fish["image"][16:]
     return fish
 
+
 def make_inverted(fish: dict) -> dict:
     """
     Take the given fish and change the dict to make it inverted.
@@ -276,6 +279,7 @@ def make_inverted(fish: dict) -> dict:
     fish["name"] = f"Inverted {fish['name']}"
     fish["image"] = fish["image"][:16] + "inverted_" + fish["image"][16:]
     return fish
+
 
 def make_pure(fish: dict, special: str) -> dict:
     """
@@ -297,6 +301,7 @@ def make_pure(fish: dict, special: str) -> dict:
     fish["image"] = fish["image"][:16] + fish["image"][number_two:]
     return fish
 
+
 def get_normal_name(fish_name):
     """
     Get the non-inverted/golden name for the fish
@@ -305,4 +310,3 @@ def get_normal_name(fish_name):
     if match:
         return match.group("fish_name")
     return fish_name
-
