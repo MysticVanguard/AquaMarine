@@ -6,12 +6,12 @@ import voxelbotutils as vbu
 
 
 # Does all the xp stuff
-async def xp_finder_adder(self, user: discord.User, played_with_fish):
+async def xp_finder_adder(bot, user: discord.User, played_with_fish):
     # ranges of how much will be added
     total_xp_to_add = random.randint(1, 25)
 
     # initial acquired fish data
-    async with self.bot.database() as db:
+    async with bot.database() as db:
         fish_rows = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2""", user.id, played_with_fish)
 
     # level increase xp calculator
@@ -24,13 +24,13 @@ async def xp_finder_adder(self, user: discord.User, played_with_fish):
         if fish_rows[0]['fish_xp'] >= fish_rows[0]['fish_xp_max']:
 
             # update the level to increase by one, reset fish xp, and set fish xp max to the next level xp needed
-            async with self.bot.database() as db:
+            async with bot.database() as db:
                 await db("""UPDATE user_fish_inventory SET fish_level = fish_level + 1 WHERE user_id = $1 AND fish_name = $2""", user.id, played_with_fish)
                 await db("""UPDATE user_fish_inventory SET fish_xp = 0 WHERE user_id = $1 AND fish_name = $2""", user.id, played_with_fish)
                 await db("""UPDATE user_fish_inventory SET fish_xp_max = $1 WHERE user_id = $2 AND fish_name = $3""", int(xp_per_level), user.id, played_with_fish)
 
         # adds one xp regets new fish_rows
-        async with self.bot.database() as db:
+        async with bot.database() as db:
             await db("""UPDATE user_fish_inventory SET fish_xp = fish_xp + 1 WHERE user_id = $1 AND fish_name = $2""", user.id, played_with_fish)
             fish_rows = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2""", user.id, played_with_fish)
 

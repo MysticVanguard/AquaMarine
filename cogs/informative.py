@@ -20,29 +20,35 @@ class Informative(vbu.Cog):
         # Get the user's data
         async with self.bot.database() as db:
             fish_row = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1""", ctx.author.id)
-            tank_row = await db("""SELECT * FROM user_tank_inventory WHERE user_id = $1""", ctx.author.id)
+            tank_rows = await db("""SELECT * FROM user_tank_inventory WHERE user_id = $1""", ctx.author.id)
 
         # Set up some vars for later
         embed = discord.Embed()
         fish_collections = collections.defaultdict(list)
-
         # Get the user's fish
         for fish in fish_row:
-            fish_collections[fish['tank_fish']].append(
-                f"**{fish['fish'].replace('_', ' ').title()}: \"{fish['fish_name']}\"**\n"
-                f"**LVL.** {fish['fish_level']} **Alive:** {fish['fish_alive']} **Death Date:** {fish['death_time']}"
-            )
-
-        # Add a row in our embed for each tank bulbasaur
-        for count, tank in enumerate(tank_row):
-            embed.add_field(
-                name=tank['tank_name'][count],
-                value=(
-                    f"Type: {tank['tank_type'][count]}\n"
-                    f"**Fish:**\n"
-                    "\n".join(fish_collections[tank['tank_name'][count]])
+            print(fish['tank_fish'])
+            if fish['tank_fish'] != '':
+                fish_collections[fish['tank_fish']].append(
+                    f"__**{fish['fish'].replace('_', ' ').title()}: \"{fish['fish_name']}\"**__\n"
+                    f"**Alive:** {fish['fish_alive']}\n **Death Date:** {fish['death_time']}"
                 )
-            )
+
+        print(fish_collections)
+        # Add a row in our embed for each tank
+        for tank_row in tank_rows:
+            for count, tank in enumerate(tank_row['tank']):
+                if tank_row['tank_name'][count] in fish_collections.keys():
+                    fish_message = [f"Type: {tank_row['tank_type'][count]}", f"**Fish:**", "\n".join(fish_collections[tank_row['tank_name'][count]])]
+                else:
+                    fish_message = ["No fish in tank."]
+                if tank_row['tank'][count] is True:
+                    embed.add_field(
+                        name=tank_row['tank_name'][count],
+                        value=
+                        "\n".join(fish_message)
+
+                    )
 
         # And send
         await ctx.send(embed=embed)

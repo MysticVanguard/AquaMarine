@@ -266,7 +266,7 @@ def make_golden(fish: dict) -> dict:
 
     fish["raw_name"] = f"golden_{fish['raw_name']}"
     fish["name"] = f"Golden {fish['name']}"
-    fish["image"] = fish["image"][:16] + "golden_" + fish["image"][16:]
+    fish["image"] = fish["image"][:40] + "golden_" + fish["image"][40:]
     return fish
 
 
@@ -277,7 +277,7 @@ def make_inverted(fish: dict) -> dict:
 
     fish["raw_name"] = f"inverted_{fish['raw_name']}"
     fish["name"] = f"Inverted {fish['name']}"
-    fish["image"] = fish["image"][:16] + "inverted_" + fish["image"][16:]
+    fish["image"] = fish["image"][:40] + "inverted_" + fish["image"][40:]
     return fish
 
 

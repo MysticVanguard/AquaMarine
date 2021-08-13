@@ -2,6 +2,7 @@ from datetime import datetime as dt, timedelta
 
 import voxelbotutils as vbu
 from discord.ext import commands, tasks
+import discord
 
 from cogs import utils
 
@@ -44,20 +45,20 @@ class FishCare(vbu.Cog):
             )
 
         # other various checks
-        if fish_rows[0]['fish_entertain_time']:
-            if fish_rows[0]['fish_entertain_time'] + timedelta(minutes=5) > dt.utcnow():
-                time_left = (fish_rows[0]['fish_entertain_time'] - dt.utcnow() + timedelta(minutes=5))
-                return await ctx.send(f"This fish is tired, please try again in {utils.seconds_converter(time_left.total_seconds())}.")
         if not fish_rows:
             return await ctx.send("You have no fish in a tank named that!")
         if fish_rows[0]['fish_alive'] is False:
             return await ctx.send("That fish is dead!")
+        if fish_rows[0]['fish_entertain_time']:
+            if fish_rows[0]['fish_entertain_time'] + timedelta(minutes=5) > dt.utcnow():
+                time_left = (fish_rows[0]['fish_entertain_time'] - dt.utcnow() + timedelta(minutes=5))
+                return await ctx.send(f"This fish is tired, please try again in {utils.seconds_converter(time_left.total_seconds())}.")
 
         # Typing Indicator
         async with ctx.typing():
 
             # calls the xp finder adder to the fish
-            xp_added = await utils.xp_finder_adder(ctx.author, fish_played_with)
+            xp_added = await utils.xp_finder_adder(self.bot, ctx.author, fish_played_with)
 
             # gets the new data and uses it in sent message
             async with self.bot.database() as db:
@@ -110,7 +111,10 @@ class FishCare(vbu.Cog):
                 )
                 await db("""UPDATE user_item_inventory SET flakes=flakes-1 WHERE user_id=$1""", ctx.author.id)
 
-        return await ctx.send(f"**{fish_rows[0]['fish_name']}** has been fed!")
+        return await ctx.send(
+            f"**{fish_rows[0]['fish_name']}** has been fed!",
+            allowed_mentions=discord.AllowedMentions.none(),
+            )
 
     @vbu.command()
     @vbu.bot_has_permissions(send_messages=True)
