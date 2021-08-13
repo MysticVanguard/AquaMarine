@@ -8,6 +8,8 @@ from cogs import utils
 
 class FishCare(vbu.Cog):
 
+    FISH_FEED_COOLDOWN = timedelta(hours=6)
+
     def __init__(self, bot: commands.AutoShardedBot):
         super().__init__(bot)
         self.fish_food_death_loop.start()
@@ -77,7 +79,10 @@ class FishCare(vbu.Cog):
         This command feeds a fish in a tank with fish flakes.
         """
 
-        # fetches needed rows and gets the users amount of food
+        # Send a defer while we open the database
+        await ctx.trigger_typing()
+
+        # Fetches needed rows and gets the users amount of food
         async with self.bot.database() as db:
             fish_rows = await db(
                 """SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2 AND tank_fish != ''""",
@@ -85,32 +90,35 @@ class FishCare(vbu.Cog):
             )
             item_rows = await db("""SELECT * FROM user_item_inventory WHERE user_id = $1""", ctx.author.id)
 
-        # other various checks
+        # See if the user has fish flakes
         if not item_rows:
-            return await ctx.send("You have no fish flakes!")
+            return await ctx.send("You have no fish flakes!", wait=False)
         user_food_count = item_rows[0]['flakes']
         if not user_food_count:
-            return await ctx.send("You have no fish flakes!")
+            return await ctx.send("You have no fish flakes!", wait=False)
+
+        # See if the user has a fish with that name
         if not fish_rows:
-            return await ctx.send("You have no fish in a tank named that!")
+            return await ctx.send("You have no fish in a tank named that!", wait=False)
+
+        # Make sure the fish is able to be fed
         if fish_rows[0]['fish_feed_time']:
-            if fish_rows[0]['fish_feed_time'] + timedelta(hours=6) > dt.utcnow():
-                time_left = (fish_rows[0]['fish_feed_time'] - dt.utcnow() + timedelta(hours=6))
-                return await ctx.send(f"This fish is full, please try again in {utils.seconds_converter(time_left.total_seconds())}.")
+            if (fish_feed_timeout := fish_rows[0]['fish_feed_time'] + self.FISH_FEED_COOLDOWN) > dt.utcnow():
+                return await ctx.send(f"This fish is full, please try again {vbu.TimeFormatter(fish_feed_timeout).relative_time}.", wait=False)
         if fish_rows[0]['fish_alive'] is False:
-            return await ctx.send("That fish is dead!")
+            return await ctx.send("That fish is dead!", wait=False)
 
-        # Typing Indicator
-        async with ctx.typing():
-            death_date = dt.utcnow() + timedelta(days=3)
-            async with self.bot.database() as db:
-                await db(
-                    """UPDATE user_fish_inventory SET death_time = $3, fish_feed_time = $4 WHERE user_id = $1 AND fish_name = $2""",
-                    ctx.author.id, fish_fed, death_date, dt.utcnow(),
-                )
-                await db("""UPDATE user_item_inventory SET flakes=flakes-1 WHERE user_id=$1""", ctx.author.id)
+        # Update the user's inv and the fish's death date
+        death_date = dt.utcnow() + timedelta(days=3)
+        async with self.bot.database() as db:
+            await db(
+                """UPDATE user_fish_inventory SET death_time = $3, fish_feed_time = $4 WHERE user_id = $1 AND fish_name = $2""",
+                ctx.author.id, fish_fed, death_date, dt.utcnow(),
+            )
+            await db("""UPDATE user_item_inventory SET flakes=flakes-1 WHERE user_id=$1""", ctx.author.id)
 
-        return await ctx.send(f"**{fish_rows[0]['fish_name']}** has been fed!")
+        # And done
+        return await ctx.send(f"**{fish_rows[0]['fish_name']}** has been fed!", wait=False)
 
     @vbu.command()
     @vbu.bot_has_permissions(send_messages=True)
