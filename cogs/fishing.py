@@ -15,7 +15,6 @@ class Fishing(vbu.Cog):
 
     @vbu.command()
     @vbu.cooldown.cooldown(1, 30 * 60, commands.BucketType.user)
-    # @commands.max_concurrency(1, commands.BucketType.user)
     @vbu.bot_has_permissions(send_messages=True, embed_links=True)
     async def fish(self, ctx: commands.Context):
         """

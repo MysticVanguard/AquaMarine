@@ -3,6 +3,7 @@ import asyncio
 from datetime import datetime as dt, timedelta
 import io
 
+from PIL import ImageOps
 from PIL import Image
 import imageio
 import voxelbotutils as vbu
@@ -95,7 +96,7 @@ class Aquarium(vbu.Cog):
             if tank_slot_in == tank_name:
                 break
         else:
-            return await ctx.send("no tank bro")
+            return await ctx.send("No tank with that name!")
 
         # another check
         if tank_row[0]["fish_room"][tank_slot] < size_values[fish_row[0]["fish_size"]]:
@@ -132,7 +133,10 @@ class Aquarium(vbu.Cog):
             tank_row = await db("""SELECT * FROM user_tank_inventory WHERE user_id =$1""", ctx.author.id)
 
         if not fish_row:
-            return await ctx.send(f"You have no fish named {fish_removed} in that tank!")
+            return await ctx.send(
+                f"You have no fish named {fish_removed} in that tank!",
+                allowed_mentions=discord.AllowedMentions.none(),
+                )
         if not tank_row or tank_row[0]['tank'] == ['False', 'False', 'False', 'False', 'False', 'False', 'False', 'False', 'False', 'False']:
             return await ctx.send("You have no tanks!")
         if fish_row[0]['fish_alive'] is False:
@@ -151,7 +155,10 @@ class Aquarium(vbu.Cog):
         async with self.bot.database() as db:
             await db("""UPDATE user_fish_inventory SET tank_fish = '' WHERE user_id = $1 AND fish_name = $2""", ctx.author.id, fish_removed)
             await db("""UPDATE user_tank_inventory SET fish_room[$3] = fish_room[$3] + $2 WHERE user_id = $1""", ctx.author.id, int(size_values[fish_row[0]['fish_size']]), tank_slot)
-        return await ctx.send(f"{fish_removed} removed from {tank_name}!")
+        return await ctx.send(
+            f"{fish_removed} removed from {tank_name}!",
+            allowed_mentions=discord.AllowedMentions.none(),
+            )
 
     @vbu.command()
     @vbu.bot_has_permissions(send_messages=True, embed_links=True)
@@ -172,6 +179,7 @@ class Aquarium(vbu.Cog):
             fishes = {}
             fish_y_value = []
             files = []
+            dead_alive = []
             golden_inverted_normal = 'normal'
             fish_selections = []
             gif_name = random.randint(1, 1000)
@@ -194,7 +202,7 @@ class Aquarium(vbu.Cog):
 
             # finds what type of fish it is, then adds the paths to a list, as well as finding the fish's random starting position
             for selected_fish_types in selected_fish:
-                fishes[selected_fish_types['fish']] = []
+                fishes[selected_fish_types['fish']] = [selected_fish_types['fish_alive']]
             for name, info in fishes.items():
                 if "golden" in name:
                     fishes[name].append(name.lstrip("golden_"))
@@ -208,10 +216,15 @@ class Aquarium(vbu.Cog):
                     fishes[name].append(name)
                 for _, fish_types in self.bot.fish.items():
                     for fish_type, fish_data in fish_types.items():
-                        if info[0] == fish_data['raw_name']:
+                        if info[1] == fish_data['raw_name']:
                             move_x.append(random.randint(min_max_x[tank_info][0], min_max_x[tank_info][1]))
                             fish_y_value.append(random.randint(min_max_y[tank_info][0], min_max_y[tank_info][1]))
-                            fish_selections.append(f"C:/Users/JT/Pictures/Aqua{fish_data['image'][1:16]}{golden_inverted_normal}_fish_size{fish_data['image'][20:]}")
+                            fish_selections.append(f"C:/Users/JT/Pictures/Aqua/assets/images/{golden_inverted_normal}_fish_size{fish_data['image'][44:]}")
+                            if info[0] is True:
+                                dead_alive.append(True)
+                            else:
+                                dead_alive.append(False)
+
 
             # gif variables
             file_prefix = "C:/Users/JT/Pictures/Aqua/assets/images"
@@ -232,10 +245,13 @@ class Aquarium(vbu.Cog):
                 this_background = background.copy()
                 # adds multiple fish and a midground if its a fishbowl
                 for x in range(0, len(im)):
-                    this_background.paste(im[x], (move_x[x], fish_y_value[x]), im[x])
-                    move_x[x] += fish_size_speed[tank_info]
-                    if move_x[x] > min_max_x[tank_info][1]:
-                        move_x[x] = min_max_x[tank_info][0]
+                    if dead_alive[x] is False:
+                        this_background.paste(im[x].rotate(180), (move_x[x], fish_y_value[x]), im[x].rotate(180))
+                    else:
+                        this_background.paste(im[x], (move_x[x], fish_y_value[x]), im[x])
+                        move_x[x] += fish_size_speed[tank_info]
+                        if move_x[x] > min_max_x[tank_info][1]:
+                            move_x[x] = min_max_x[tank_info][0]
                 this_background.paste(midground, (0, 0), midground)
                 this_background.paste(foreground, (0, 0), foreground)
 

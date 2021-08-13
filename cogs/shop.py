@@ -41,14 +41,14 @@ class Shop(vbu.Cog):
 
     @vbu.command(aliases=["b"])
     @vbu.bot_has_permissions(send_messages=True, embed_links=True)
-    async def buy(self, ctx: commands.Context, item: typing.Optional[str], amount: typing.Optional[int] = 1):
+    async def buy(self, ctx: commands.Context, item: str, amount: int = 1):
         """
         This command buys an item from a shop with the given value.
         """
 
         # Say what's valid
         all_names = [
-            utils.COMMON_BAG_NAMES, utils.COMMON_BAG_NAMES, utils.RARE_BAG_NAMES, utils.EPIC_BAG_NAMES,
+            utils.COMMON_BAG_NAMES, utils.UNCOMMON_BAG_NAMES, utils.RARE_BAG_NAMES, utils.EPIC_BAG_NAMES,
             utils.LEGENDARY_BAG_NAMES, utils.MYSTERY_BAG_NAMES, utils.FISH_FLAKES_NAMES, utils.FISH_BOWL_NAMES,
             utils.SMALL_TANK_NAMES, utils.MEDIUM_TANK_NAMES, utils.PLANT_LIFE_NAMES,
         ]
@@ -64,7 +64,7 @@ class Shop(vbu.Cog):
         )
         item_name_dict = {
             "cfb": (utils.COMMON_BAG_NAMES, 50, "Common Fish Bag", inventory_insert_sql.format("cfb")),
-            "ufb": (utils.COMMON_BAG_NAMES, 100, "Uncommon Fish Bag", inventory_insert_sql.format("ufb")),
+            "ufb": (utils.UNCOMMON_BAG_NAMES, 100, "Uncommon Fish Bag", inventory_insert_sql.format("ufb")),
             "rfb": (utils.RARE_BAG_NAMES, 200, "Rare Fish Bag", inventory_insert_sql.format("rfb")),
             "efb": (utils.EPIC_BAG_NAMES, 400, "Epic Fish Bag", inventory_insert_sql.format("efb")),
             "lfb": (utils.LEGENDARY_BAG_NAMES, 500, "Legendary Fish Bag", inventory_insert_sql.format("lfb")),
@@ -95,9 +95,11 @@ class Shop(vbu.Cog):
                 cost = 250
             else:
                 _, cost, response, db_call = data
-            if item.title in item_name_singular:
-                amount = 1
+            for names in item_name_singular:
+                if item.title() in names:
+                    amount = 1
             # See if the user has enough money
+
             full_cost = cost * amount
             if not await utils.check_price(self.bot, ctx.author.id, full_cost):
                 return await ctx.send("You don't have enough Sand Dollars <:sand_dollar:852057443503964201> for this!")
@@ -249,13 +251,14 @@ class Shop(vbu.Cog):
 
     @vbu.command()
     @vbu.bot_has_permissions(send_messages=True, embed_links=True)
+    @commands.max_concurrency(1, commands.BucketType.user)
     async def slots(self, ctx: commands.Context):
         """
         This command roles the slots.
         """
 
         # See if the user has enough money
-        if not await utils.check_price(ctx.author.id, 5, bot=self.bot):
+        if not await utils.check_price(self.bot, ctx.author.id, 5):
             return await ctx.send("You don't have enough money for this! (5)")
 
         # Remove money from the user
@@ -321,11 +324,11 @@ class Shop(vbu.Cog):
             if user:
                 fetched = await db("""SELECT * FROM user_balance WHERE user_id = $1""", user.id)
                 if fetched:
-                    return await ctx.send(f"{user.display_name} has {fetched[0]['balance']} Sand Dollars <:sand_dollar:852057443503964201>!")
+                    return await ctx.send(f"{user.display_name} has {fetched[0]['balance']:,} Sand Dollars <:sand_dollar:852057443503964201>!")
                 return await ctx.send(f"{user.display_name} has no Sand Dollars <:sand_dollar:852057443503964201>!")
             fetched = await db("""SELECT * FROM user_balance WHERE user_id = $1""", ctx.author.id)
             if fetched:
-                return await ctx.send(f"You have {fetched[0]['balance']} Sand Dollars!")
+                return await ctx.send(f"You have {fetched[0]['balance']:,} Sand Dollars <:sand_dollar:852057443503964201>!")
             return await ctx.send("You have no Sand Dollars <:sand_dollar:852057443503964201>!")
 
     @vbu.command()
@@ -405,6 +408,7 @@ class Shop(vbu.Cog):
 
     @vbu.command()
     @vbu.bot_has_permissions(send_messages=True, embed_links=True)
+    @commands.max_concurrency(1, commands.BucketType.user)
     async def gamble(self, ctx: commands.Context):
         """
         The gamble command.
@@ -448,7 +452,7 @@ class Shop(vbu.Cog):
             self.bot.loop.create_task(payload.defer_update())
             return payload.user.id == ctx.author.id
 
-        # Keep paginating until the user clicks stop
+        # Keep going...
         while True:
 
             # Wait for them to click a button
@@ -461,13 +465,13 @@ class Shop(vbu.Cog):
 
             # Update the displayed emoji
             if chosen_button == "one" and picked_buttons[0] is False:
-                emojis[0] = emoji_id[0]
+                emojis[0] = emoji_id[0][0]
                 picked_buttons[0] = True
             if chosen_button == "two" and picked_buttons[1] is False:
-                emojis[1] = emoji_id[1]
+                emojis[1] = emoji_id[0][1]
                 picked_buttons[1] = True
             if chosen_button == "three" and picked_buttons[2] is False:
-                emojis[2] = emoji_id[2]
+                emojis[2] = emoji_id[0][2]
                 picked_buttons[2] = True
 
             # Disable the given button
@@ -481,7 +485,7 @@ class Shop(vbu.Cog):
                     ),
                     f"{ctx.author.display_name}'s roll",
                 ),
-                component=components,
+                components=components,
             )
 
             # Break when they're done picking fish
@@ -491,9 +495,15 @@ class Shop(vbu.Cog):
         # Sees if they won the fish they rolled
         if emojis[0] == emojis[1] == emojis[2]:
             fish_won = fish_type[0]
-            await ctx.send(f"{ctx.author.mention} has won a {' '.join(fish_won.split('_')).title}!")
+            for rarity, fish_types in self.bot.fish.items():
+                for fish_type, fish_info in fish_types.items():
+                    if fish_info["raw_name"] == fish_won:
+                        fish_won_info = fish_info
+                        break
+            message = await ctx.send(f"{ctx.author.mention} has won a {' '.join(fish_won.split('_')).title()}!")
+            await utils.ask_to_sell_fish(self.bot, ctx.author, message, fish_won_info)
         else:
-            await ctx.send(f"{ctx.author.mention} fucked it!")
+            await ctx.send(f"{ctx.author.mention} lost!")
 
 
 def setup(bot):

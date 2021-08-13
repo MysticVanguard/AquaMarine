@@ -161,7 +161,7 @@ class Informative(vbu.Cog):
 
     @vbu.command()
     @vbu.bot_has_permissions(send_messages=True, embed_links=True)
-    async def bestiary(self, ctx: commands.Context, *, fish_name: typing.Optional[str]):
+    async def bestiary(self, ctx: commands.Context, *, fish_name: str = None):
         """
         This command shows you info about fish.
         """
