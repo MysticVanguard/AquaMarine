@@ -5,6 +5,7 @@ import random
 
 from cogs import utils
 
+current_fishers = []
 
 async def ask_to_sell_fish(bot, user: discord.User, message: discord.Message, new_fish: dict):
     """

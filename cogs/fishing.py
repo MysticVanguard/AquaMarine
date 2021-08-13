@@ -11,7 +11,6 @@ class Fishing(vbu.Cog):
 
     def __init__(self, bot: commands.AutoShardedBot):
         super().__init__(bot)
-        self.current_fishers = []
 
     @vbu.command()
     @vbu.cooldown.cooldown(1, 30 * 60, commands.BucketType.user)
@@ -22,9 +21,9 @@ class Fishing(vbu.Cog):
         """
 
         # Make sure they can't fish twice
-        if ctx.author.id in self.current_fishers:
+        if ctx.author.id in utils.current_fishers:
             return await ctx.send(f"{ctx.author.display_name}, you're already fishing!")
-        self.current_fishers.append(ctx.author.id)
+        utils.current_fishers.append(ctx.author.id)
         caught_fish = 1
 
         # Upgrades be like
@@ -90,7 +89,7 @@ class Fishing(vbu.Cog):
             await utils.ask_to_sell_fish(self.bot, ctx.author, message, new_fish)
 
         # And now they should be allowed to fish again
-        self.current_fishers.remove(ctx.author.id)
+        utils.current_fishers.remove(ctx.author.id)
 
     @fish.error
     async def fish_error(self, ctx, error):
@@ -128,7 +127,7 @@ class Fishing(vbu.Cog):
         # Get the user's fish inventory based on the fish's name
         async with self.bot.database() as db:
             fish_row = await db("""SELECT fish_name FROM user_fish_inventory WHERE fish_name=$1 and user_id=$2""", old, ctx.author.id)
-            fish_rows = await db("""SELECT fish_name FROM user_fish_inventory WHERE user_id=$2""", ctx.author.id)
+            fish_rows = await db("""SELECT fish_name FROM user_fish_inventory WHERE user_id=$1""", ctx.author.id)
 
         # Check if the user doesn't have the fish
         if not fish_row:
@@ -138,7 +137,7 @@ class Fishing(vbu.Cog):
             )
 
         # Check of fish is being changed to a name of a new fish
-        for fish_name in fish_rows['fish_name']:
+        for fish_name in fish_rows:
             if new == fish_name:
                 return await ctx.send(
                     f"You already have a fish named {new}!",

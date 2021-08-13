@@ -135,6 +135,10 @@ class Shop(vbu.Cog):
         This command is only for using fish bags, it is just like using the fish command.
         """
 
+        if ctx.author.id in utils.current_fishers:
+            return await ctx.send(f"{ctx.author.display_name}, you're already fishing!")
+        utils.current_fishers.append(ctx.author.id)
+
         rarity_chances = {
             "cfb": {"common": .6689, "uncommon": .2230, "rare": .0743, "epic": .0248, "legendary": .0082, "mythic": .0008},
             "ufb": {"common": .6062, "uncommon": .2423, "rare": .0967, "epic": .0385, "legendary": .0154, "mythic": .0009},
@@ -224,6 +228,9 @@ class Shop(vbu.Cog):
         # Ask the user if they want to sell the fish
         await utils.ask_to_sell_fish(self.bot, ctx.author, message, new_fish)
 
+        utils.current_fishers.remove(ctx.author.id)
+
+
     @vbu.command(aliases=["inv"])
     @vbu.bot_has_permissions(send_messages=True, embed_links=True)
     async def inventory(self, ctx: commands.Context):
@@ -251,11 +258,14 @@ class Shop(vbu.Cog):
 
     @vbu.command()
     @vbu.bot_has_permissions(send_messages=True, embed_links=True)
-    @commands.max_concurrency(1, commands.BucketType.user)
     async def slots(self, ctx: commands.Context):
         """
         This command roles the slots.
         """
+
+        if ctx.author.id in utils.current_fishers:
+            return await ctx.send(f"{ctx.author.display_name}, you're already fishing!")
+        utils.current_fishers.append(ctx.author.id)
 
         # See if the user has enough money
         if not await utils.check_price(self.bot, ctx.author.id, 5):
@@ -312,6 +322,7 @@ class Shop(vbu.Cog):
             embed.add_field(name="*spent 5 Sand Dollars <:sand_dollar:852057443503964201>*", value="\n".join(row), inline=False)
             embed.add_field(name="Unlucky", value="You lost :(")
             await ctx.send(embed=embed)
+            utils.current_fishers.remove(ctx.author.id)
 
     @vbu.command(aliases=["bal"])
     @vbu.bot_has_permissions(send_messages=True)
@@ -408,7 +419,6 @@ class Shop(vbu.Cog):
 
     @vbu.command()
     @vbu.bot_has_permissions(send_messages=True, embed_links=True)
-    @commands.max_concurrency(1, commands.BucketType.user)
     async def gamble(self, ctx: commands.Context):
         """
         The gamble command.
@@ -419,6 +429,10 @@ class Shop(vbu.Cog):
         rarity = random.choices(*i)[0]
         if rarity in ["epic", "rare", "mythic"]:
             rarity = "uncommon"
+
+        if ctx.author.id in utils.current_fishers:
+            return await ctx.send(f"{ctx.author.display_name}, you're already fishing!")
+        utils.current_fishers.append(ctx.author.id)
 
         # Set up some vars for later
         fish_type = []  # The list of fish that they rolled
@@ -504,6 +518,8 @@ class Shop(vbu.Cog):
             await utils.ask_to_sell_fish(self.bot, ctx.author, message, fish_won_info)
         else:
             await ctx.send(f"{ctx.author.mention} lost!")
+
+        utils.current_fishers.remove(ctx.author.id)
 
 
 def setup(bot):
