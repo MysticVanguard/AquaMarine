@@ -83,3 +83,26 @@ CREATE TABLE IF NOT EXISTS user_upgrades (
     lure_upgrade INT NOT NULL DEFAULT 1,
     PRIMARY KEY (user_id)
 );
+
+CREATE TABLE IF NOT EXISTS user_achievements_milestones (
+    user_id BIGINT,
+    times_entertained_milestone INT NOT NULL DEFAULT 5,
+    times_fed_milestone INT NOT NULL DEFAULT 5,
+    times_cleaned_milestone INT NOT NULL DEFAULT 5,
+    times_caught_milestone INT NOT NULL DEFAULT 5,
+    times_gambled_milestone INT NOT NULL DEFAULT 5,
+    money_gained_milestone INT NOT NULL DEFAULT 100,
+    tanks_owned_milestone INT NOT NULL DEFAULT 1,
+    PRIMARY KEY (user_id)
+);
+
+CREATE TABLE IF NOT EXISTS user_achievements (
+    user_id BIGINT,
+    times_entertained INT NOT NULL DEFAULT 0,
+    times_fed INT NOT NULL DEFAULT 0,
+    times_cleaned INT NOT NULL DEFAULT 0,
+    times_caught INT NOT NULL DEFAULT 0,
+    times_gambled INT NOT NULL DEFAULT 0,
+    money_gained INT NOT NULL DEFAULT 0,
+    PRIMARY KEY (user_id)
+);

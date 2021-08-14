@@ -157,38 +157,6 @@ class Fishing(vbu.Cog):
             allowed_mentions=discord.AllowedMentions.none(),
         )
 
-    @vbu.command()
-    @vbu.bot_has_permissions(send_messages=True, embed_links=True)
-    async def release(self, ctx: commands.Context, name: str):
-        """
-        Releases specified fish back into the wild.
-        """
-
-        # Get the user's fish inventory based on the fish's name
-        async with self.bot.database() as db:
-            fish_rows = await db("""SELECT fish_name FROM user_fish_inventory WHERE fish_name=$1 and user_id=$2;""", name, ctx.author.id)
-
-        # Check if the user has the fish
-        if fish_rows:
-
-            # Update the database
-            async with self.bot.database() as db:
-                await db(
-                    """DELETE FROM user_fish_inventory WHERE fish_name=$1 and user_id=$2""",
-                    name, ctx.author.id,
-                )
-
-            # Send confirmation message
-            return await ctx.send(
-                f"Goodbye {name}!",
-                allowed_mentions=discord.AllowedMentions.none(),
-            )
-
-        await ctx.send(
-            f"You have no fish named {name}!",
-            allowed_mentions=discord.AllowedMentions.none(),
-        )
-
 
 def setup(bot):
     bot.add_cog(Fishing(bot))

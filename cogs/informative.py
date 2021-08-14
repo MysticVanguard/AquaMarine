@@ -260,6 +260,47 @@ class Informative(vbu.Cog):
         # Create an embed
         await utils.paginate(ctx, fields, user)
 
+    @vbu.command()
+    @vbu.bot_has_permissions(send_messages=True, embed_links=True, manage_messages=True)
+    async def achievements(self, ctx: commands.Context):
+        # The milestones for each achievement type
+        Entertain = [5, 25, 100, 250, 500, 1000, 5000, 10000, 50000, 100000, 1000000]
+        Feed = [5, 25, 100, 250, 500, 1000, 5000, 10000, 50000, 100000, 1000000]
+        Clean = [5, 25, 100, 250, 500, 1000, 5000, 10000, 50000, 100000, 1000000]
+        Catch = [5, 25, 100, 250, 500, 1000, 5000, 10000, 50000, 100000, 1000000]
+        Tanks = [1, 3, 5, 10]
+        Gambles = [5, 25, 100, 250, 500, 1000, 5000, 10000, 50000, 100000, 1000000]
+        Money = [100, 250, 500, 1000, 5000, 10000, 50000, 100000, 1000000, 10000000, 100000000]
+
+        # Database variables
+        async with self.bot.database() as db:
+            achievement_data_milestones = await db("""SELECT * FROM user_achievements_milestones WHERE user_id = $1""", ctx.author.id)
+            achievement_data = await db("""SELECT * FROM user_achievements WHERE user_id = $1""", ctx.author.id)
+            tank_data = await db("""SELECT tanks FROM user_tank_inventory WHERE user_id = $1""", ctx.author.id)
+
+        # Getting the users data into a dictionary for the embed and ease of access
+        data = {}
+        for name, count in achievement_data.items():
+            data[name] = count
+
+        # Getting the users amount of tanks and adding that to the user data dictionary
+        tanks = 0
+        for tank in tank_data:
+            if tank is True:
+                tanks += 1
+        data["tanks_owned"] = tanks
+
+        # Setting claimable to non as default
+        claimable_nonclaimable = "nonclaimable"
+
+        # Creating the embed as well as checking if the achievement is claimable
+        embed = discord.Embed
+        for type, value in data.items():
+            milestone = f"{type}_milestone"
+            if value >= achievement_data_milestones[milestone]:
+                claimable_nonclaimable = "claimable"
+            embed.add_field(name=type, value=f"{value:,}/{achievement_data_milestones[milestone]:,}. **{claimable_nonclaimable}**")
+
 
 def setup(bot):
     bot.add_cog(Informative(bot))
