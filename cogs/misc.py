@@ -29,6 +29,7 @@ class Misc(vbu.Cog):
             f"**{command}**: {info}",
             allowed_mentions=discord.AllowedMentions.none()
             )
+        await ctx.send("Bug report sent!")
 
 def setup(bot):
     bot.add_cog(Misc(bot))

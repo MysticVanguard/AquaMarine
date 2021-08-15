@@ -191,6 +191,9 @@ class Aquarium(vbu.Cog):
                 selected_fish = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND tank_fish = $2""", ctx.author.id, tank_name)
                 tank_row = await db("""SELECT * FROM user_tank_inventory WHERE user_id =$1""", ctx.author.id)
 
+            # Check if the tank exists
+            if not tank_row:
+                return await ctx.send("You have no tank with that name!")
             # finds the tank slot
             for tank_slot_in in tank_row[0]['tank_name']:
                 if tank_slot_in == tank_name:

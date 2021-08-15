@@ -56,6 +56,7 @@ CREATE TABLE IF NOT EXISTS user_item_inventory (
     efb INT NOT NULL DEFAULT 0,
     lfb INT NOT NULL DEFAULT 0,
     flakes INT NOT NULL DEFAULT 0,
+    revival INT NOT NULL DEFAULT 0,
     PRIMARY KEY (user_id)
 );
 

@@ -174,11 +174,12 @@ RARE_BAG_NAMES = ["Rare Fish Bag", "Rare", "Rfb"]
 EPIC_BAG_NAMES = ["Epic Fish Bag", "Epic", "Efb"]
 LEGENDARY_BAG_NAMES = ["Legendary Fish Bag", "Legendary", "Lfb"]
 MYSTERY_BAG_NAMES = ["Mystery Fish Bag", "Mystery", "Mfb"]
-FISH_FLAKES_NAMES = ["Fish Flakes", "Ff", "Flakes"]
+FISH_FLAKES_NAMES = ["Fish Flakes", "Flakes", "Ff"]
 FISH_BOWL_NAMES = ["Fish Bowl", "Bowl", "Fb"]
 SMALL_TANK_NAMES = ["Small Tank", "Small", "St"]
 MEDIUM_TANK_NAMES = ["Medium Tank", "Medium", "Mt"]
-PLANT_LIFE_NAMES = ["Plant Life", "Pl", "Plant"]
+PLANT_LIFE_NAMES = ["Plant Life", "Plant", "Pl"]
+FISH_REVIVAL_NAMES = ["Fish Revival", "Revival", "Fr"]
 
 
 def special_percentage_finder(upgrade_level):

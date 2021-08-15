@@ -85,16 +85,16 @@ class Upgrades(vbu.Cog):
         upgrade_level = upgrades[0][upgraded]
         if upgrade_level == 5:
             return await ctx.send("That upgrade is fully upgraded.")
-        if not await utils.check_price(self.bot, ctx.author.id, self.UPGRADE_COST_LIST[upgrade_level]):
+        if not await utils.check_price(self.bot, ctx.author.id, self.UPGRADE_COST_LIST[int(upgrade_level) - 1]):
             return await ctx.send("You don't have enough Sand Dollars <:sand_dollar:852057443503964201> for this upgrade!")
 
         # Upgrade them in the database
         async with self.bot.database() as db:
-            await db("""UPDATE user_balance SET balance=balance-$1 WHERE user_id = $2""", self.UPGRADE_COST_LIST[upgrades[0][upgraded]], ctx.author.id)
+            await db("""UPDATE user_balance SET balance=balance-$1 WHERE user_id = $2""", self.UPGRADE_COST_LIST[int(upgrades[0][upgraded])- 1], ctx.author.id)
             await db("""UPDATE user_upgrades SET {0}=user_upgrades.{0}+1 WHERE user_id = $1""".format(upgraded), ctx.author.id)
 
         # And bam
-        await ctx.send(f"{upgrade.title()} has been upgraded!")
+        await ctx.send(f"{upgrade.title()} has been upgraded for {self.UPGRADE_COST_LIST[upgrade_level - 1]:,}!")
 
 
 def setup(bot):

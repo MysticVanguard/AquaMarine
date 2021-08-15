@@ -18,8 +18,9 @@ FISH_SHOP_EMBED.add_field(name="Rare Fish Bag <:rare_fish_bag:851974785088618516
 FISH_SHOP_EMBED.add_field(name="Epic Fish Bag <:epic_fish_bag:851974770467930118>", value="This gives you one fish with substantially better chances \n __400 Sand Dollars <:sand_dollar:852057443503964201>__", inline=True)
 FISH_SHOP_EMBED.add_field(name="Legendary Fish Bag <:legendary_fish_bag:851974777567838258>", value="This gives you one fish with extremely better chances \n __500 Sand Dollars <:sand_dollar:852057443503964201>__", inline=True)
 FISH_SHOP_EMBED.add_field(name="Mystery Fish Bag <:mystery_fish_bag:851975891659391006>", value="This gives you one bag of a random rarity \n __250 Sand Dollars <:sand_dollar:852057443503964201>__", inline=True)
-FISH_SHOP_EMBED.add_field(name="Fish Food", value="This is food that can be fed to fish to level them up", inline=False)
-FISH_SHOP_EMBED.add_field(name="Fish Flakes <:fish_flakes:852053373111894017>", value="This gives you fish flakes to feed your fish, keeping them alive \n __5 Sand Dollars <:sand_dollar:852057443503964201>__", inline=True)
+FISH_SHOP_EMBED.add_field(name="Fish Care", value="These are items to help keep your fish alive", inline=False)
+FISH_SHOP_EMBED.add_field(name="Fish Revival <:fish_flakes:852053373111894017>", value="This gives you a fish revival to bring your fish back to life \n __1000 Sand Dollars <:sand_dollar:852057443503964201>__", inline=True)
+FISH_SHOP_EMBED.add_field(name="Fish Flakes <:fish_flakes:852053373111894017>", value="This gives you fish flakes to feed your fish, keeping them alive \n __10 Sand Dollars <:sand_dollar:852057443503964201>__", inline=True)
 FISH_SHOP_EMBED.add_field(name="Tanks", value="These are tanks you can buy to put your fish into, can only be purchased one at a time", inline=False)
 FISH_SHOP_EMBED.add_field(name="Fish Bowl", value="This gives you a Fish Bowl Tank that you can deposit one small fish into \n __100 Sand Dollars <:sand_dollar:852057443503964201>__", inline=True)
 FISH_SHOP_EMBED.add_field(name="Small Tank", value="This gives you a Small Tank that you can deposit five small fish or one medium fish into\n __500 Sand Dollars <:sand_dollar:852057443503964201>__", inline=True)
@@ -50,7 +51,7 @@ class Shop(vbu.Cog):
         all_names = [
             utils.COMMON_BAG_NAMES, utils.UNCOMMON_BAG_NAMES, utils.RARE_BAG_NAMES, utils.EPIC_BAG_NAMES,
             utils.LEGENDARY_BAG_NAMES, utils.MYSTERY_BAG_NAMES, utils.FISH_FLAKES_NAMES, utils.FISH_BOWL_NAMES,
-            utils.SMALL_TANK_NAMES, utils.MEDIUM_TANK_NAMES, utils.PLANT_LIFE_NAMES,
+            utils.SMALL_TANK_NAMES, utils.MEDIUM_TANK_NAMES, utils.PLANT_LIFE_NAMES, utils.FISH_REVIVAL_NAMES,
         ]
 
         # See if they gave a valid item
@@ -69,7 +70,8 @@ class Shop(vbu.Cog):
             "efb": (utils.EPIC_BAG_NAMES, 400, "Epic Fish Bag", inventory_insert_sql.format("efb")),
             "lfb": (utils.LEGENDARY_BAG_NAMES, 500, "Legendary Fish Bag", inventory_insert_sql.format("lfb")),
             "mfb": (utils.MYSTERY_BAG_NAMES, 250),
-            "flakes": (utils.FISH_FLAKES_NAMES, 5, "Fish Flakes", inventory_insert_sql.format("flakes")),
+            "flakes": (utils.FISH_FLAKES_NAMES, 10, "Fish Flakes", inventory_insert_sql.format("flakes")),
+            "revival": (utils.FISH_REVIVAL_NAMES, 1000, "Fish Revival", inventory_insert_sql.format("revival")),
             "Fish Bowl": (utils.FISH_BOWL_NAMES, 100, "Fish Bowl", ""),
             "Small Tank": (utils.SMALL_TANK_NAMES, 500, "Small Tank", ""),
             "Medium Tank": (utils.MEDIUM_TANK_NAMES, 2500, "Medium Tank", ""),
@@ -520,6 +522,23 @@ class Shop(vbu.Cog):
             await ctx.send(f"{ctx.author.mention} lost!")
 
         utils.current_fishers.remove(ctx.author.id)
+
+    @vbu.command()
+    @vbu.bot_has_permissions(send_messages=True)
+    async def revive(self, ctx: commands.Context, fish: str):
+        async with self.bot.database() as db:
+            fish_row = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1, fish_name = $2""", ctx.author.id, fish)
+            revival_count = await db("""SELECT revival FROM user_item_inventory WHERE user_id = $1""", ctx.author.id)
+
+        if not fish_row:
+            return ctx.send(
+                f"You have no fish named {fish}!",
+                allowed_mentions=discord.AllowedMentions.none()
+                )
+        if fish_row["fish_alive"] is False:
+            return ctx.send("That fish is alive!")
+        if revival_count == 0:
+            return ctx.send("You have no revivals!")
 
 
 def setup(bot):
