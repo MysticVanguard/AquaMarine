@@ -1,9 +1,11 @@
+from datetime import timedelta
 import typing
 import collections
 
 import discord
 from discord.ext import commands
 import voxelbotutils as vbu
+from voxelbotutils.cogs.utils.context_embed import Embed
 
 from cogs import utils
 
@@ -31,7 +33,7 @@ class Informative(vbu.Cog):
             if fish['tank_fish'] != '':
                 fish_collections[fish['tank_fish']].append(
                     f"__**{fish['fish'].replace('_', ' ').title()}: \"{fish['fish_name']}\"**__\n"
-                    f"**Alive:** {fish['fish_alive']}\n **Death Date:** {fish['death_time']}"
+                    f"**Alive:** {fish['fish_alive']}\n **Death Date:** {vbu.TimeFormatter(fish['death_time'] - timedelta(hours=4)).relative_time}"
                 )
 
         print(fish_collections)
@@ -136,7 +138,7 @@ class Informative(vbu.Cog):
         collection_info = [f"{x[0]}: {x[2]}/{x[1]}" for x in collection_data]
         fields_dict = {
             'Collection': ("\n".join(collection_info), False),
-            'Balance': (f'<:sand_dollar:852057443503964201>: {balance[0]["balance"]}x Sand Dollars', False),
+            'Balance': (f'<:sand_dollar:852057443503964201>: {balance[0]["balance"]}x', False),
             '# of Tanks': (number_of_tanks, False),
             'Highest Level Fish': (f'{highest_level_fish_emoji} {highest_level_fish["fish_name"]}: Lvl. {highest_level_fish["fish_level"]} {highest_level_fish["fish_xp"]}/ {highest_level_fish["fish_xp_max"]}', False),
             'Achievements': ("Soon To Be Added.", True),
@@ -225,7 +227,7 @@ class Informative(vbu.Cog):
         if not fish_rows:
             if user == ctx.author:
                 return await ctx.send("You have no fish in your bucket!")
-            return await ctx.send(f"{user.display_name} has no fish in their bucket!")
+            return await ctx.send(f"**{user.display_name}** has no fish in their bucket!")
 
         fish_list = [(i['fish_name'], i['fish']) for i in fish_rows]  # List of tuples (Fish Name, Fish Type)
         fish_list = sorted(fish_list, key=lambda x: x[1])
@@ -276,12 +278,17 @@ class Informative(vbu.Cog):
         async with self.bot.database() as db:
             achievement_data_milestones = await db("""SELECT * FROM user_achievements_milestones WHERE user_id = $1""", ctx.author.id)
             achievement_data = await db("""SELECT * FROM user_achievements WHERE user_id = $1""", ctx.author.id)
-            tank_data = await db("""SELECT tanks FROM user_tank_inventory WHERE user_id = $1""", ctx.author.id)
+            tank_data = await db("""SELECT tank FROM user_tank_inventory WHERE user_id = $1""", ctx.author.id)
+            if not achievement_data:
+                achievement_data = await db("""INSERT INTO user_achievements (user_id) VALUES ($1) RETURNING *""", ctx.author.id)
+            if not achievement_data_milestones:
+                achievement_data_milestones = await db("""INSERT INTO user_achievements_milestones (user_id) VALUES ($1) RETURNING *""", ctx.author.id)
 
         # Getting the users data into a dictionary for the embed and ease of access
         data = {}
-        for name, count in achievement_data.items():
-            data[name] = count
+        for value_type, count in achievement_data[0].items():
+            if value_type != "user_id":
+                data[value_type] = count
 
         # Getting the users amount of tanks and adding that to the user data dictionary
         tanks = 0
@@ -294,12 +301,14 @@ class Informative(vbu.Cog):
         claimable_nonclaimable = "nonclaimable"
 
         # Creating the embed as well as checking if the achievement is claimable
-        embed = discord.Embed
+        embed = discord.Embed(title=f"**{ctx.author.display_name}**'s achievements")
         for type, value in data.items():
             milestone = f"{type}_milestone"
-            if value >= achievement_data_milestones[milestone]:
+            if value >= achievement_data_milestones[0][milestone]:
                 claimable_nonclaimable = "claimable"
-            embed.add_field(name=type, value=f"{value:,}/{achievement_data_milestones[milestone]:,}. **{claimable_nonclaimable}**")
+            embed.add_field(name=type, value=f"{value:,}/{achievement_data_milestones[0][milestone]:,} **{claimable_nonclaimable}**")
+
+        await ctx.send(embed=embed)
 
 
 def setup(bot):

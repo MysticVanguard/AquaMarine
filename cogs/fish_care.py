@@ -52,9 +52,9 @@ class FishCare(vbu.Cog):
         if fish_rows[0]['fish_alive'] is False:
             return await ctx.send("That fish is dead!")
         if fish_rows[0]['fish_entertain_time']:
-            if fish_rows[0]['fish_entertain_time'] + timedelta(minutes=5) > dt.utcnow():
-                time_left = (fish_rows[0]['fish_entertain_time'] - dt.utcnow() + timedelta(minutes=5))
-                return await ctx.send(f"This fish is tired, please try again in {utils.seconds_converter(time_left.total_seconds())}.")
+            if fish_rows[0]['fish_entertain_time'] + timedelta(minutes=1) > dt.utcnow():
+                time_left = timedelta(seconds=(fish_rows[0]['fish_entertain_time'] - dt.utcnow() + timedelta(minutes=1)).total_seconds())
+                return await ctx.send(f"This fish is tired, please try again {vbu.TimeFormatter(dt.utcnow() + time_left - timedelta(hours=4)).relative_time}.")
 
         # Typing Indicator
         async with ctx.typing():
@@ -105,7 +105,7 @@ class FishCare(vbu.Cog):
         # Make sure the fish is able to be fed
         if fish_rows[0]['fish_feed_time']:
             if (fish_feed_timeout := fish_rows[0]['fish_feed_time'] + self.FISH_FEED_COOLDOWN) > dt.utcnow():
-                return await ctx.send(f"This fish is full, please try again {vbu.TimeFormatter(fish_feed_timeout).relative_time}.", wait=False)
+                return await ctx.send(f"This fish is full, please try again {vbu.TimeFormatter(fish_feed_timeout - timedelta(hours=4)).relative_time}.", wait=False)
         if fish_rows[0]['fish_alive'] is False:
             return await ctx.send("That fish is dead!", wait=False)
 
@@ -141,13 +141,13 @@ class FishCare(vbu.Cog):
             if tank_slot_in == tank_cleaned:
                 break
         else:
-            return await ctx.send("no tank bro")
+            return await ctx.send("There is no tank with that name")
 
         # See if they're able to clean their tank
         if tank_rows[0]['tank_clean_time'][tank_slot]:
             if tank_rows[0]['tank_clean_time'][tank_slot] + timedelta(minutes=5) > dt.utcnow():
-                time_left = (tank_rows[0]['tank_clean_time'][tank_slot] - dt.utcnow() + timedelta(minutes=5))
-                return await ctx.send(f"This tank is clean, please try again in {utils.seconds_converter(time_left.total_seconds())}.")
+                time_left = timedelta(seconds=(tank_rows[0]['tank_clean_time'][tank_slot] - dt.utcnow() + timedelta(minutes=5)).total_seconds())
+                return await ctx.send(f"This tank is clean, please try again in {vbu.TimeFormatter(dt.utcnow() + time_left - timedelta(hours=4)).relative_time}.")
 
         # See if there are any fish in the tank
         if not fish_rows:
@@ -166,7 +166,7 @@ class FishCare(vbu.Cog):
                 ON CONFLICT (user_id) DO UPDATE SET balance = user_balance.balance + $2""",
                 ctx.author.id, int(money_gained),
             )
-        await ctx.send(f"You earned {money_gained} Sand Dollars <:sand_dollar:852057443503964201> for cleaning that tank!")
+        await ctx.send(f"You earned **{money_gained}** <:sand_dollar:852057443503964201> for cleaning that tank!")
 
 
 def setup(bot):

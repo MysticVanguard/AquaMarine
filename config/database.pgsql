@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS user_fish_inventory (
     fish_xp INT NOT NULL DEFAULT 0,
     fish_xp_max INT NOT NULL DEFAULT 25,
     fish_size TEXT,
-    fish_alive_days INT NOT NULL DEFAULT 0,
+    fish_remove_time TIMESTAMP,
     fish_entertain_time TIMESTAMP,
     fish_feed_time TIMESTAMP,
     fish_alive BOOLEAN DEFAULT TRUE,

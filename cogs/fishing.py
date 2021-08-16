@@ -1,4 +1,6 @@
+from cogs.utils.misc_utils import seconds_converter
 import random
+from datetime import datetime as dt, timedelta
 
 import voxelbotutils as vbu
 import discord
@@ -22,7 +24,7 @@ class Fishing(vbu.Cog):
 
         # Make sure they can't fish twice
         if ctx.author.id in utils.current_fishers:
-            return await ctx.send(f"{ctx.author.display_name}, you're already fishing!")
+            return await ctx.send(f"**{ctx.author.display_name}**, you're already fishing!")
         utils.current_fishers.append(ctx.author.id)
         caught_fish = 1
 
@@ -78,8 +80,8 @@ class Fishing(vbu.Cog):
 
             # Tell the user about the fish they caught
             owned_unowned = "Owned" if amount > 0 else "Unowned"
-            embed = discord.Embed(title=f"You caught {a_an} {rarity} {new_fish['size']} {new_fish['name']}!")
-            embed.add_field(name=owned_unowned, value=f"You have {amount} {new_fish['name']}", inline=False)
+            embed = discord.Embed(title=f"You caught {a_an} *{rarity}* {new_fish['size']} **{new_fish['name']}**!")
+            embed.add_field(name=owned_unowned, value=f"You have {amount} **{new_fish['name']}**", inline=False)
             embed.set_image(url="attachment://new_fish.png")
             embed.color = utils.RARITY_CULERS[rarity]
             fish_file = discord.File(new_fish["image"], "new_fish.png")
@@ -98,24 +100,9 @@ class Fishing(vbu.Cog):
         if not isinstance(error, commands.CommandOnCooldown):
             raise error
 
-        time = error.retry_after
-        if 5_400 > time >= 3_600:
-            form = 'hour'
-            time /= 60 * 60
-        elif time > 3_600:
-            form = 'hours'
-            time /= 60 * 60
-        elif 90 > time >= 60:
-            form = 'minute'
-            time /= 60
-        elif time >= 60:
-            form = 'minutes'
-            time /= 60
-        elif time < 1.5:
-            form = 'second'
-        else:
-            form = 'seconds'
-        await ctx.send(f'The fish are scared, please try again in {round(time)} {form}.')
+        time = timedelta(seconds=int(error.retry_after))
+
+        await ctx.send(f'The fish are scared, please try again {vbu.TimeFormatter(dt.utcnow() + time - timedelta(hours=4)).relative_time}.')
 
     @vbu.command()
     @vbu.bot_has_permissions(send_messages=True, embed_links=True)
@@ -132,7 +119,7 @@ class Fishing(vbu.Cog):
         # Check if the user doesn't have the fish
         if not fish_row:
             return await ctx.send(
-                f"You have no fish named {old}!",
+                f"You have no fish named **{old}**!",
                 allowed_mentions=discord.AllowedMentions.none()
             )
 
@@ -140,7 +127,7 @@ class Fishing(vbu.Cog):
         for fish_name in fish_rows:
             if new == fish_name:
                 return await ctx.send(
-                    f"You already have a fish named {new}!",
+                    f"You already have a fish named **{new}**!",
                     allowed_mentions=discord.AllowedMentions.none()
                 )
 
@@ -153,7 +140,7 @@ class Fishing(vbu.Cog):
 
         # Send confirmation message
         await ctx.send(
-            f"Congratulations, you have renamed {old} to {new}!",
+            f"Congratulations, you have renamed **{old}** to **{new}**!",
             allowed_mentions=discord.AllowedMentions.none(),
         )
 

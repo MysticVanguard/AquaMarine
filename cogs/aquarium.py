@@ -45,7 +45,7 @@ class Aquarium(vbu.Cog):
                 len(message.content) <= 32,
                 message.content != "none",
             ])
-        await ctx.send("What do you want to name your first tank? (32 character limit and cannot be \"none\")")
+        await ctx.send("What do you want to name your first tank? *(32 character limit and cannot be \"none\")*")
         try:
             name_message = await self.bot.wait_for("message", timeout=60.0, check=check)
             name = name_message.content
@@ -81,11 +81,11 @@ class Aquarium(vbu.Cog):
 
         # all the checks for various reasons the command shouldn't be able to work
         if not fish_row:
-            return await ctx.send(f"You have no fish named {fish_deposited}!", allowed_mentions=discord.AllowedMentions.none())
+            return await ctx.send(f"You have no fish named **{fish_deposited}**!", allowed_mentions=discord.AllowedMentions.none())
         if not tank_row or True not in tank_row[0]['tank']:
             return await ctx.send("You have no tanks!")
         if tank_name not in tank_row[0]['tank_name']:
-            return await ctx.send(f"You have no tank named {tank_name}!", allowed_mentions=discord.AllowedMentions.none())
+            return await ctx.send(f"You have no tank named **{tank_name}**!", allowed_mentions=discord.AllowedMentions.none())
         if fish_row[0]['tank_fish']:
             return await ctx.send("This fish is already in a tank!")
         if fish_row[0]['fish_alive'] is False:
@@ -115,7 +115,7 @@ class Aquarium(vbu.Cog):
                 """UPDATE user_fish_inventory SET tank_fish = $3, death_time = $4 WHERE fish_name=$1 AND user_id=$2""",
                 fish_deposited, ctx.author.id, tank_name, (dt.utcnow() + timedelta(days=3)),
             )
-        return await ctx.send("Fish deposited!")
+        return await ctx.send(f"Fish has been deposited and will die {vbu.TimeFormatter(dt.utcnow() + timedelta(days=3 - timedelta(hours=4))).relative_time}!")
 
     @vbu.command(aliases=["rem"])
     @vbu.bot_has_permissions(send_messages=True)
@@ -134,13 +134,16 @@ class Aquarium(vbu.Cog):
 
         if not fish_row:
             return await ctx.send(
-                f"You have no fish named {fish_removed} in that tank!",
+                f"You have no fish named **{fish_removed}** in that tank!",
                 allowed_mentions=discord.AllowedMentions.none(),
                 )
         if not tank_row or tank_row[0]['tank'] == ['False', 'False', 'False', 'False', 'False', 'False', 'False', 'False', 'False', 'False']:
             return await ctx.send("You have no tanks!")
-        if fish_row[0]['fish_alive'] is False:
-            return await ctx.send("That fish is dead!")
+        if fish_row[0]['fish_remove_time']:
+            if fish_row[0]['fish_remove_time'] + timedelta(days=5) > dt.utcnow():
+                time_left = timedelta(seconds=(fish_row[0]['fish_remove_time'] - dt.utcnow()).total_seconds())
+                return await ctx.send(f"This fish is resting, please try again {vbu.TimeFormatter(dt.utcnow() + time_left - timedelta(hours=4)).relative_time}.")
+
 
         # finds the tank slot the tank in question is at
         for tank_slot_in in tank_row[0]['tank_name']:
@@ -153,10 +156,10 @@ class Aquarium(vbu.Cog):
         tank_slot += 1
 
         async with self.bot.database() as db:
-            await db("""UPDATE user_fish_inventory SET tank_fish = '' WHERE user_id = $1 AND fish_name = $2""", ctx.author.id, fish_removed)
+            await db("""UPDATE user_fish_inventory SET tank_fish = '', death_time = NULL, fish_remove_time = $3 WHERE user_id = $1 AND fish_name = $2""", ctx.author.id, fish_removed, (dt.utcnow() + timedelta(days=5)))
             await db("""UPDATE user_tank_inventory SET fish_room[$3] = fish_room[$3] + $2 WHERE user_id = $1""", ctx.author.id, int(size_values[fish_row[0]['fish_size']]), tank_slot)
         return await ctx.send(
-            f"{fish_removed} removed from {tank_name}!",
+            f"**{fish_removed}** removed from **{tank_name}**!",
             allowed_mentions=discord.AllowedMentions.none(),
             )
 
@@ -193,14 +196,19 @@ class Aquarium(vbu.Cog):
 
             # Check if the tank exists
             if not tank_row:
-                return await ctx.send("You have no tank with that name!")
+                return await ctx.send("You have no tanks! use the `firsttank` command to get one!")
             # finds the tank slot
             for tank_slot_in in tank_row[0]['tank_name']:
                 if tank_slot_in == tank_name:
                     break
                 else:
                     tank_slot += 1
-            # finds the type of tank it is
+            # finds the type of tank it is and checks if it exists
+            if tank_name not in tank_row[0]['tank_name']:
+                return await ctx.send(
+                    f"You have no tank named **{tank_name}**!",
+                    allowed_mentions=discord.AllowedMentions.none(),
+                    )
             tank_info = tank_row[0]['tank_type'][tank_slot]
 
             # finds what type of fish it is, then adds the paths to a list, as well as finding the fish's random starting position
