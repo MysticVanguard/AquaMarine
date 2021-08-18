@@ -41,9 +41,9 @@ class Upgrades(vbu.Cog):
             # Each level they have is a full bar emoji, up to 5 characters long
             emote_string_list.clear()  # Clear our emoji list first
             for _ in range(level):
-                emote_string_list.append("<:full_upgrade_bar:865028622766702602>")
+                emote_string_list.append("<:full_upgrade_bar_tier_one:877646167184408617>")
             while len(emote_string_list) < 5:
-                emote_string_list.append("<:empty_upgrade_bar:865028614561988649>")
+                emote_string_list.append("<:empty_upgrade_bar:877646167146643556>")
 
             # Get the cost of an upgrade
             cost_string = f"Costs {self.UPGRADE_COST_LIST[int(level - 1)]} to upgrade."
@@ -54,7 +54,7 @@ class Upgrades(vbu.Cog):
                 cost_string = "This Upgrade is fully upgraded."
 
             # Generate the message to send
-            progress_bar = f"<:left_upgrade_bar:865028588192661504>{''.join(emote_string_list)}<:right_upgrade_bar:865028605863919616>"
+            progress_bar = f"<:left_upgrade_bar:877646167121481758>{''.join(emote_string_list)}<:right_upgrade_bar:877646167113080842>"
             message.append(
                 f"{progress_bar} **{' '.join(upgrade.split('_')).title()}: Lvl. {level}. {cost_string}**\n*{self.UPGRADE_DESCRIPTIONS[upgrade]}*",
             )
@@ -86,7 +86,7 @@ class Upgrades(vbu.Cog):
         if upgrade_level == 5:
             return await ctx.send("That upgrade is fully upgraded.")
         if not await utils.check_price(self.bot, ctx.author.id, self.UPGRADE_COST_LIST[int(upgrade_level) - 1]):
-            return await ctx.send("You don't have enough Sand Dollars <:sand_dollar:852057443503964201> for this upgrade!")
+            return await ctx.send("You don't have enough Sand Dollars <:sand_dollar:877646167494762586> for this upgrade!")
 
         # Upgrade them in the database
         async with self.bot.database() as db:

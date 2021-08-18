@@ -1,6 +1,8 @@
 from datetime import timedelta
+from itertools import filterfalse
 import typing
 import collections
+import asyncio
 
 import discord
 from discord.ext import commands
@@ -29,14 +31,14 @@ class Informative(vbu.Cog):
         fish_collections = collections.defaultdict(list)
         # Get the user's fish
         for fish in fish_row:
-            print(fish['tank_fish'])
             if fish['tank_fish'] != '':
                 fish_collections[fish['tank_fish']].append(
                     f"__**{fish['fish'].replace('_', ' ').title()}: \"{fish['fish_name']}\"**__\n"
                     f"**Alive:** {fish['fish_alive']}\n **Death Date:** {vbu.TimeFormatter(fish['death_time'] - timedelta(hours=4)).relative_time}"
                 )
 
-        print(fish_collections)
+        if not tank_rows:
+            return await ctx.send("You have no tanks!")
         # Add a row in our embed for each tank
         for tank_row in tank_rows:
             for count, tank in enumerate(tank_row['tank']):
@@ -45,6 +47,9 @@ class Informative(vbu.Cog):
                 else:
                     fish_message = ["No fish in tank."]
                 if tank_row['tank'][count] is True:
+                    if not fish_message:
+                        fish_message = ["No fish in tank."]
+
                     embed.add_field(
                         name=tank_row['tank_name'][count],
                         value=
@@ -138,7 +143,7 @@ class Informative(vbu.Cog):
         collection_info = [f"{x[0]}: {x[2]}/{x[1]}" for x in collection_data]
         fields_dict = {
             'Collection': ("\n".join(collection_info), False),
-            'Balance': (f'<:sand_dollar:852057443503964201>: {balance[0]["balance"]}x', False),
+            'Balance': (f'<:sand_dollar:877646167494762586>: {balance[0]["balance"]}x', False),
             '# of Tanks': (number_of_tanks, False),
             'Highest Level Fish': (f'{highest_level_fish_emoji} {highest_level_fish["fish_name"]}: Lvl. {highest_level_fish["fish_level"]} {highest_level_fish["fish_xp"]}/ {highest_level_fish["fish_xp_max"]}', False),
             'Achievements': ("Soon To Be Added.", True),
@@ -266,13 +271,16 @@ class Informative(vbu.Cog):
     @vbu.bot_has_permissions(send_messages=True, embed_links=True, manage_messages=True)
     async def achievements(self, ctx: commands.Context):
         # The milestones for each achievement type
-        Entertain = [5, 25, 100, 250, 500, 1000, 5000, 10000, 50000, 100000, 1000000]
-        Feed = [5, 25, 100, 250, 500, 1000, 5000, 10000, 50000, 100000, 1000000]
-        Clean = [5, 25, 100, 250, 500, 1000, 5000, 10000, 50000, 100000, 1000000]
-        Catch = [5, 25, 100, 250, 500, 1000, 5000, 10000, 50000, 100000, 1000000]
-        Tanks = [1, 3, 5, 10]
-        Gambles = [5, 25, 100, 250, 500, 1000, 5000, 10000, 50000, 100000, 1000000]
-        Money = [100, 250, 500, 1000, 5000, 10000, 50000, 100000, 1000000, 10000000, 100000000]
+        milestones = {
+               'times_entertained': [5, 25, 100, 250, 500, 1000, 5000, 10000, 50000, 100000, 1000000],
+                'times_fed': [5, 25, 100, 250, 500, 1000, 5000, 10000, 50000, 100000, 1000000],
+                'times_cleaned': [5, 25, 100, 250, 500, 1000, 5000, 10000, 50000, 100000, 1000000],
+                'times_caught': [5, 25, 100, 250, 500, 1000, 5000, 10000, 50000, 100000, 1000000],
+                'tanks_owned': [1, 3, 5, 10],
+                'times_gambled': [5, 25, 100, 250, 500, 1000, 5000, 10000, 50000, 100000, 1000000],
+                'money_gained': [100, 250, 500, 1000, 5000, 10000, 50000, 100000, 1000000, 10000000, 100000000],
+        }
+
 
         # Database variables
         async with self.bot.database() as db:
@@ -292,23 +300,89 @@ class Informative(vbu.Cog):
 
         # Getting the users amount of tanks and adding that to the user data dictionary
         tanks = 0
-        for tank in tank_data:
-            if tank is True:
-                tanks += 1
+        if not tank_data:
+            tanks = 0
+        else:
+            for tank in tank_data[0]['tank']:
+                if tank is True:
+                    tanks += 1
         data["tanks_owned"] = tanks
 
         # Setting claimable to non as default
         claimable_nonclaimable = "nonclaimable"
+        claimable_dict = {}
+        claims = False
 
         # Creating the embed as well as checking if the achievement is claimable
         embed = discord.Embed(title=f"**{ctx.author.display_name}**'s achievements")
         for type, value in data.items():
+            stars = []
+            for data in milestones[type]:
+                if data <= value:
+                    stars.append("<:achievement_star:877646167087906816>")
+                else:
+                    stars.append("<:achievement_star_no:877646167222141008>")
             milestone = f"{type}_milestone"
             if value >= achievement_data_milestones[0][milestone]:
+                if claims is False:
+                    claims = True
+                claimable_dict[type] = achievement_data_milestones[0][milestone]
                 claimable_nonclaimable = "claimable"
-            embed.add_field(name=type, value=f"{value:,}/{achievement_data_milestones[0][milestone]:,} **{claimable_nonclaimable}**")
+            embed.add_field(name=type.replace('_', ' ').title(), value=f"{value:,}/{achievement_data_milestones[0][milestone]:,} **{claimable_nonclaimable}** \n{''.join(stars)}")
 
-        await ctx.send(embed=embed)
+        if claims is True:
+            components = vbu.MessageComponents(
+                vbu.ActionRow(
+                    vbu.Button(custom_id="claim_all", emoji="1\N{COMBINING ENCLOSING KEYCAP}"),
+                ),
+            )
+            claim_message = await ctx.send(embed=embed, components=components)
+        else:
+            return await ctx.send(embed=embed)
+
+        # Make the button check
+        def button_check(payload):
+            if payload.message.id != claim_message.id:
+                return False
+            self.bot.loop.create_task(payload.defer_update())
+            return payload.user.id == ctx.author.id
+
+        pressed = False
+        while True:
+
+            # Wait for them to click a button
+            try:
+                chosen_button_payload = await self.bot.wait_for('component_interaction', timeout=60.0, check=button_check)
+                chosen_button = chosen_button_payload.component.custom_id.lower()
+            except asyncio.TimeoutError:
+                await claim_message.edit(components=components.disable_components())
+                break
+
+            reward = 0
+            # Update the displayed emoji
+            if chosen_button == "claim_all":
+                pressed = True
+                for type, value in claimable_dict.items():
+                    for count, data in enumerate(milestones[type]):
+                        reward += (count + 1)
+                        print(count)
+                        print(reward)
+                        print(data)
+                        if data >= value:
+                            new_milestone = milestones[type][(count + 1)]
+                            print(new_milestone)
+                            break
+                    async with self.bot.database() as db:
+                        await db("""UPDATE user_achievements_milestones SET {0} = $1 WHERE user_id = $2""".format(f"{type}_milestone"), new_milestone, ctx.author.id)
+                async with self.bot.database() as db:
+                    await db(
+                        """INSERT INTO user_balance (user_id, doubloon) VALUES ($1, $2)
+                        ON CONFLICT (user_id) DO UPDATE SET doubloon = user_balance.doubloon + $2""",
+                        ctx.author.id, reward)
+                components.get_component(chosen_button).disable()
+            break
+        if pressed is True:
+            await ctx.send(f"Rewards claimed, you earned {reward} doubloons!")
 
 
 def setup(bot):

@@ -24,8 +24,10 @@ class Fishing(vbu.Cog):
 
         # Make sure they can't fish twice
         if ctx.author.id in utils.current_fishers:
+            print(utils.current_fishers)
             return await ctx.send(f"**{ctx.author.display_name}**, you're already fishing!")
         utils.current_fishers.append(ctx.author.id)
+        print(utils.current_fishers)
         caught_fish = 1
 
         # Upgrades be like
@@ -92,6 +94,7 @@ class Fishing(vbu.Cog):
 
         # And now they should be allowed to fish again
         utils.current_fishers.remove(ctx.author.id)
+        print(utils.current_fishers)
 
     @fish.error
     async def fish_error(self, ctx, error):

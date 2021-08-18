@@ -14,21 +14,21 @@ from cogs.utils.misc_utils import create_bucket_embed
 
 FISH_SHOP_EMBED = discord.Embed(title="Fish Shop")
 FISH_SHOP_EMBED.add_field(name="Fish Bags", value="These are bags containing a fish of a random rarity", inline=False)
-FISH_SHOP_EMBED.add_field(name="Common Fish Bag <:common_fish_bag:851974760510521375>", value="This gives you one fish with normal chances \n __50 <:sand_dollar:852057443503964201>__", inline=True)
-FISH_SHOP_EMBED.add_field(name="Uncommon Fish Bag <:uncommon_fish_bag:851974792864595988>", value="This gives you one fish with increased chances \n __100 <:sand_dollar:852057443503964201>__", inline=True)
-FISH_SHOP_EMBED.add_field(name="Rare Fish Bag <:rare_fish_bag:851974785088618516>", value="This gives you one fish with higher chances \n __200 <:sand_dollar:852057443503964201>__", inline=True)
-FISH_SHOP_EMBED.add_field(name="Epic Fish Bag <:epic_fish_bag:851974770467930118>", value="This gives you one fish with substantially better chances \n __400 <:sand_dollar:852057443503964201>__", inline=True)
-FISH_SHOP_EMBED.add_field(name="Legendary Fish Bag <:legendary_fish_bag:851974777567838258>", value="This gives you one fish with extremely better chances \n __500 <:sand_dollar:852057443503964201>__", inline=True)
-FISH_SHOP_EMBED.add_field(name="Mystery Fish Bag <:mystery_fish_bag:851975891659391006>", value="This gives you one bag of a random rarity \n __250 <:sand_dollar:852057443503964201>__", inline=True)
+FISH_SHOP_EMBED.add_field(name="Common Fish Bag <:common_fish_bag:877646166983053383>", value="This gives you one fish with normal chances \n __50 <:sand_dollar:877646167494762586>__", inline=True)
+FISH_SHOP_EMBED.add_field(name="Uncommon Fish Bag <:uncommon_fish_bag:877646167146651768>", value="This gives you one fish with increased chances \n __100 <:sand_dollar:877646167494762586>__", inline=True)
+FISH_SHOP_EMBED.add_field(name="Rare Fish Bag <:rare_fish_bag:877646167121489930>", value="This gives you one fish with higher chances \n __200 <:sand_dollar:877646167494762586>__", inline=True)
+FISH_SHOP_EMBED.add_field(name="Epic Fish Bag <:epic_fish_bag:877646167243120701>", value="This gives you one fish with substantially better chances \n __400 <:sand_dollar:877646167494762586>__", inline=True)
+FISH_SHOP_EMBED.add_field(name="Legendary Fish Bag <:legendary_fish_bag:877646166953717813>", value="This gives you one fish with extremely better chances \n __500 <:sand_dollar:877646167494762586>__", inline=True)
+FISH_SHOP_EMBED.add_field(name="Mystery Fish Bag <:mystery_fish_bag:877646167054376992>", value="This gives you one bag of a random rarity \n __250 <:sand_dollar:877646167494762586>__", inline=True)
 FISH_SHOP_EMBED.add_field(name="Fish Care", value="These are items to help keep your fish alive", inline=False)
-FISH_SHOP_EMBED.add_field(name="Fish Revival <:fish_flakes:852053373111894017>", value="This gives you a fish revival to bring your fish back to life \n __1,000 <:sand_dollar:852057443503964201>__", inline=True)
-FISH_SHOP_EMBED.add_field(name="Fish Flakes <:fish_flakes:852053373111894017>", value="This gives you fish flakes to feed your fish, keeping them alive \n __10 <:sand_dollar:852057443503964201>__", inline=True)
+FISH_SHOP_EMBED.add_field(name="Fish Revival <:fish_flakes:852053373111894017>", value="This gives you a fish revival to bring your fish back to life \n __1,000 <:sand_dollar:877646167494762586>__", inline=True)
+FISH_SHOP_EMBED.add_field(name="Fish Flakes <:fish_flakes:877646167188602880>", value="This gives you fish flakes to feed your fish, keeping them alive \n __10 <:sand_dollar:877646167494762586>__", inline=True)
 FISH_SHOP_EMBED.add_field(name="Tanks", value="These are tanks you can buy to put your fish into, can only be purchased one at a time", inline=False)
-FISH_SHOP_EMBED.add_field(name="Fish Bowl", value="This gives you a Fish Bowl Tank that you can deposit one small fish into \n __100 <:sand_dollar:852057443503964201>__", inline=True)
-FISH_SHOP_EMBED.add_field(name="Small Tank", value="This gives you a Small Tank that you can deposit five small fish or one medium fish into\n __500 <:sand_dollar:852057443503964201>__", inline=True)
-FISH_SHOP_EMBED.add_field(name="Medium Tank", value="This gives you a Medium Tank that you can deposit twenty five small fish, five medium fish, or one large fish into \n __2,500 <:sand_dollar:852057443503964201>__", inline=True)
+FISH_SHOP_EMBED.add_field(name="Fish Bowl", value="This gives you a Fish Bowl Tank that you can deposit one small fish into \n __100 <:sand_dollar:877646167494762586>__", inline=True)
+FISH_SHOP_EMBED.add_field(name="Small Tank", value="This gives you a Small Tank that you can deposit five small fish or one medium fish into\n __500 <:sand_dollar:877646167494762586>__", inline=True)
+FISH_SHOP_EMBED.add_field(name="Medium Tank", value="This gives you a Medium Tank that you can deposit twenty five small fish, five medium fish, or one large fish into \n __2,500 <:sand_dollar:877646167494762586>__", inline=True)
 FISH_SHOP_EMBED.add_field(name="Tank Themes", value="These are themes you can buy for your tanks", inline=False)
-FISH_SHOP_EMBED.add_field(name="Plant Life", value="This gives you the plant life theme for one of your tanks \n __1,000 <:sand_dollar:852057443503964201>__", inline=True)
+FISH_SHOP_EMBED.add_field(name="Plant Life", value="This gives you the plant life theme for one of your tanks \n __1,000 <:sand_dollar:877646167494762586>__", inline=True)
 
 
 class Shop(vbu.Cog):
@@ -106,7 +106,7 @@ class Shop(vbu.Cog):
 
             full_cost = cost * amount
             if not await utils.check_price(self.bot, ctx.author.id, full_cost):
-                return await ctx.send("You don't have enough Sand Dollars <:sand_dollar:852057443503964201> for this!")
+                return await ctx.send("You don't have enough Sand Dollars <:sand_dollar:877646167494762586> for this!")
 
             # here
             check = False
@@ -130,7 +130,7 @@ class Shop(vbu.Cog):
                 UPDATE user_balance SET balance=balance-$1 WHERE user_id = $2""", full_cost, ctx.author.id)
 
         # And tell the user we're done
-        await ctx.send(f"You bought {amount:,} {response} for {full_cost:,} <:sand_dollar:852057443503964201>!")
+        await ctx.send(f"You bought {amount:,} {response} for {full_cost:,} <:sand_dollar:877646167494762586>!")
 
     @vbu.command(aliases=["u"])
     @vbu.bot_has_permissions(send_messages=True, embed_links=True)
@@ -140,8 +140,10 @@ class Shop(vbu.Cog):
         """
 
         if ctx.author.id in utils.current_fishers:
+            print(utils.current_fishers)
             return await ctx.send(f"{ctx.author.display_name}, you're already fishing!")
         utils.current_fishers.append(ctx.author.id)
+        print(utils.current_fishers)
 
         rarity_chances = {
             "cfb": {"common": .6689, "uncommon": .2230, "rare": .0743, "epic": .0248, "legendary": .0082, "mythic": .0008},
@@ -155,8 +157,8 @@ class Shop(vbu.Cog):
         used_bag = None
         if item.title() in utils.COMMON_BAG_NAMES:
             used_bag_humanize, _, used_bag = utils.COMMON_BAG_NAMES
-        elif item.title() in utils.COMMON_BAG_NAMES:
-            used_bag_humanize, _, used_bag = utils.COMMON_BAG_NAMES
+        elif item.title() in utils.UNCOMMON_BAG_NAMES:
+            used_bag_humanize, _, used_bag = utils.UNCOMMON_BAG_NAMES
         elif item.title() in utils.RARE_BAG_NAMES:
             used_bag_humanize, _, used_bag = utils.RARE_BAG_NAMES
         elif item.title() in utils.EPIC_BAG_NAMES:
@@ -173,7 +175,9 @@ class Shop(vbu.Cog):
                 user_rows = await db("""SELECT * FROM user_item_inventory WHERE user_id=$1""", ctx.author.id)
                 user_bag_count = user_rows[0][used_bag]
             if not user_bag_count:
+                utils.current_fishers.remove(ctx.author.id)
                 return await ctx.send(f"You have no {used_bag_humanize}s!")
+
 
             # Remove the bag from their inventory
             async with self.bot.database() as db:
@@ -184,7 +188,8 @@ class Shop(vbu.Cog):
 
         # A fish bag wasn't used
         else:
-            return
+            utils.current_fishers.remove(ctx.author.id)
+            return await ctx.send("That is not a usable fish bag!")
 
         # Get what rarity of fish they rolled
         rarity_names = ["common", "uncommon", "rare", "epic", "legendary", "mythic"]
@@ -233,6 +238,7 @@ class Shop(vbu.Cog):
         await utils.ask_to_sell_fish(self.bot, ctx.author, message, new_fish)
 
         utils.current_fishers.remove(ctx.author.id)
+        print(utils.current_fishers)
 
 
     @vbu.command(aliases=["inv"])
@@ -268,8 +274,10 @@ class Shop(vbu.Cog):
         """
 
         if ctx.author.id in utils.current_fishers:
+            print(utils.current_fishers)
             return await ctx.send(f"{ctx.author.display_name}, you're already fishing!")
         utils.current_fishers.append(ctx.author.id)
+        print(utils.current_fishers)
 
         # See if the user has enough money
         if not await utils.check_price(self.bot, ctx.author.id, 5):
@@ -312,7 +320,7 @@ class Shop(vbu.Cog):
                     f"{utils.EMOJI_RARITIES[rarities_of_fish[i+2]][chosen_fish[i+2]]}"
                 )
             row.append(f"{emoji_id}{emoji_id}{emoji_id}")
-            embed.add_field(name="*spent 5 <:sand_dollar:852057443503964201>*", value="\n".join(row), inline=False)
+            embed.add_field(name="*spent 5 <:sand_dollar:877646167494762586>*", value="\n".join(row), inline=False)
             embed.add_field(name="Lucky", value=f"You won {fish_random_name.title()} :)", inline=False)
             message = await ctx.send(embed=embed)
             await utils.ask_to_sell_fish(ctx.author, message, used_fish)
@@ -323,10 +331,11 @@ class Shop(vbu.Cog):
                     f"{utils.EMOJI_RARITIES[rarities_of_fish[i+1]][chosen_fish[i+1]]}"
                     f"{utils.EMOJI_RARITIES[rarities_of_fish[i+2]][chosen_fish[i+2]]}"
                 )
-            embed.add_field(name="*spent 5 <:sand_dollar:852057443503964201>*", value="\n".join(row), inline=False)
+            embed.add_field(name="*spent 5 <:sand_dollar:877646167494762586>*", value="\n".join(row), inline=False)
             embed.add_field(name="Unlucky", value="You lost :(")
             await ctx.send(embed=embed)
             utils.current_fishers.remove(ctx.author.id)
+            print(utils.current_fishers)
 
     @vbu.command(aliases=["bal"])
     @vbu.bot_has_permissions(send_messages=True)
@@ -339,12 +348,12 @@ class Shop(vbu.Cog):
             if user:
                 fetched = await db("""SELECT * FROM user_balance WHERE user_id = $1""", user.id)
                 if fetched:
-                    return await ctx.send(f"{user.display_name} has {fetched[0]['balance']:,} <:sand_dollar:852057443503964201>!")
-                return await ctx.send(f"{user.display_name} has no Sand Dollars <:sand_dollar:852057443503964201>!")
+                    return await ctx.send(f"{user.display_name} has {fetched[0]['balance']:,} <:sand_dollar:877646167494762586>!")
+                return await ctx.send(f"{user.display_name} has no Sand Dollars <:sand_dollar:877646167494762586>!")
             fetched = await db("""SELECT * FROM user_balance WHERE user_id = $1""", ctx.author.id)
             if fetched:
-                return await ctx.send(f"You have {fetched[0]['balance']:,} <:sand_dollar:852057443503964201>!")
-            return await ctx.send("You have no Sand Dollars <:sand_dollar:852057443503964201>!")
+                return await ctx.send(f"You have {fetched[0]['balance']:,} <:sand_dollar:877646167494762586>!")
+            return await ctx.send("You have no Sand Dollars <:sand_dollar:877646167494762586>!")
 
     @vbu.command()
     @vbu.bot_has_permissions(send_messages=True)
@@ -374,7 +383,7 @@ class Shop(vbu.Cog):
                 ctx.author.id, sell_money,
             )
             await db("""DELETE FROM user_fish_inventory WHERE user_id=$1 AND fish_name = $2""", ctx.author.id, fish_sold)
-        await ctx.send(f"You have sold {fish_sold} for {sell_money} <:sand_dollar:852057443503964201>!")
+        await ctx.send(f"You have sold {fish_sold} for {sell_money} <:sand_dollar:877646167494762586>!")
 
     @vbu.command(aliases=["d"])
     @vbu.cooldown.cooldown(1, 60 * 60 * 24, commands.BucketType.user)
@@ -393,7 +402,7 @@ class Shop(vbu.Cog):
             )
 
         # confirmation message
-        return await ctx.send("Daily reward of 100 Sand Dollars <:sand_dollar:852057443503964201> claimed!")
+        return await ctx.send("Daily reward of 100 Sand Dollars <:sand_dollar:877646167494762586> claimed!")
 
     @daily.error
     async def daily_error(self, ctx, error):
@@ -542,11 +551,13 @@ class Shop(vbu.Cog):
                 )
         if fish_row[0]["fish_alive"] is True:
             return await ctx.send("That fish is alive!")
+        if not revival_count:
+            return await ctx.send("You have no revivals!")
         if revival_count == 0:
             return await ctx.send("You have no revivals!")
 
         # If the fish isn't in a tank, it has no death timer, but if it is it's set to three days
-        if fish_row[0]["tank_fish"] != '':
+        if fish_row[0]["tank_fish"] == '':
             death_timer = None
             message = f"{fish} is now alive!"
         else:

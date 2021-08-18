@@ -26,7 +26,7 @@ class FishCare(vbu.Cog):
             for fish_row in fish_rows:
                 if fish_row['death_time']:
                     if dt.utcnow() > fish_row['death_time']:
-                        await db("""UPDATE user_fish_inventory SET fish_alive=TRUE WHERE fish_name = $1""", fish_row['fish_name'])
+                        await db("""UPDATE user_fish_inventory SET fish_alive=FALSE WHERE fish_name = $1""", fish_row['fish_name'])
 
     @fish_food_death_loop.before_loop
     async def before_fish_food_death_loop(self):
@@ -166,7 +166,7 @@ class FishCare(vbu.Cog):
                 ON CONFLICT (user_id) DO UPDATE SET balance = user_balance.balance + $2""",
                 ctx.author.id, int(money_gained),
             )
-        await ctx.send(f"You earned **{money_gained}** <:sand_dollar:852057443503964201> for cleaning that tank!")
+        await ctx.send(f"You earned **{money_gained}** <:sand_dollar:877646167494762586> for cleaning that tank!")
 
 
 def setup(bot):
