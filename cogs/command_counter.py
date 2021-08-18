@@ -32,7 +32,7 @@ class CommandCounter(vbu.Cog):
 
         # Make sure we have data
         if not command_data:
-            await ctx.send("No command data was found in the database.")
+            return await ctx.send("No command data was found in the database.")
 
         # Set up the command list
         commands_list = [] # List of strings "**command name**: command count"
