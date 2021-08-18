@@ -21,7 +21,7 @@ class CommandCounter(vbu.Cog):
             else:
                 current_count = 0
 
-            await db("INSERT INTO command_counter (command_name, count) VALUES ($1, $2) ON CONFLICT command_name DO SET count = $2", command_name, current_count + 1)
+            await db("INSERT INTO command_counter (command_name, count) VALUES ($1, $2) ON CONFLICT (command_name) DO UPDATE SET count = $2", command_name, current_count + 1)
 
         self.bot.logger.info(f"Logging command completion: {ctx.command.name}")
 
