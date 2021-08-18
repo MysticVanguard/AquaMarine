@@ -14,7 +14,12 @@ class CommandCounter(vbu.Cog):
 
         async with self.bot.database() as db:
             current_count = await db("SELECT count FROM command_counter WHERE command_name=$1", command_name)
-            current_count = current_count[0]['count']
+
+            # Make sure we get a current count
+            if current_count:
+                current_count = current_count[0]['count']
+            else:
+                current_count = 0
 
             await db("INSERT INTO command_counter (command_name, count) VALUES ($1, $2) ON CONFLICT command_name DO SET count = $2", command_name, current_count + 1)
 
