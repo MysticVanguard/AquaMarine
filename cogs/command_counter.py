@@ -4,7 +4,7 @@ import voxelbotutils as vbu
 class CommandCounter(vbu.Cog):
 
     @vbu.Cog.listener()
-    async def on_command_completion(self, ctx: vbu.Context):
+    async def on_command(self, ctx: vbu.Context):
         """
         Count every time a command is run uwu
         """
@@ -32,7 +32,7 @@ class CommandCounter(vbu.Cog):
 
         # Make sure we have data
         if not command_data:
-            await ctx.send("No command data was found in the database.")
+            return await ctx.send("No command data was found in the database.")
 
         # Set up the command list
         commands_list = [] # List of strings "**command name**: command count"
@@ -60,6 +60,9 @@ class CommandCounter(vbu.Cog):
         pagin = vbu.Paginator(commands_list, formatter=formatter, per_page=10)
         await pagin.start(ctx)
 
+
+
 def setup(bot: vbu.Bot):
     x = CommandCounter(bot)
     bot.add_cog(x)
+
