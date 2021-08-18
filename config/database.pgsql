@@ -25,3 +25,8 @@ CREATE TABLE IF NOT EXISTS channel_list(
     value TEXT,
     PRIMARY KEY (guild_id, channel_id, key)
 );
+
+CREATE TABLE IF NOT EXISTS command_counter(
+    command_name TEXT PRIMARY KEY,
+    count INTEGER DEFAULT 0
+);
