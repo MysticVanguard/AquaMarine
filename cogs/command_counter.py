@@ -4,7 +4,7 @@ import voxelbotutils as vbu
 class CommandCounter(vbu.Cog):
 
     @vbu.Cog.listener()
-    async def on_command_completion(self, ctx: vbu.Context):
+    async def on_command(self, ctx: vbu.Context):
         """
         Count every time a command is run uwu
         """
