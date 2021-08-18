@@ -108,3 +108,8 @@ CREATE TABLE IF NOT EXISTS user_achievements (
     money_gained INT NOT NULL DEFAULT 0,
     PRIMARY KEY (user_id)
 );
+
+CREATE TABLE IF NOT EXISTS command_counter(
+    command_name TEXT PRIMARY KEY,
+    count INTEGER DEFAULT 0
+);
