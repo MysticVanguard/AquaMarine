@@ -43,6 +43,12 @@ async def ask_to_sell_fish(bot, user: discord.User, message: discord.Message, ne
                 ON CONFLICT (user_id) DO UPDATE SET balance = user_balance.balance + $2""",
                 user.id, money_earned,
             )
+            # Achievements
+            await db(
+                """INSERT INTO user_achievements (user_id, money_gained) VALUES ($1, $2)
+                ON CONFLICT (user_id) DO UPDATE SET money_gained = user_achievements.money_gained + $2""",
+                user.id, money_earned
+                )
         await message.channel.send(f"Sold your **{new_fish['name']}** for **{money_earned}** <:sand_dollar:877646167494762586>!")
         return
 

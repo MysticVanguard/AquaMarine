@@ -220,6 +220,13 @@ class Shop(vbu.Cog):
         a_an = "an" if rarity[0].lower() in ("a", "e", "i", "o", "u") else "a"
         async with self.bot.database() as db:
             user_inventory = await db("""SELECT * FROM user_fish_inventory WHERE user_id=$1""", ctx.author.id)
+
+            # Achievements
+            await db(
+                """INSERT INTO user_achievements (user_id, times_caught) VALUES ($1, 1)
+                ON CONFLICT (user_id) DO UPDATE SET times_caught = user_achievements.times_caught + 1""",
+                ctx.author.id
+                )
         for row in user_inventory:
             if row['fish'] == new_fish['raw_name']:
                 amount = amount + 1
@@ -257,7 +264,7 @@ class Shop(vbu.Cog):
             for values in info:
                 if values < 1000000:
                     fetched_info.append(values)
-        items = ["Common Fish Bag", "Uncommon Fish Bag", "Rare Fish Bag", "Epic Fish Bag", "Legendary Fish Bag", "Fish Flake"]
+        items = ["Common Fish Bag", "Uncommon Fish Bag", "Rare Fish Bag", "Epic Fish Bag", "Legendary Fish Bag", "Fish Flake", "Fish Revives"]
         count = 0
         embed = discord.Embed()
         embed.title = f"{ctx.author.display_name}'s Inventory"
@@ -323,6 +330,13 @@ class Shop(vbu.Cog):
             embed.add_field(name="*spent 5 <:sand_dollar:877646167494762586>*", value="\n".join(row), inline=False)
             embed.add_field(name="Lucky", value=f"You won {fish_random_name.title()} :)", inline=False)
             message = await ctx.send(embed=embed)
+            async with self.bot.database() as db:
+                # Achievements
+                await db(
+                    """INSERT INTO user_achievements (user_id, times_caught) VALUES ($1, 1)
+                    ON CONFLICT (user_id) DO UPDATE SET times_caught = user_achievements.times_caught + 1""",
+                    ctx.author.id
+                    )
             await utils.ask_to_sell_fish(ctx.author, message, used_fish)
         else:
             for i in range(0, 9, 3):
@@ -382,6 +396,12 @@ class Shop(vbu.Cog):
                 ON CONFLICT (user_id) DO UPDATE SET balance = user_balance.balance + $2""",
                 ctx.author.id, sell_money,
             )
+            # Achievements
+            await db(
+                """INSERT INTO user_achievements (user_id, money_gained) VALUES ($1, $2)
+                ON CONFLICT (user_id) DO UPDATE SET money_gained = user_achievements.money_gained + $2""",
+                ctx.author.id, sell_money
+                )
             await db("""DELETE FROM user_fish_inventory WHERE user_id=$1 AND fish_name = $2""", ctx.author.id, fish_sold)
         await ctx.send(f"You have sold {fish_sold} for {sell_money} <:sand_dollar:877646167494762586>!")
 
@@ -400,6 +420,12 @@ class Shop(vbu.Cog):
                 ON CONFLICT (user_id) DO UPDATE SET balance = user_balance.balance + 100""",
                 ctx.author.id,
             )
+            # Achievements
+            await db(
+                """INSERT INTO user_achievements (user_id, money_gained) VALUES ($1, 100)
+                ON CONFLICT (user_id) DO UPDATE SET money_gained = user_achievements.money_gained + 100""",
+                ctx.author.id
+                )
 
         # confirmation message
         return await ctx.send("Daily reward of 100 Sand Dollars <:sand_dollar:877646167494762586> claimed!")
@@ -446,6 +472,14 @@ class Shop(vbu.Cog):
         if ctx.author.id in utils.current_fishers:
             return await ctx.send(f"{ctx.author.display_name}, you're already fishing!")
         utils.current_fishers.append(ctx.author.id)
+
+        async with self.bot.database() as db:
+            # Achievements
+            await db(
+                """INSERT INTO user_achievements (user_id, times_gambled) VALUES ($1, 1)
+                ON CONFLICT (user_id) DO UPDATE SET times_gambled = user_achievements.times_gambled + 1""",
+                ctx.author.id
+                )
 
         # Set up some vars for later
         fish_type = []  # The list of fish that they rolled
@@ -520,7 +554,7 @@ class Shop(vbu.Cog):
                 break
 
         # Sees if they won the fish they rolled
-        if emojis[0] == emojis[1] == emojis[2]:
+        if emojis[0] == emojis[1] == emojis[2] and emojis != "<a:first_set_roll:875259843571748924>":
             fish_won = fish_type[0]
             for rarity, fish_types in self.bot.fish.items():
                 for fish_type, fish_info in fish_types.items():
@@ -528,6 +562,13 @@ class Shop(vbu.Cog):
                         fish_won_info = fish_info
                         break
             message = await ctx.send(f"{ctx.author.mention} has won a {' '.join(fish_won.split('_')).title()}!")
+            async with self.bot.database() as db:
+                # Achievements
+                await db(
+                    """INSERT INTO user_achievements (user_id, times_caught) VALUES ($1, 1)
+                    ON CONFLICT (user_id) DO UPDATE SET times_caught = user_achievements.times_caught + 1""",
+                    ctx.author.id
+                    )
             await utils.ask_to_sell_fish(self.bot, ctx.author, message, fish_won_info)
         else:
             await ctx.send(f"{ctx.author.mention} lost!")

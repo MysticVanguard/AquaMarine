@@ -76,13 +76,20 @@ class Fishing(vbu.Cog):
             a_an = "an" if rarity[0].lower() in ("a", "e", "i", "o", "u") else "a"
             async with self.bot.database() as db:
                 user_inventory = await db("SELECT * FROM user_fish_inventory WHERE user_id=$1", ctx.author.id)
+
+                # Achievements
+                await db(
+                    """INSERT INTO user_achievements (user_id, times_caught) VALUES ($1, 1)
+                    ON CONFLICT (user_id) DO UPDATE SET times_caught = user_achievements.times_caught + 1""",
+                    ctx.author.id,
+                )
             for row in user_inventory:
                 if row['fish'] == new_fish['raw_name']:
                     amount += 1
 
             # Tell the user about the fish they caught
             owned_unowned = "Owned" if amount > 0 else "Unowned"
-            embed = discord.Embed(title=f"You caught {a_an} *{rarity}* {new_fish['size']} **{new_fish['name']}**!")
+            embed = discord.Embed(title=f"<:AquaFish:877939115948134442> You caught {a_an} *{rarity}* {new_fish['size']} **{new_fish['name']}**!")
             embed.add_field(name=owned_unowned, value=f"You have {amount} **{new_fish['name']}**", inline=False)
             embed.set_image(url="attachment://new_fish.png")
             embed.color = utils.RARITY_CULERS[rarity]

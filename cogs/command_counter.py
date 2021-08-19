@@ -40,13 +40,20 @@ class CommandCounter(vbu.Cog):
             return await ctx.send("No command data was found in the database.")
 
         # Set up the command list
-        commands_list = [] # List of strings "**command name**: command count"
+        sorted_commands_singlelist = []
+        commands_list = {} # List of strings "**command name**: command count"
         total_count = 0 # To count the total number of commands
         for command in command_data:
             count = command['count']
             total_count += count
-            commands_list.append(f"**{command['command_name']}**: {count} times\n")
+        for command in command_data:
+            count = command['count']
+            commands_list[f"**{command['command_name']}**: {count} times `({(count / total_count) * 100:.2f}%)`\n"] = count
+            #commands_list.append({count: f"**{command['command_name']}**: {count} times `({(count / total_count) * 100}%)`\n"})
 
+        sorted_commands = sorted(commands_list.items(), key=lambda x: x[1], reverse=True)
+        for i in sorted_commands:
+            sorted_commands_singlelist.append(i[0])
         # Paginate
 
         # Set up the paginator formatter
@@ -62,7 +69,7 @@ class CommandCounter(vbu.Cog):
             return commands_embed
 
         # Begin paginating
-        pagin = vbu.Paginator(commands_list, formatter=formatter, per_page=10)
+        pagin = vbu.Paginator(sorted_commands_singlelist, formatter=formatter, per_page=10)
         await pagin.start(ctx)
 
 

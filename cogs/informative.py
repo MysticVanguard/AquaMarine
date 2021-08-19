@@ -1,5 +1,6 @@
 from datetime import timedelta
 from itertools import filterfalse
+import re
 import typing
 import collections
 import asyncio
@@ -10,6 +11,33 @@ import voxelbotutils as vbu
 from voxelbotutils.cogs.utils.context_embed import Embed
 
 from cogs import utils
+
+CREDITS_EMBED = discord.Embed(title="Credits to all the people who have helped make this bot what it is!")
+CREDITS_EMBED.add_field(
+    name="The lovely coders who helped me with creating the bot, and who have taught me so much!",
+    value="""**Hero#2313**: Creator of stalkerbot
+    (https://github.com/iHeroGH)
+    **Kae#0004**: Creator of marriagebot and so many others
+    (https://github.com/4Kaylum, https://voxelfox.co.uk/)
+    **slippery schlöpp#6969**: Creater of ppbot
+    (https://github.com/schlopp)
+    """,
+    inline=False
+)
+CREDITS_EMBED.add_field(
+    name="Credits to the wonderful Peppoco (peppoco#6867), who made these lovely emotes!",
+    value="<:AquaBonk:877722771935883265><:AquaPensive:877939116266909756><:AquaFish:877939115948134442><:AquaScared:877939115943936074><:AquaShrug:877939116480802896><:AquaSmile:877939115994255383><:AquaUnamused:877939116132696085>(https://peppoco.carrd.co/#)",
+    inline=False
+)
+CREDITS_EMBED.add_field(
+    name="Credits to all the people who have helped me test the bot!",
+    value="""Aria, Astro, Dessy, Finn, George,
+    Jack, Kae, Nafezra, Quig Quonk,
+    Schlöpp, Toby, Tor
+    """,
+    inline=False
+)
+
 
 
 class Informative(vbu.Cog):
@@ -268,17 +296,17 @@ class Informative(vbu.Cog):
         await utils.paginate(ctx, fields, user)
 
     @vbu.command()
-    @vbu.bot_has_permissions(send_messages=True, embed_links=True, manage_messages=True)
+    @vbu.bot_has_permissions(send_messages=True, embed_links=True)
     async def achievements(self, ctx: commands.Context):
         # The milestones for each achievement type
         milestones = {
-               'times_entertained': [5, 25, 100, 250, 500, 1000, 5000, 10000, 50000, 100000, 1000000],
-                'times_fed': [5, 25, 100, 250, 500, 1000, 5000, 10000, 50000, 100000, 1000000],
-                'times_cleaned': [5, 25, 100, 250, 500, 1000, 5000, 10000, 50000, 100000, 1000000],
-                'times_caught': [5, 25, 100, 250, 500, 1000, 5000, 10000, 50000, 100000, 1000000],
+               'times_entertained': [5, 25, 100, 250, 500, 1000, 5000, 10000, 100000, 1000000],
+                'times_fed': [5, 25, 100, 250, 500, 1000, 5000, 10000, 100000, 1000000],
+                'times_cleaned': [5, 25, 100, 250, 500, 1000, 5000, 10000, 100000, 1000000],
+                'times_caught': [5, 25, 100, 250, 500, 1000, 5000, 10000, 100000, 1000000],
                 'tanks_owned': [1, 3, 5, 10],
-                'times_gambled': [5, 25, 100, 250, 500, 1000, 5000, 10000, 50000, 100000, 1000000],
-                'money_gained': [100, 250, 500, 1000, 5000, 10000, 50000, 100000, 1000000, 10000000, 100000000],
+                'times_gambled': [5, 25, 100, 250, 500, 1000, 5000, 10000, 100000, 1000000],
+                'money_gained': [100, 250, 500, 1000, 5000, 10000, 100000, 1000000, 10000000, 100000000],
         }
 
 
@@ -309,26 +337,43 @@ class Informative(vbu.Cog):
         data["tanks_owned"] = tanks
 
         # Setting claimable to non as default
-        claimable_nonclaimable = "nonclaimable"
+
         claimable_dict = {}
         claims = False
 
         # Creating the embed as well as checking if the achievement is claimable
         embed = discord.Embed(title=f"**{ctx.author.display_name}**'s achievements")
         for type, value in data.items():
+            milestone = f"{type}_milestone"
+            claimable_nonclaimable = "nonclaimable"
             stars = []
             for data in milestones[type]:
-                if data <= value:
+                if data < achievement_data_milestones[0][milestone]:
                     stars.append("<:achievement_star:877646167087906816>")
+                elif data <= value:
+                    stars.append("<:achievement_star_new:877737712046702592>")
                 else:
                     stars.append("<:achievement_star_no:877646167222141008>")
-            milestone = f"{type}_milestone"
+            star_number_next = 0
+            st_nd_rd_th = 'th'
+            for star in stars:
+                if star == "<:achievement_star_no:877646167222141008>":
+                    star_number_next += 1
+                    break
+                star_number_next += 1
+            if star_number_next == 1:
+                st_nd_rd_th = 'st'
+            elif star_number_next == 2:
+                st_nd_rd_th = 'nd'
+            elif star_number_next == 3:
+                st_nd_rd_th = 'rd'
+
             if value >= achievement_data_milestones[0][milestone]:
                 if claims is False:
                     claims = True
-                claimable_dict[type] = achievement_data_milestones[0][milestone]
+                claimable_dict[type] = value
                 claimable_nonclaimable = "claimable"
-            embed.add_field(name=type.replace('_', ' ').title(), value=f"{value:,}/{achievement_data_milestones[0][milestone]:,} **{claimable_nonclaimable}** \n{''.join(stars)}")
+            embed.add_field(name=f"{type.replace('_', ' ').title()} {value:,}/{achievement_data_milestones[0][milestone]:,}", value=f"{(value/achievement_data_milestones[0][milestone])}% of **{star_number_next}**{st_nd_rd_th} star\n{''.join(stars)} \n**{claimable_nonclaimable}**")
 
         if claims is True:
             components = vbu.MessageComponents(
@@ -364,14 +409,13 @@ class Informative(vbu.Cog):
                 pressed = True
                 for type, value in claimable_dict.items():
                     for count, data in enumerate(milestones[type]):
-                        reward += (count + 1)
-                        print(count)
-                        print(reward)
-                        print(data)
-                        if data >= value:
-                            new_milestone = milestones[type][(count + 1)]
-                            print(new_milestone)
+                        if value >= data and data >= achievement_data_milestones[0][milestone]:
+                            reward += (count + 1)
+                            print(reward)
+                        else:
+                            new_milestone = milestones[type][(count)]
                             break
+
                     async with self.bot.database() as db:
                         await db("""UPDATE user_achievements_milestones SET {0} = $1 WHERE user_id = $2""".format(f"{type}_milestone"), new_milestone, ctx.author.id)
                 async with self.bot.database() as db:
@@ -384,6 +428,14 @@ class Informative(vbu.Cog):
         if pressed is True:
             await ctx.send(f"Rewards claimed, you earned {reward} doubloons!")
 
+    @vbu.command(aliases=["creds"])
+    @vbu.bot_has_permissions(send_messages=True, embed_links=True)
+    async def credits(self, ctx: commands.Context):
+        """
+        This command gives credit to the people who helped.
+        """
+
+        await ctx.send(embed=CREDITS_EMBED)
 
 def setup(bot):
     bot.add_cog(Informative(bot))

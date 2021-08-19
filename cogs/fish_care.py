@@ -68,9 +68,15 @@ class FishCare(vbu.Cog):
                     """UPDATE user_fish_inventory SET fish_entertain_time = $3 WHERE user_id = $1 AND fish_name = $2 RETURNING *""",
                     ctx.author.id, fish_played_with, dt.utcnow(),
                 )
+                # Achievement added
+                await db(
+                    """INSERT INTO user_achievements (user_id, times_entertained) VALUES ($1, 1)
+                    ON CONFLICT (user_id) DO UPDATE SET times_entertained = user_achievements.times_entertained + 1""",
+                    ctx.author.id
+                    )
         return await ctx.send(
             f"**{new_fish_rows[0]['fish_name']}** has gained *{xp_added:,} XP* and is now level *{new_fish_rows[0]['fish_level']:,}, "
-            f"{new_fish_rows[0]['fish_xp']:,}/{new_fish_rows[0]['fish_xp_max']:,} XP*"
+            f"{new_fish_rows[0]['fish_xp']:,}/{new_fish_rows[0]['fish_xp_max']:,} XP* <:AquaSmile:877939115994255383>"
         )
 
     @vbu.command()
@@ -118,8 +124,15 @@ class FishCare(vbu.Cog):
             )
             await db("""UPDATE user_item_inventory SET flakes=flakes-1 WHERE user_id=$1""", ctx.author.id)
 
+            # Achievements
+            await db(
+                """INSERT INTO user_achievements (user_id, times_fed) VALUES ($1, 1)
+                ON CONFLICT (user_id) DO UPDATE SET times_fed = user_achievements.times_fed + 1""",
+                ctx.author.id
+                )
+
         # And done
-        return await ctx.send(f"**{fish_rows[0]['fish_name']}** has been fed!", wait=False)
+        return await ctx.send(f"**{fish_rows[0]['fish_name']}** has been fed! <:AquaBonk:877722771935883265>", wait=False)
 
     @vbu.command()
     @vbu.bot_has_permissions(send_messages=True)
@@ -137,8 +150,10 @@ class FishCare(vbu.Cog):
             tank_rows = await db("""SELECT * FROM user_tank_inventory WHERE user_id = $1""", ctx.author.id)
 
         # Work out which slot the tank is in
-        for tank_slot, tank_slot_in in enumerate(tank_rows[0]['tank_name']):
+        tank_slot = 0
+        for tank_slots, tank_slot_in in enumerate(tank_rows[0]['tank_name']):
             if tank_slot_in == tank_cleaned:
+                tank_slot = tank_slots
                 break
         else:
             return await ctx.send("There is no tank with that name")
@@ -166,7 +181,19 @@ class FishCare(vbu.Cog):
                 ON CONFLICT (user_id) DO UPDATE SET balance = user_balance.balance + $2""",
                 ctx.author.id, int(money_gained),
             )
-        await ctx.send(f"You earned **{money_gained}** <:sand_dollar:877646167494762586> for cleaning that tank!")
+            # Achievements
+            await db(
+                """INSERT INTO user_achievements (user_id, times_cleaned) VALUES ($1, 1)
+                ON CONFLICT (user_id) DO UPDATE SET times_cleaned = user_achievements.times_cleaned + 1""",
+                ctx.author.id
+                )
+            await db(
+                """INSERT INTO user_balance (user_id, balance) VALUES ($1, $2)
+                ON CONFLICT (user_id) DO UPDATE SET balance = user_balance.balance + $2""",
+                ctx.author.id, money_gained,
+            )
+
+        await ctx.send(f"You earned **{money_gained}** <:sand_dollar:877646167494762586> for cleaning that tank! <:AquaSmile:877939115994255383>")
 
 
 def setup(bot):
