@@ -95,6 +95,13 @@ CREATE TABLE IF NOT EXISTS user_achievements_milestones (
     times_gambled_milestone INT NOT NULL DEFAULT 5,
     money_gained_milestone INT NOT NULL DEFAULT 100,
     tanks_owned_milestone INT NOT NULL DEFAULT 1,
+    times_entertained_milestone_done BOOLEAN NOT NULL DEFAULT FALSE,
+    times_fed_milestone_done BOOLEAN NOT NULL DEFAULT FALSE,
+    times_cleaned_milestone_done BOOLEAN NOT NULL DEFAULT FALSE,
+    times_caught_milestone_done BOOLEAN NOT NULL DEFAULT FALSE,
+    times_gambled_milestone_done BOOLEAN NOT NULL DEFAULT FALSE,
+    money_gained_milestone_done BOOLEAN NOT NULL DEFAULT FALSE,
+    tanks_owned_milestone_done BOOLEAN NOT NULL DEFAULT FALSE,
     PRIMARY KEY (user_id)
 );
 

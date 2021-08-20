@@ -1,3 +1,4 @@
+from typing import Type
 import discord
 import asyncio
 import math
@@ -97,17 +98,17 @@ async def ask_to_sell_fish(bot, user: discord.User, message: discord.Message, ne
         )
 
 
-async def check_price(bot, user_id: int, cost: int) -> bool:
+async def check_price(bot, user_id: int, cost: int, type: str) -> bool:
     """
     Returns if a user_id has enough money based on the cost.
     """
 
     async with bot.database() as db:
         user_rows = await db(
-            """SELECT balance FROM user_balance WHERE user_id=$1""",
+            """SELECT {0} FROM user_balance WHERE user_id=$1""".format(type),
             user_id,
         )
-        user_balance = user_rows[0]['balance']
+        user_balance = user_rows[0][type]
     return user_balance >= cost
 
 
@@ -128,6 +129,7 @@ async def buying_singular(bot, user: discord.user, ctx, item: str):
     tank_slot = 0
     nonavailable_slots = []
     available_slots = []
+    theme_slots_dict = {}
     nonavailable_tank_types = []
     tank_names = []
     tank_size_values = {"Fish Bowl": 1, "Small Tank": 5, "Medium Tank": 25}
@@ -139,9 +141,10 @@ async def buying_singular(bot, user: discord.user, ctx, item: str):
         nonavailable_tank_types.append(type)
     for tank_named in tank_row[0]['tank_name']:
         tank_slot += 1
+        theme_slots_dict[tank_row[0]['tank_name'][tank_slot - 1]] = (tank_slot - 1)
         if tank_row[0]['tank_type'][tank_slot - 1] == "":
             tank_names.append("none")
-        if tank_row[0]['tank_theme'][tank_slot] != item.replace(" ", "_"):
+        if tank_row[0]['tank_theme'][tank_slot - 1] != item.replace(" ", "_"):
             tank_names.append(tank_named)
         if tank_named:
             if tank_row[0]['tank_type'][tank_slot - 1] not in nonavailable_tank_types:
@@ -149,6 +152,7 @@ async def buying_singular(bot, user: discord.user, ctx, item: str):
             nonavailable_slots.append(str(tank_slot))
             continue
         available_slots.append(str(tank_slot))
+
 
     # If the item is a tank...
     if item in tanks:
@@ -193,7 +197,7 @@ async def buying_singular(bot, user: discord.user, ctx, item: str):
 
         # Asks for the name of the tank the user is putting the theme on and makes sure it is correct
         await ctx.send(f"What tank name would you like to put this theme on? (Available names: {', '.join(tank_names)})")
-        check = lambda themem: themem.author == ctx.author and themem.channel == ctx.channel and themem.content in tank_names and themem.content != "none" and themem.content not in tank_row[0]['tank_name']
+        check = lambda themem: themem.author == ctx.author and themem.channel == ctx.channel and themem.content in tank_names and themem.content != "none"
         try:
             theme_message_given = await ctx.bot.wait_for("message", timeout=60.0, check=check)
             theme_message = theme_message_given.content
@@ -201,5 +205,6 @@ async def buying_singular(bot, user: discord.user, ctx, item: str):
         except asyncio.TimeoutError:
             await ctx.send("Timed out asking for tank name, no available name given.")
             return False
+
         async with bot.database() as db:
-            await db("""UPDATE user_tank_inventory SET tank_theme[$1] = $2 WHERE user_id=$3""", tank_names.index(theme_message), item.replace(" ", "_"), user.id)
+            await db("""UPDATE user_tank_inventory SET tank_theme[$1] = $2 WHERE user_id=$3""", theme_slots_dict[theme_message], item.replace(" ", "_"), user.id)

@@ -85,7 +85,7 @@ class Upgrades(vbu.Cog):
         upgrade_level = upgrades[0][upgraded]
         if upgrade_level == 5:
             return await ctx.send("That upgrade is fully upgraded.")
-        if not await utils.check_price(self.bot, ctx.author.id, self.UPGRADE_COST_LIST[int(upgrade_level) - 1]):
+        if not await utils.check_price(self.bot, ctx.author.id, self.UPGRADE_COST_LIST[int(upgrade_level) - 1], 'balance'):
             return await ctx.send("You don't have enough Sand Dollars <:sand_dollar:877646167494762586> for this upgrade!")
 
         # Upgrade them in the database
