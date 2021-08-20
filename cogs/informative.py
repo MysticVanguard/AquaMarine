@@ -97,14 +97,15 @@ class Informative(vbu.Cog):
         Shows the users profile.
         """
 
-        items = [
-            "<:common_fish_bag:851974760510521375>",
-            "<:uncommon_fish_bag:851974792864595988>",
-            "<:rare_fish_bag:851974785088618516>",
-            "<:epic_fish_bag:851974770467930118>",
-            "<:legendary_fish_bag:851974777567838258>",
-            "<:fish_flakes:852053373111894017>",
-        ]
+        items = {
+            "cfb": "<:common_fish_bag:877646166983053383>",
+            "ufb": "<:uncommon_fish_bag:877646167146651768>",
+            "rfb": "<:rare_fish_bag:877646167121489930>",
+            "efb": "<:epic_fish_bag:877646167243120701>",
+            "lfb": "<:legendary_fish_bag:877646166953717813>",
+            "flakes": "<:fish_flakes:877646167188602880>",
+            "revival": "<:revival:878297091158474793>",
+        }
 
         # Get the user's inventory from the database
         async with self.bot.database() as db:
@@ -138,11 +139,12 @@ class Informative(vbu.Cog):
 
             # Get the number of fish that the user has by emoji
             for fish_owned in set(user_fish):
-                emoji = fish[fish_owned]
-                fish_number[emoji] = user_fish.count(fish_owned)
+                if fish_owned in fish.keys():
+                    emoji = fish[fish_owned]
+                    fish_number[emoji] = user_fish.count(fish_owned)
 
         # Format a string for the embed
-        fish_info = [f"{fish_key}: {fish_value}x" for fish_key, fish_value in fish_number.items()]
+        fish_info = [f"{fish_key}: x{fish_value}" for fish_key, fish_value in fish_number.items()]
 
         # Work out how many fish from each rarity level the user has
         collection_data = []
@@ -156,12 +158,12 @@ class Informative(vbu.Cog):
             collection_data.append([rarity, rarity_fish_count, user_rarity_fish_count])
 
         # Get the number of items that the user has from their inventory
-        inventory_number = {i: 0 for i in items}
+        inventory_number = {}
         for row in inventory_row:
             for key, value in row.items():
                 if key == "user_id":
                     continue
-                inventory_number[key] = value
+                inventory_number[items[key]] = value
 
         # Get the number of tanks that the user has
         number_of_tanks = 0
@@ -169,11 +171,11 @@ class Informative(vbu.Cog):
             number_of_tanks = tank_row[0]['tank'].count(True)
 
         # Format some strings for our embed
-        inventory_info = [f"{inv_key}: {inv_value}x" for inv_key, inv_value in inventory_number.items()]
+        inventory_info = [f"{inv_key}: x{inv_value}" for inv_key, inv_value in inventory_number.items()]
         collection_info = [f"{x[0]}: {x[2]}/{x[1]}" for x in collection_data]
         fields_dict = {
             'Collection': ("\n".join(collection_info), False),
-            'Balance': (f'<:sand_dollar:877646167494762586>: {balance[0]["balance"]}x', False),
+            'Balance': (f'<:sand_dollar:877646167494762586>: x{balance[0]["balance"]}\n<:doubloon:878297091057807400>: x{balance[0]["doubloon"]}', False),
             '# of Tanks': (number_of_tanks, False),
             'Highest Level Fish': (f'{highest_level_fish_emoji} {highest_level_fish["fish_name"]}: Lvl. {highest_level_fish["fish_level"]} {highest_level_fish["fish_xp"]}/ {highest_level_fish["fish_xp_max"]}', False),
             'Achievements': ("Soon To Be Added.", True),

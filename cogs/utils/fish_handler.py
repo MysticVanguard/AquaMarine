@@ -87,84 +87,107 @@ RARITY_CULERS = {
 
 EMOJI_RARITIES = {
     "common": {
-        "clownfish": "<:clownfish:849777027174760448>",
-        "goldfish": "<:goldfish:849777027258515456>",
-        "tiger_barb": "<:tiger_barb:849777027413311508>",
-        "royal_blue_betta": "<:royal_blue_betta:849777027472031764>",
-        "pufferfish": "<:pufferfish:849777027501522954>",
-        "oscar_cichlid": "<:oscar_cichlid:849777027599040522>",
-        "neon_tetra_school": "<:neon_tetra_school:849777027326017586>",
-        "turquoise_blue_betta": "<:turquoise_blue_betta:850970562469691433>",
-        "tuna": "<:tuna:850970699359322122>",
-        "squid": "<:squid:850970655695568906>",
-        "shrimp": "<:shrimp:850970552830787624>",
-        "red_betta": "<:red_betta:850970531216752660>",
-        "paradise_fish": "<:paradise_fish:850970512695361546>",
-        "koi": "<:koi:850970638599323678>",
-        "headshield_slug": "<:headshield_slug:850970724231544833>",
-        "guppies": "<:guppies:850970478884814908>",
-        "electric_blue_hap": "<:electric_blue_hap:850970439136182293>",
-        "cowfish": "<:cowfish:850970605276102658>",
-        "clown_triggerfish": "<:clown_triggerfish:850970691628695562>",
-        "angelfish": "<:angelfish:850970572569706526>",
-        "pineapple_betta": "<:pineapple_betta:850970524414509056>",
-        "harlequin_rasboras": "<:harlequin_rasboras:850970500686938112>",
-        "electric_yellow_lab": "<:electric_yellow_lab:850970446648311828>",
-        "catfish": "<:catfish:850970683718893578>",
-        "blue_maomao": "<:blue_maomao:850970598784237568>",
-        "blue_diamond_discus": "<:blue_diamond_discus:850970583499538464>",
-        "black_orchid_betta": "<:black_orchid_betta:850970430487527486>",
-        "banggai_cardinalfish": "<:banggai_cardinalfish:850970420869070868>",
-        "bottlenose_dolphin": "<:bottlenose_dolphin:850970711634739210>",
-        "starfish": "<:starfish:850970666986766354>"
+        "clownfish": "<:clownfish:878370648936820786>",
+        "goldfish": "<:goldfish:878370648618074114>",
+        "tiger_barb": "<:tiger_barb:878370648890679328>",
+        "royal_blue_betta": "<:royal_blue_betta:878370648722915350>",
+        "pufferfish": "<:pufferfish:878370650199314542>",
+        "oscar_cichlid": "<:oscar_cichlid:878370649972834324>",
+        "neon_tetra_school": "<:neon_tetra_school:878370648949395496>",
+        "turquoise_blue_betta": "<:turquoise_blue_betta:878370649146556466>",
+        "tuna": "<:tuna:878379351995998299>",
+        "squid": "<:squid:878370649620484127>",
+        "shrimp": "<:shrimp:878370648890679308>",
+        "red_betta": "<:red_betta:878370648748097536>",
+        "paradise_fish": "<:paradise_fish:878370648999743508>",
+        "koi": "<:koi:878370649482100766>",
+        "headshield_slug": "<:headshield_slug:878370648701931521>",
+        "guppies": "<:guppies:878370648974561310>",
+        "electric_blue_hap": "<:electric_blue_hap:878370648924246096>",
+        "cowfish": "<:cowfish:878370649184301087>",
+        "clown_triggerfish": "<:clown_triggerfish:878379011133280256>",
+        "angelfish": "<:angelfish:878370649503039488>",
+        "pineapple_betta": "<:pineapple_betta:878370648987152434>",
+        "harlequin_rasboras": "<:harlequin_rasboros:878370648899063878>",
+        "electric_yellow_lab": "<:electric_yellow_lab:878370648928448562>",
+        "catfish": "<:catfish:878378925888245760>",
+        "blue_maomao": "<:blue_maomao:878370649524039700>",
+        "blue_diamond_discus": "<:blue_diamond_discus:878370648945229834>",
+        "black_orchid_betta": "<:black_orchid_betta:878370649431740477>",
+        "banggai_cardinalfish": "<:banggai_cardinalfish:878370648894869605>",
+        "bottlenose_dolphin": "<:bottlenose_dolphin:878370649075240991>",
+        "starfish": "<:starfish:878377160870592522>",
+        "atlantic_sturgeon": "<:atlantic_sturgeon:878370649511432232>",
+        "bluefin_notho": "<:bluefin_notho:878370648529969173>",
+        "giant_sea_bass": "<:giant_sea_bass:878370648970387506>",
+        "gold_doubloon_molly": "<:gold_doubloon_molly:878370648932626542>",
+        "raccoon_butterflyfish": "<:raccoon_butterflyfish:878370649456922694>",
+        "rainbow_kribensis_cichlid": "<:rainbow_kribensis_cichlid:878370648932638790>",
+        "regal_blue_tang": "<:regal_blue_tang:878370650039918692>",
+        "sea_goldie": "<:sea_goldie:878370649180106752>",
+        "yellow_tang": "<:yellow_tang:878370649897328650>",
+        "zebra_danios": "<:zebra_danios:878370648852922429>",
+        "carp": "<:carp:878377327271227462>",
+        "orca": "<:orca:878379352499310712>",
+        "whale_shark": "<:whale_shark:878379353015197817>"
     },
     "uncommon": {
-        "flowerhorn_cichlid": "<:flowerhorn_cichlid:849777027472293918>",
-        "lionfish": "<:lionfish:849777027765633024>",
-        "sea_bunny": "<:sea_bunny:850970830569209887>",
-        "manta_ray": "<:manta_ray:850970787569860658>",
-        "surge_wrasse": "<:surge_wrasse:850970772633550858>",
-        "smalltooth_swordfish": "<:smalltooth_swordfish:850970859983470623>",
-        "seal": "<:seal:850970851435479091>",
-        "seahorse": "<:seahorse:850970763065688074>",
-        "quoyi_parrotfish": "<:quoyi_parrotfish:850970754002845736>",
-        "narwhal": "<:narwhal:850970796252069888>",
-        "dumbo_octopus": "<:dumbo_octopus:850977726265163776>"
+        "flowerhorn_cichlid": "<:flowerhorn_cichlid:878380626644979762>",
+        "lionfish": "<:lionfish:878380626863091732>",
+        "sea_bunny": "<:sea_bunny:878370649385603172>",
+        "manta_ray": "<:manta_ray:878380627613864037>",
+        "surge_wrasse": "<:surge_wrasse:878380626561081414>",
+        "smalltooth_swordfish": "<:smalltooth_swordfish:878380626615631953>",
+        "seal": "<:seal:878370649289142304>",
+        "seahorse": "<:seahorse:878370649888919573>",
+        "quoyi_parrotfish": "<:quoyi_parrotfish:878370650241249290>",
+        "narwhal": "<:narwhal:878370649935073410>",
+        "dumbo_octopus": "<:dumbo_octopus:878370650060902460>",
+        "small_red_handfish": "<:small_red_handfish:878370649448534026>",
+        "walking_batfish": "<:walking_batfish:878370649867960330>",
+        "black_drakefish": "<:black_drakefish:878380261363056710>",
+        "blue_drakefish": "<:blue_drakefish:878380261153329272>",
+        "green_drakefish": "<:green_drakefish:878380261203644436>",
+        "manatee": "<:manatee:878380626477211688>",
+        "red_drakefish": "<:red_drakefish:878380261363036160>",
+        "victory_drakefish": "<:victory_drakefish:878380261379825724>"
     },
     "rare": {
-        "axolotl": "<:axolotl:850080397450149888>",
-        "blobfish": "<:blobfish:850970966736764939>",
-        "cuttlefish": "<:cuttlefish:850971019078664232>",
-        "starfish_with_pants": "<:starfish_with_pants:850977707134025758>",
-        "bobtail_squid": "<:bobtail_squid:850977717737619478>"
+        "axolotl": "<:axolotl:878370649893109790>",
+        "blobfish": "<:blobfish:878370649943441418>",
+        "cuttlefish": "<:cuttlefish:878370649893109780>",
+        "starfish_with_pants": "<:starfish_with_pants:878380007947386932>",
+        "bobtail_squid": "<:bobtail_squid:878370649880543252>",
+        "mantis_shrimp": "<:mantis_shrimp:878370649872146512>",
+        "school_of_betta": "<:school_of_betta:878380008287133827>"
     },
     "epic": {
-        "asian_arowana": "<:asian_arowana:850080397350010930>",
-        "boesemani_rainbowfish": "<:boesemani_rainbowfish:850970734028914708>"
+        "asian_arowana": "<:asian_arowana:878379497731276861>",
+        "boesemani_rainbowfish": "<:boesemani_rainbowfish:878370649465311232>"
     },
     "legendary": {
-        "anglerfish": "<:anglerfish:849777027769696297>"
+        "anglerfish": "<:anglerfish:878379836064825354>"
     },
     "mythic": {
-        "mandarinfish": "<:mandarinfish:850080397081182269>"
+        "mandarinfish": "<:mandarinfish:878379851776679986>"
     }
 }
 EMOJI_RARITIES_SET_ONE = {
     "common": {
-        "clownfish": "<:clownfish:849777027174760448>",
-        "goldfish": "<:goldfish:849777027258515456>",
-        "tiger_barb": "<:tiger_barb:849777027413311508>",
-        "royal_blue_betta": "<:royal_blue_betta:849777027472031764>",
-        "pufferfish": "<:pufferfish:849777027501522954>",
-        "oscar_cichlid": "<:oscar_cichlid:849777027599040522>",
-        "neon_tetra_school": "<:neon_tetra_school:849777027326017586>",
+        "clownfish": "<:clownfish:878370648936820786>",
+        "goldfish": "<:goldfish:878370648618074114>",
+        "tiger_barb": "<:tiger_barb:878370648890679328>",
+        "royal_blue_betta": "<:royal_blue_betta:878370648722915350>",
+        "pufferfish": "<:pufferfish:878370650199314542>",
+        "oscar_cichlid": "<:oscar_cichlid:878370649972834324>",
+        "neon_tetra_school": "<:neon_tetra_school:878370648949395496>"
     },
     "uncommon": {
-        "flowerhorn_cichlid": "<:flowerhorn_cichlid:849777027472293918>",
-        "lionfish": "<:lionfish:849777027765633024>"
+        "flowerhorn_cichlid": "<:flowerhorn_cichlid:878380626644979762>",
+        "lionfish": "<:lionfish:878380626863091732>"
     },
     "legendary": {
-        "anglerfish": "<:anglerfish:849777027769696297>"
+        "anglerfish": "<:anglerfish:878379836064825354>"
     },
 }
 

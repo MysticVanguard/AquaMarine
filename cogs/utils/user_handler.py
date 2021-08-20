@@ -37,7 +37,7 @@ async def ask_to_sell_fish(bot, user: discord.User, message: discord.Message, ne
     # See if they want to sell the fish
     if choice == "sell":
         sell_multipliers = {1: 1.0, 2: 1.1, 3: 1.3, 4: 1.6, 5: 2.0}
-        money_earned = math.ceil(int(new_fish['cost']) * sell_multipliers[upgrades[0]['rod_upgrade']])
+        money_earned = math.ceil(int(new_fish['cost']) * sell_multipliers[upgrades[0]['rod_upgrade']] / 10)
         async with bot.database() as db:
             await db(
                 """INSERT INTO user_balance (user_id, balance) VALUES ($1, $2)
