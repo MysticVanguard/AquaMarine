@@ -115,7 +115,7 @@ class Aquarium(vbu.Cog):
                 """UPDATE user_fish_inventory SET tank_fish = $3, death_time = $4 WHERE fish_name=$1 AND user_id=$2""",
                 fish_deposited, ctx.author.id, tank_name, (dt.utcnow() + timedelta(days=3)),
             )
-        return await ctx.send(f"Fish has been deposited and will die {vbu.TimeFormatter(dt.utcnow() + timedelta(days=3 - timedelta(hours=4))).relative_time}!")
+        return await ctx.send(f"Fish has been deposited and will die {vbu.TimeFormatter(dt.utcnow() + timedelta(days=3) - timedelta(hours=4)).relative_time}!")
 
     @vbu.command(aliases=["rem"])
     @vbu.bot_has_permissions(send_messages=True)
