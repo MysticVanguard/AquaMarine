@@ -6,7 +6,9 @@ import collections
 import asyncio
 
 import discord
+from discord.client import Client
 from discord.ext import commands
+from discord.user import ClientUser
 import voxelbotutils as vbu
 from voxelbotutils.cogs.utils.context_embed import Embed
 
@@ -231,8 +233,9 @@ class Informative(vbu.Cog):
         # Make and send an embed
         embed = discord.Embed(title=selected_fish["name"])
         embed.set_image(url="attachment://new_fish.png")
-        embed.add_field(name='Rarity', value=f"This fish is {selected_fish['rarity']}", inline=False)
-        embed.add_field(name='Cost', value=f"This fish is {selected_fish['cost']}", inline=False)
+        embed.add_field(name='Rarity:', value=f"{selected_fish['rarity']}", inline=False)
+        embed.add_field(name='Base Sell Price:', value=f"{int(int(selected_fish['cost']) / 10)} <:sand_dollar:877646167494762586>", inline=False)
+        embed.add_field(name='Size:', value=f"{selected_fish['size']}", inline=False)
         embed.color = {
             "common": 0xFFFFFE,  # White - FFFFFF doesn't work with Discord
             "uncommon": 0x75FE66,  # Green
@@ -298,8 +301,11 @@ class Informative(vbu.Cog):
     @vbu.command()
     @vbu.bot_has_permissions(send_messages=True, embed_links=True)
     async def achievements(self, ctx: commands.Context):
+        """
+        Shows the achievements and lets the user claim them..
+        """
         # The milestones for each achievement type
-        milestones = {
+        milestones_dict_of_achievements = {
                'times_entertained': [5, 25, 100, 250, 500, 1000, 5000, 10000, 100000, 1000000],
                 'times_fed': [5, 25, 25, 50, 100, 500, 1000, 10000, 100000, 1000000],
                 'times_cleaned': [5, 25, 100, 250, 500, 1000, 5000, 10000, 100000, 1000000],
@@ -312,19 +318,19 @@ class Informative(vbu.Cog):
 
         # Database variables
         async with self.bot.database() as db:
-            achievement_data_milestones = await db("""SELECT * FROM user_achievements_milestones WHERE user_id = $1""", ctx.author.id)
-            achievement_data = await db("""SELECT * FROM user_achievements WHERE user_id = $1""", ctx.author.id)
+            user_achievement_milestone_data = await db("""SELECT * FROM user_achievements_milestones WHERE user_id = $1""", ctx.author.id)
+            user_achievement_data = await db("""SELECT * FROM user_achievements WHERE user_id = $1""", ctx.author.id)
             tank_data = await db("""SELECT tank FROM user_tank_inventory WHERE user_id = $1""", ctx.author.id)
-            if not achievement_data:
-                achievement_data = await db("""INSERT INTO user_achievements (user_id) VALUES ($1) RETURNING *""", ctx.author.id)
-            if not achievement_data_milestones:
-                achievement_data_milestones = await db("""INSERT INTO user_achievements_milestones (user_id) VALUES ($1) RETURNING *""", ctx.author.id)
+            if not user_achievement_data:
+                user_achievement_data = await db("""INSERT INTO user_achievements (user_id) VALUES ($1) RETURNING *""", ctx.author.id)
+            if not user_achievement_milestone_data:
+                user_achievement_milestone_data = await db("""INSERT INTO user_achievements_milestones (user_id) VALUES ($1) RETURNING *""", ctx.author.id)
 
         # Getting the users data into a dictionary for the embed and ease of access
-        data = {}
-        for value_type, count in achievement_data[0].items():
-            if value_type != "user_id":
-                data[value_type] = count
+        user_achievement_data_dict = {}
+        for achievement_type_database, achievement_amount_database in user_achievement_data[0].items():
+            if achievement_type_database != "user_id":
+                user_achievement_data_dict[achievement_type_database] = achievement_amount_database
 
         # Getting the users amount of tanks and adding that to the user data dictionary
         tanks = 0
@@ -334,48 +340,62 @@ class Informative(vbu.Cog):
             for tank in tank_data[0]['tank']:
                 if tank is True:
                     tanks += 1
-        data["tanks_owned"] = tanks
+        user_achievement_data_dict["tanks_owned"] = tanks
 
         # Setting claimable to non as default
+        Achievements_that_are_claimable = {}
+        are_there_any_claimable_achievements_check = False
 
-        claimable_dict = {}
-        claims = False
-
-        # Creating the embed as well as checking if the achievement is claimable
+        # Creating the embed
         embed = discord.Embed(title=f"**{ctx.author.display_name}**'s achievements")
-        for type, value in data.items():
-            milestone = f"{type}_milestone"
-            claimable_nonclaimable = "nonclaimable"
-            stars = []
-            for data in milestones[type]:
-                if data < achievement_data_milestones[0][milestone]:
-                    stars.append("<:achievement_star:877646167087906816>")
-                elif data <= value:
-                    stars.append("<:achievement_star_new:877737712046702592>")
+
+        # Set Variables for milestones, default to nonclaimable, and default stars to nothing
+        for achievement, user_achievement_value in user_achievement_data_dict.items():
+            milestone = f"{achievement}_milestone"
+            is_achievement_claimable = "nonclaimable"
+            list_of_stars_per_achievement = []
+            # Checks what type of star to add
+            for milestone_value in milestones_dict_of_achievements[achievement]:
+                if user_achievement_milestone_data[0][f"{milestone}_done"] is True:
+                    list_of_stars_per_achievement.append("<:achievement_star:877646167087906816>")
+                elif milestone_value < user_achievement_milestone_data[0][milestone]:
+                    list_of_stars_per_achievement.append("<:achievement_star:877646167087906816>")
+                elif milestone_value <= user_achievement_value:
+                    list_of_stars_per_achievement.append("<:achievement_star_new:877737712046702592>")
                 else:
-                    stars.append("<:achievement_star_no:877646167222141008>")
-            star_number_next = 0
-            st_nd_rd_th = 'th'
-            for star in stars:
-                if star == "<:achievement_star_no:877646167222141008>":
-                    star_number_next += 1
+                    list_of_stars_per_achievement.append("<:achievement_star_no:877646167222141008>")
+            # Grammar stuff and the number of stars said
+            next_unclaimable_star = 0
+            st_nd_rd_th_grammar = 'th'
+            for single_star_per_star_list in list_of_stars_per_achievement:
+                if single_star_per_star_list != "<:achievement_star:877646167087906816>":
+                    next_unclaimable_star += 1
                     break
-                star_number_next += 1
-            if star_number_next == 1:
-                st_nd_rd_th = 'st'
-            elif star_number_next == 2:
-                st_nd_rd_th = 'nd'
-            elif star_number_next == 3:
-                st_nd_rd_th = 'rd'
+                next_unclaimable_star += 1
+            if next_unclaimable_star == 1:
+                st_nd_rd_th_grammar = 'st'
+            elif next_unclaimable_star == 2:
+                st_nd_rd_th_grammar = 'nd'
+            elif next_unclaimable_star == 3:
+                st_nd_rd_th_grammar = 'rd'
 
-            if value >= achievement_data_milestones[0][milestone]:
-                if claims is False:
-                    claims = True
-                claimable_dict[type] = value
-                claimable_nonclaimable = "claimable"
-            embed.add_field(name=f"{type.replace('_', ' ').title()} {value:,}/{achievement_data_milestones[0][milestone]:,}", value=f"{(value/achievement_data_milestones[0][milestone])}% of **{star_number_next}**{st_nd_rd_th} star\n{''.join(stars)} \n**{claimable_nonclaimable}**")
+            # Sets the milestonme to be claimable if it is
+            if user_achievement_value >= user_achievement_milestone_data[0][milestone] and user_achievement_milestone_data[0][f'{milestone}_done'] is False:
+                if are_there_any_claimable_achievements_check is False:
+                    are_there_any_claimable_achievements_check = True
+                Achievements_that_are_claimable[achievement] = milestones_dict_of_achievements[achievement].index(user_achievement_milestone_data[0][milestone])
+                is_achievement_claimable = "claimable"
+            if user_achievement_milestone_data[0][f'{milestone}_done'] is True:
+                value_data = 'All achievements have been claimed!'
+                name_data = ''
+            else:
+                value_data = ''
+                value_data = f"{(user_achievement_value/user_achievement_milestone_data[0][milestone])}% of **{next_unclaimable_star}**{st_nd_rd_th_grammar} star"
+                name_data = f"{user_achievement_value:,}/{user_achievement_milestone_data[0][milestone]:,}"
+            embed.add_field(name=f"{achievement.replace('_', ' ').title()} {name_data}", value=f"{value_data}\n{''.join(list_of_stars_per_achievement)} \n**{is_achievement_claimable}**")
 
-        if claims is True:
+        # Adds a button to the message if there are any claimable achievements
+        if are_there_any_claimable_achievements_check is True:
             components = vbu.MessageComponents(
                 vbu.ActionRow(
                     vbu.Button(custom_id="claim_all", emoji="1\N{COMBINING ENCLOSING KEYCAP}"),
@@ -383,6 +403,7 @@ class Informative(vbu.Cog):
             )
             claim_message = await ctx.send(embed=embed, components=components)
         else:
+            # Doesnt add a button if theres no claimable achievements
             return await ctx.send(embed=embed)
 
         # Make the button check
@@ -391,6 +412,7 @@ class Informative(vbu.Cog):
                 return False
             self.bot.loop.create_task(payload.defer_update())
             return payload.user.id == ctx.author.id
+
 
         pressed = False
         while True:
@@ -403,30 +425,38 @@ class Informative(vbu.Cog):
                 await claim_message.edit(components=components.disable_components())
                 break
 
-            reward = 0
-            # Update the displayed emoji
+            # Sets reward and if the button is clicked...
+            amount_of_doubloons_earned = 0
             if chosen_button == "claim_all":
                 pressed = True
-                for type, value in claimable_dict.items():
-                    for count, data in enumerate(milestones[type]):
-                        if value >= data and data >= achievement_data_milestones[0][milestone]:
-                            reward += (count + 1)
-                            print(reward)
-                        else:
-                            new_milestone = milestones[type][(count)]
-                            break
-
-                    async with self.bot.database() as db:
-                        await db("""UPDATE user_achievements_milestones SET {0} = $1 WHERE user_id = $2""".format(f"{type}_milestone"), new_milestone, ctx.author.id)
+                for achievement_button, user_achievement_position_button in Achievements_that_are_claimable.items():
+                    amount_per_achievement = user_achievement_position_button + 1
+                    print(achievement_button)
+                    print(user_achievement_position_button)
+                    print(amount_per_achievement)
+                    for x in range(amount_per_achievement):
+                        print(x)
+                        amount_of_doubloons_earned += x + 1
+                        print(amount_of_doubloons_earned)
+                    if achievement_button == 'tanks_owned' and user_achievement_position_button >= 3:
+                        async with self.bot.database() as db:
+                            await db("""UPDATE user_achievements_milestones SET {0} = TRUE WHERE user_id = $1""".format(f"{achievement_button}_milestone_done"), ctx.author.id)
+                    elif user_achievement_position_button >= 9:
+                        async with self.bot.database() as db:
+                            await db("""UPDATE user_achievements_milestones SET {0} = TRUE WHERE user_id = $1""".format(f"{achievement_button}_milestone_done"), ctx.author.id)
+                    else:
+                        async with self.bot.database() as db:
+                            await db("""UPDATE user_achievements_milestones SET {0} = $1 WHERE user_id = $2""".format(f"{achievement_button}_milestone"), milestones_dict_of_achievements[achievement_button][user_achievement_position_button + 1], ctx.author.id)
                 async with self.bot.database() as db:
                     await db(
                         """INSERT INTO user_balance (user_id, doubloon) VALUES ($1, $2)
                         ON CONFLICT (user_id) DO UPDATE SET doubloon = user_balance.doubloon + $2""",
-                        ctx.author.id, reward)
+                        ctx.author.id, amount_of_doubloons_earned)
                 components.get_component(chosen_button).disable()
             break
         if pressed is True:
-            await ctx.send(f"Rewards claimed, you earned {reward} doubloons!")
+            await ctx.send(f"Rewards claimed, you earned {amount_of_doubloons_earned} <:doubloon:878297091057807400>!")
+
 
     @vbu.command(aliases=["creds"])
     @vbu.bot_has_permissions(send_messages=True, embed_links=True)
@@ -434,8 +464,45 @@ class Informative(vbu.Cog):
         """
         This command gives credit to the people who helped.
         """
-
         await ctx.send(embed=CREDITS_EMBED)
+
+    @vbu.command()
+    @vbu.bot_has_permissions(send_messages=True, embed_links=True)
+    async def leaderboard(self, ctx: commands.Context):
+        """
+        This gives a global leaderboard of balances.
+        """
+        async with ctx.typing():
+            user_info_unsorted = {}
+            user_info_sorted = {}
+            async with self.bot.database() as db:
+                user_info_rows = await db("""SELECT * FROM user_balance""")
+            for user_info in user_info_rows:
+                user_info_unsorted[user_info['balance']] = user_info['user_id']
+            user_info_unsorted_items = user_info_unsorted.items()
+            user_id_sorted = sorted(user_info_unsorted_items, reverse=True)
+            page = 0
+            place = 0
+            set = 0
+            fields = []
+            field_info = []
+            for user_id_sorted_single in user_id_sorted:
+                user = await self.bot.fetch_user(user_id_sorted_single[1])
+                place += 1
+                field_info.append(f"#{place:,}. {user.name} ({user_id_sorted_single[0]:,})")
+                set += 1
+                if set == 10:
+                    page += 1
+                    fields.append((f"Page {page:,}", "\n".join(field_info)))
+                    field_info = []
+                    set = 0
+            if set != 0:
+                page += 1
+                fields.append((f"Page {page:,}", "\n".join(field_info)))
+                field_info = []
+                set = 0
+        return await utils.paginate(ctx, fields, ctx.author.id, "Global Balance Leaderboard")
+
 
 def setup(bot):
     bot.add_cog(Informative(bot))
