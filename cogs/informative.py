@@ -26,7 +26,7 @@ CREDITS_EMBED.add_field(
 )
 CREDITS_EMBED.add_field(
     name="Credits to the wonderful Peppoco (peppoco#6867), who made these lovely emotes!",
-    value="<:AquaBonk:877722771935883265><:AquaPensive:877939116266909756><:AquaFish:877939115948134442><:AquaScared:877939115943936074><:AquaShrug:877939116480802896><:AquaSmile:877939115994255383><:AquaUnamused:877939116132696085>(https://peppoco.carrd.co/#)",
+    value="<:AquaBonk:877722771935883265><:AquaPensive:877939116266909756><:AquaFish:877939115948134442><:AquaScared:877939115943936074><:AquaShrug:877939116480802896><:AquaSmile:877939115994255383><:AquaUnamused:877939116132696085><:AquaLove:878248091201982524><:AquaCool:878248090895802438><:AquaBlep:878248090400870401>(https://peppoco.carrd.co/#)",
     inline=False
 )
 CREDITS_EMBED.add_field(
@@ -301,12 +301,12 @@ class Informative(vbu.Cog):
         # The milestones for each achievement type
         milestones = {
                'times_entertained': [5, 25, 100, 250, 500, 1000, 5000, 10000, 100000, 1000000],
-                'times_fed': [5, 25, 100, 250, 500, 1000, 5000, 10000, 100000, 1000000],
+                'times_fed': [5, 25, 25, 50, 100, 500, 1000, 10000, 100000, 1000000],
                 'times_cleaned': [5, 25, 100, 250, 500, 1000, 5000, 10000, 100000, 1000000],
                 'times_caught': [5, 25, 100, 250, 500, 1000, 5000, 10000, 100000, 1000000],
                 'tanks_owned': [1, 3, 5, 10],
                 'times_gambled': [5, 25, 100, 250, 500, 1000, 5000, 10000, 100000, 1000000],
-                'money_gained': [100, 250, 500, 1000, 5000, 10000, 100000, 1000000, 10000000, 100000000],
+                'money_gained': [100, 500, 1000, 5000, 10000, 50000, 100000, 500000, 1000000, 10000000],
         }
 
 

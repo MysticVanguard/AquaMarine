@@ -282,27 +282,6 @@ def make_inverted(fish: dict) -> dict:
     return fish
 
 
-def make_pure(fish: dict, special: str) -> dict:
-    """
-    Take the given fish and change the dict to make it pure.
-    """
-
-    number = 0
-    number_two = 16
-    if special == "golden":
-        number = 7
-        number_two = 23
-    elif special == "inverted":
-        number = 9
-        number_two = 25
-    else:
-        return
-    fish["raw_name"] = fish['raw_name'][number:]
-    fish["name"] = fish['name'][number:]
-    fish["image"] = fish["image"][:16] + fish["image"][number_two:]
-    return fish
-
-
 def get_normal_name(fish_name):
     """
     Get the non-inverted/golden name for the fish

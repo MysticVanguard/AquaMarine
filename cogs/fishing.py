@@ -15,7 +15,7 @@ class Fishing(vbu.Cog):
         super().__init__(bot)
 
     @vbu.command()
-    @vbu.cooldown.cooldown(1, 30 * 60, commands.BucketType.user)
+    @vbu.cooldown.cooldown(1, 6 * 60, commands.BucketType.user)
     @vbu.bot_has_permissions(send_messages=True, embed_links=True)
     async def fish(self, ctx: commands.Context):
         """

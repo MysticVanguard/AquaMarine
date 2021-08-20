@@ -171,7 +171,7 @@ class FishCare(vbu.Cog):
         # Work out how much money they gain
         money_gained = 0
         for fish in fish_rows:
-            money_gained += fish["fish_level"]
+            money_gained += (fish["fish_level"])
 
         # Add their fish money to your sand database dollars
         async with self.bot.database() as db:
@@ -195,6 +195,46 @@ class FishCare(vbu.Cog):
 
         await ctx.send(f"You earned **{money_gained}** <:sand_dollar:877646167494762586> for cleaning that tank! <:AquaSmile:877939115994255383>")
 
+    @vbu.command()
+    @vbu.bot_has_permissions(send_messages=True)
+    async def revive(self, ctx: commands.Context, fish: str):
+
+        # Get database vars
+        async with self.bot.database() as db:
+            fish_row = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2""", ctx.author.id, fish)
+            revival_count = await db("""SELECT revival FROM user_item_inventory WHERE user_id = $1""", ctx.author.id)
+
+        # Checks that error
+        if not fish_row:
+            return await ctx.send(
+                f"You have no fish named {fish}!",
+                allowed_mentions=discord.AllowedMentions.none()
+                )
+        if fish_row[0]["fish_alive"] is True:
+            return await ctx.send("That fish is alive!")
+        if not revival_count:
+            return await ctx.send("You have no revivals!")
+        if revival_count == 0:
+            return await ctx.send("You have no revivals!")
+
+        # If the fish isn't in a tank, it has no death timer, but if it is it's set to three days
+        if fish_row[0]["tank_fish"] == '':
+            death_timer = None
+            message = f"{fish} is now alive!"
+        else:
+            death_timer = (dt.utcnow() + timedelta(days=3))
+            message = f"{fish} is now alive, and will die {vbu.TimeFormatter(death_timer)}!"
+
+        # Set the database values
+        async with self.bot.database() as db:
+            await db("""UPDATE user_fish_inventory SET fish_alive = True, death_time = $3 WHERE user_id = $1 AND fish_name = $2""", ctx.author.id, fish, death_timer)
+            await db("""UPDATE user_item_inventory SET revival = revival - 1 WHERE user_id = $1""", ctx.author.id)
+
+        # Send message
+        await ctx.send(
+            message,
+            allowed_mentions=discord.AllowedMentions.none()
+            )
 
 def setup(bot):
     bot.add_cog(FishCare(bot))

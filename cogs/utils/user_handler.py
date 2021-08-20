@@ -36,7 +36,7 @@ async def ask_to_sell_fish(bot, user: discord.User, message: discord.Message, ne
     # See if they want to sell the fish
     if choice == "sell":
         sell_multipliers = {1: 1.0, 2: 1.1, 3: 1.3, 4: 1.6, 5: 2.0}
-        money_earned = math.floor(int(new_fish['cost']) * sell_multipliers[upgrades[0]['rod_upgrade']])
+        money_earned = math.ceil(int(new_fish['cost']) * sell_multipliers[upgrades[0]['rod_upgrade']])
         async with bot.database() as db:
             await db(
                 """INSERT INTO user_balance (user_id, balance) VALUES ($1, $2)
@@ -111,7 +111,7 @@ async def check_price(bot, user_id: int, cost: int) -> bool:
     return user_balance >= cost
 
 
-async def buying_singular(bot, ctx, item: str):
+async def buying_singular(bot, user: discord.user, ctx, item: str):
     """
     For Buying a singular item such as a tank or theme.
     """
@@ -122,7 +122,7 @@ async def buying_singular(bot, ctx, item: str):
 
     # Gets the tank info for user
     async with bot.database() as db:
-        tank_row = await db("""SELECT * FROM user_tank_inventory WHERE user_id=$1""", ctx.author.id)
+        tank_row = await db("""SELECT * FROM user_tank_inventory WHERE user_id=$1""", user.id)
 
     # Tank slot/name info variables
     tank_slot = 0
@@ -141,7 +141,8 @@ async def buying_singular(bot, ctx, item: str):
         tank_slot += 1
         if tank_row[0]['tank_type'][tank_slot - 1] == "":
             tank_names.append("none")
-        tank_names.append(tank_named)
+        if tank_row[0]['tank_theme'][tank_slot] != item.replace(" ", "_"):
+            tank_names.append(tank_named)
         if tank_named:
             if tank_row[0]['tank_type'][tank_slot - 1] not in nonavailable_tank_types:
                 continue
@@ -179,7 +180,7 @@ async def buying_singular(bot, ctx, item: str):
 
             # Adds the tank to the users tanks
             async with bot.database() as db:
-                await db("""UPDATE user_tank_inventory SET tank[$1] = TRUE, tank_type[$1] = $2, tank_name[$1]=$3, fish_room[$1]=$4, tank_theme[$1]='Aqua' WHERE user_id=$5""", int(message), item, name, tank_size_values[item], ctx.author.id)
+                await db("""UPDATE user_tank_inventory SET tank[$1] = TRUE, tank_type[$1] = $2, tank_name[$1]=$3, fish_room[$1]=$4, tank_theme[$1]='Aqua' WHERE user_id=$5""", int(message), item, name, tank_size_values[item], user.id)
         else:
 
             # If the tank is just updating a tank, updates the tank
@@ -192,7 +193,7 @@ async def buying_singular(bot, ctx, item: str):
 
         # Asks for the name of the tank the user is putting the theme on and makes sure it is correct
         await ctx.send(f"What tank name would you like to put this theme on? (Available names: {', '.join(tank_names)})")
-        check = lambda themem: themem.author == ctx.author and themem.channel == ctx.channel and themem.content in tank_names and themem.content != "none"
+        check = lambda themem: themem.author == ctx.author and themem.channel == ctx.channel and themem.content in tank_names and themem.content != "none" and themem.content not in tank_row[0]['tank_name']
         try:
             theme_message_given = await ctx.bot.wait_for("message", timeout=60.0, check=check)
             theme_message = theme_message_given.content
@@ -201,4 +202,4 @@ async def buying_singular(bot, ctx, item: str):
             await ctx.send("Timed out asking for tank name, no available name given.")
             return False
         async with bot.database() as db:
-            await db("""UPDATE user_tank_inventory SET tank_theme[$1] = $2 WHERE user_id=$3""", tank_names.index(theme_message), item.replace(" ", "_"), ctx.author.id)
+            await db("""UPDATE user_tank_inventory SET tank_theme[$1] = $2 WHERE user_id=$3""", tank_names.index(theme_message), item.replace(" ", "_"), user.id)
