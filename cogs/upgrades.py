@@ -13,7 +13,7 @@ class Upgrades(vbu.Cog):
         'lure_upgrade': 'This upgrade increases the chance of getting an inverted or golden fish.',
         'weight_upgrade': 'This upgrade increases the possible level a caught fish can be.'
     }
-    UPGRADE_COST_LIST = (125, 250, 500, 1000, 2000,)
+    UPGRADE_COST_LIST = (250, 500, 1000, 2000, 5000)
 
     @vbu.command()
     @vbu.bot_has_permissions(send_messages=True, embed_links=True)

@@ -22,8 +22,11 @@ class Misc(vbu.Cog):
     @vbu.command()
     @vbu.bot_has_permissions(send_messages=True)
     async def bug(self, ctx: commands.Context, command: str, *, info: str):
+        """
+        This command sends a bug report to the support server.
+        """
         user = ctx.author
-        channel = self.bot.get_channel(858953487726149663)
+        channel = self.bot.get_channel(877446487087415337)
         await channel.send(
             f"From: {user.mention}\n"
             f"**{command}**: {info}",

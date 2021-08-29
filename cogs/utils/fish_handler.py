@@ -5,29 +5,29 @@ import typing
 
 SPECIAL_RARITY_PERCENTAGES = {
     1: [
-        ("normal", .94),
-        ("inverted", .05),
-        ("golden", .01)
+        ("normal", .989),
+        ("inverted", .010),
+        ("golden", .001)
     ],
     2: [
-        ("normal", .90),
-        ("inverted", .08),
-        ("golden", .02)
+        ("normal", .978),
+        ("inverted", .020),
+        ("golden", .002)
     ],
     3: [
-        ("normal", .85),
-        ("inverted", .12),
-        ("golden", .03)
+        ("normal", .956),
+        ("inverted", .040),
+        ("golden", .004)
     ],
     4: [
-        ("normal", .78),
-        ("inverted", .18),
-        ("golden", .04)
+        ("normal", .912),
+        ("inverted", .080),
+        ("golden", .008)
     ],
     5: [
-        ("normal", .67),
-        ("inverted", .27),
-        ("golden", .06)
+        ("normal", .824),
+        ("inverted", .160),
+        ("golden", .016)
     ]
 }
 
@@ -41,6 +41,14 @@ _RARITY_PERCENTAGES = {
         ("mythic", 0.0008),
     ],
     2: [
+        ("common", 0.6377),
+        ("uncommon", 0.2326),
+        ("rare", 0.0855),
+        ("epic", 0.0316),
+        ("legendary", 0.0118),
+        ("mythic", 0.0008),
+    ],
+    3: [
         ("common", 0.6062),
         ("uncommon", 0.2423),
         ("rare", 0.0967),
@@ -48,32 +56,39 @@ _RARITY_PERCENTAGES = {
         ("legendary", 0.0154),
         ("mythic", 0.0009),
     ],
-    3: [
+    4: [
+        ("common", 0.5610),
+        ("uncommon", 0.2500),
+        ("rare", 0.1128),
+        ("epic", 0.0515),
+        ("legendary", 0.0238),
+        ("mythic", 0.0009),
+    ],
+    5: [
         ("common", 0.5156),
         ("uncommon", 0.2578),
         ("rare", 0.1289),
         ("epic", 0.0645),
         ("legendary", 0.0322),
         ("mythic", 0.0010),
-    ],
-    4: [
-        ("common", 0.4558),
-        ("uncommon", 0.2605),
-        ("rare", 0.1490),
-        ("epic", 0.0850),
-        ("legendary", 0.0486),
-        ("mythic", 0.0011),
-    ],
-    5: [
-        ("common", 0.3843),
-        ("uncommon", 0.2558),
-        ("rare", 0.1701),
-        ("epic", 0.1134),
-        ("legendary", 0.0752),
-        ("mythic", 0.0012),
     ]
 }
-
+    # 4: [
+    #     ("common", 0.4558),
+    #     ("uncommon", 0.2605),
+    #     ("rare", 0.1490),
+    #     ("epic", 0.0850),
+    #     ("legendary", 0.0486),
+    #     ("mythic", 0.0011),
+    # ],
+    # 5: [
+    #     ("common", 0.3843),
+    #     ("uncommon", 0.2558),
+    #     ("rare", 0.1701),
+    #     ("epic", 0.1134),
+    #     ("legendary", 0.0752),
+    #     ("mythic", 0.0012),
+    # ]
 RARITY_PERCENTAGE_DICT = dict(_RARITY_PERCENTAGES)  # A dictionary of `rarity: percentage`
 
 RARITY_CULERS = {
@@ -143,7 +158,7 @@ EMOJI_RARITIES = {
         "quoyi_parrotfish": "<:quoyi_parrotfish:878370650241249290>",
         "narwhal": "<:narwhal:878370649935073410>",
         "dumbo_octopus": "<:dumbo_octopus:878370650060902460>",
-        "small_red_handfish": "<:small_red_handfish:878370649448534026>",
+        "red_handfish": "<:red_handfish:878370649448534026>",
         "walking_batfish": "<:walking_batfish:878370649867960330>",
         "black_drakefish": "<:black_drakefish:878380261363056710>",
         "blue_drakefish": "<:blue_drakefish:878380261153329272>",

@@ -17,7 +17,7 @@ class Aquarium(vbu.Cog):
     @vbu.bot_has_permissions(send_messages=True)
     async def firsttank(self, ctx: commands.Context):
         """
-        This command gives you your first tank.
+        This command gives the user their first tank.
         """
 
         # See if they already have a tank
@@ -121,7 +121,7 @@ class Aquarium(vbu.Cog):
     @vbu.bot_has_permissions(send_messages=True)
     async def remove(self, ctx: commands.Context, tank_name: str, fish_removed: str):
         '''
-        This command removes a specified fish from a specified tank.
+        This command removes a specified fish from a specified tank and has a cooldown.
         '''
         # variables for size value and the slot the tank is in
         size_values = {"small": 1, "medium": 5, "large": 10}
@@ -167,7 +167,7 @@ class Aquarium(vbu.Cog):
     @vbu.bot_has_permissions(send_messages=True, embed_links=True)
     async def show(self, ctx: commands.Context, *, tank_name: str):
         """
-        This command produces a gif of the specified tank.
+        This command produces a gif of the specified tank. DO NOT USE SLASH COMMANDS
         """
 
         # Typing Indicator

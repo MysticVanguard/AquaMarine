@@ -15,7 +15,7 @@ class Fishing(vbu.Cog):
         super().__init__(bot)
 
     @vbu.command()
-    @vbu.cooldown.cooldown(1, 6 * 60, commands.BucketType.user)
+    @vbu.cooldown.cooldown(1, 15 * 60, commands.BucketType.user)
     @vbu.bot_has_permissions(send_messages=True, embed_links=True)
     async def fish(self, ctx: commands.Context):
         """
@@ -41,11 +41,11 @@ class Fishing(vbu.Cog):
 
         # Roll a dice to see if they caught multiple fish
         two_in_one_chance = {
-            1: 500,
-            2: 400,
-            3: 300,
-            4: 200,
-            5: 100,
+            1: 10000,
+            2: 9500,
+            3: 8500,
+            4: 6000,
+            5: 1000,
         }
         two_in_one_roll = random.randint(1, two_in_one_chance[upgrades[0]['line_upgrade']])
         if two_in_one_roll == 1:
@@ -92,13 +92,15 @@ class Fishing(vbu.Cog):
             embed.set_image(url="attachment://new_fish.png")
             embed.color = utils.RARITY_CULERS[rarity]
             fish_file = discord.File(new_fish["image"], "new_fish.png")
-            message = await ctx.send(file=fish_file, embed=embed)
+
 
             # Ask if they want to sell the fish they just caught
-            await utils.ask_to_sell_fish(self.bot, ctx.author, message, new_fish)
+            print(utils.current_fishers)
+            await utils.ask_to_sell_fish(self.bot, ctx, new_fish, embed=embed, file=fish_file)
 
         # And now they should be allowed to fish again
         utils.current_fishers.remove(ctx.author.id)
+        print(utils.current_fishers)
 
     @fish.error
     async def fish_error(self, ctx, error):
@@ -115,7 +117,7 @@ class Fishing(vbu.Cog):
     @vbu.bot_has_permissions(send_messages=True, embed_links=True)
     async def rename(self, ctx: commands.Context, old: str, new: str):
         """
-        Renames specified fish.
+        This command renames a specified fish.
         """
 
         # Get the user's fish inventory based on the fish's name

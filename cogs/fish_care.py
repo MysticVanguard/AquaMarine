@@ -36,9 +36,9 @@ class FishCare(vbu.Cog):
     @vbu.bot_has_permissions(send_messages=True)
     async def entertain(self, ctx: commands.Context, fish_played_with: str):
         """
-        This command entertains a fish in a tank.
+        This command entertains a fish in a tank, giving it xp.
         """
-
+        await ctx.trigger_typing()
         # fetches needed row
         async with self.bot.database() as db:
             fish_rows = await db(
@@ -138,7 +138,7 @@ class FishCare(vbu.Cog):
     @vbu.bot_has_permissions(send_messages=True)
     async def clean(self, ctx: commands.Context, tank_cleaned: str):
         """
-        This command cleans a tank.
+        This command cleans a tank, earning the user sand dollars.
         """
 
         # Get the fish and tank data from the database
@@ -151,12 +151,15 @@ class FishCare(vbu.Cog):
 
         # Work out which slot the tank is in
         tank_slot = 0
+        if not tank_rows:
+            return await ctx.send("There is no tank with that name")
+        if tank_cleaned not in tank_rows[0]['tank_name']:
+            return await ctx.send("There is no tank with that name")
         for tank_slots, tank_slot_in in enumerate(tank_rows[0]['tank_name']):
             if tank_slot_in == tank_cleaned:
                 tank_slot = tank_slots
                 break
-        else:
-            return await ctx.send("There is no tank with that name")
+
 
         # See if they're able to clean their tank
         if tank_rows[0]['tank_clean_time'][tank_slot]:
@@ -198,6 +201,9 @@ class FishCare(vbu.Cog):
     @vbu.command()
     @vbu.bot_has_permissions(send_messages=True)
     async def revive(self, ctx: commands.Context, fish: str):
+        """
+        This command uses a revival and revives a specified fish.
+        """
 
         # Get database vars
         async with self.bot.database() as db:

@@ -14,21 +14,21 @@ from cogs.utils.misc_utils import create_bucket_embed
 
 FISH_SHOP_EMBED = discord.Embed(title="Fish Shop")
 FISH_SHOP_EMBED.add_field(name="Fish Bags", value="These are bags containing a fish of a random rarity", inline=False)
-FISH_SHOP_EMBED.add_field(name="Common Fish Bag <:common_fish_bag:877646166983053383>", value="This gives you one fish with normal chances \n __50 <:sand_dollar:877646167494762586>__", inline=True)
-FISH_SHOP_EMBED.add_field(name="Uncommon Fish Bag <:uncommon_fish_bag:877646167146651768>", value="This gives you one fish with increased chances \n __100 <:sand_dollar:877646167494762586>__", inline=True)
-FISH_SHOP_EMBED.add_field(name="Rare Fish Bag <:rare_fish_bag:877646167121489930>", value="This gives you one fish with higher chances \n __200 <:sand_dollar:877646167494762586>__", inline=True)
-FISH_SHOP_EMBED.add_field(name="Epic Fish Bag <:epic_fish_bag:877646167243120701>", value="This gives you one fish with substantially better chances \n __400 <:sand_dollar:877646167494762586>__", inline=True)
-FISH_SHOP_EMBED.add_field(name="Legendary Fish Bag <:legendary_fish_bag:877646166953717813>", value="This gives you one fish with extremely better chances \n __500 <:sand_dollar:877646167494762586>__", inline=True)
-FISH_SHOP_EMBED.add_field(name="Mystery Fish Bag <:mystery_fish_bag:877646167054376992>", value="This gives you one bag of a random rarity \n __250 <:sand_dollar:877646167494762586>__", inline=True)
+FISH_SHOP_EMBED.add_field(name="Common Fish Bag <:common_fish_bag:877646166983053383>", value="This gives you one fish with normal chances \n __25 <:sand_dollar:877646167494762586>__", inline=True)
+FISH_SHOP_EMBED.add_field(name="Uncommon Fish Bag <:uncommon_fish_bag:877646167146651768>", value="This gives you one fish with increased chances \n __50 <:sand_dollar:877646167494762586>__", inline=True)
+FISH_SHOP_EMBED.add_field(name="Rare Fish Bag <:rare_fish_bag:877646167121489930>", value="This gives you one fish with higher chances \n __100 <:sand_dollar:877646167494762586>__", inline=True)
+FISH_SHOP_EMBED.add_field(name="Epic Fish Bag <:epic_fish_bag:877646167243120701>", value="This gives you one fish with substantially better chances \n __200 <:sand_dollar:877646167494762586>__", inline=True)
+FISH_SHOP_EMBED.add_field(name="Legendary Fish Bag <:legendary_fish_bag:877646166953717813>", value="This gives you one fish with extremely better chances \n __250 <:sand_dollar:877646167494762586>__", inline=True)
+FISH_SHOP_EMBED.add_field(name="Mystery Fish Bag <:mystery_fish_bag:877646167054376992>", value="This gives you one bag of a random rarity \n __125 <:sand_dollar:877646167494762586>__", inline=True)
 FISH_SHOP_EMBED.add_field(name="Fish Care", value="These are items to help keep your fish alive", inline=False)
-FISH_SHOP_EMBED.add_field(name="Fish Revival <:revival:878297091158474793>", value="This gives you a fish revival to bring your fish back to life \n __1,000 <:sand_dollar:877646167494762586>__", inline=True)
-FISH_SHOP_EMBED.add_field(name="Fish Flakes <:fish_flakes:877646167188602880>", value="This gives you fish flakes to feed your fish, keeping them alive \n __100 <:sand_dollar:877646167494762586>__", inline=True)
+FISH_SHOP_EMBED.add_field(name="Fish Revival <:revival:878297091158474793>", value="This gives you a fish revival to bring your fish back to life \n __2,500 <:sand_dollar:877646167494762586>__", inline=True)
+FISH_SHOP_EMBED.add_field(name="Fish Flakes <:fish_flakes:877646167188602880>", value="This gives you fish flakes to feed your fish, keeping them alive \n __200 <:sand_dollar:877646167494762586>__", inline=True)
 FISH_SHOP_EMBED.add_field(name="Tanks", value="These are tanks you can buy to put your fish into, can only be purchased one at a time", inline=False)
 FISH_SHOP_EMBED.add_field(name="Fish Bowl", value="This gives you a Fish Bowl Tank that you can deposit one small fish into \n __100 <:sand_dollar:877646167494762586>__", inline=True)
-FISH_SHOP_EMBED.add_field(name="Small Tank", value="This gives you a Small Tank that you can deposit five small fish or one medium fish into\n __500 <:sand_dollar:877646167494762586>__", inline=True)
-FISH_SHOP_EMBED.add_field(name="Medium Tank", value="This gives you a Medium Tank that you can deposit twenty five small fish, five medium fish, or one large fish into \n __2,500 <:sand_dollar:877646167494762586>__", inline=True)
+FISH_SHOP_EMBED.add_field(name="Small Tank", value="This gives you a Small Tank that you can deposit five small fish or one medium fish into\n __1,000 <:sand_dollar:877646167494762586>__", inline=True)
+FISH_SHOP_EMBED.add_field(name="Medium Tank", value="This gives you a Medium Tank that you can deposit twenty five small fish, five medium fish, or one large fish into \n __5,000 <:sand_dollar:877646167494762586>__", inline=True)
 FISH_SHOP_EMBED.add_field(name="Tank Themes", value="These are themes you can buy for your tanks", inline=False)
-FISH_SHOP_EMBED.add_field(name="Plant Life", value="This gives you the plant life theme for one of your tanks \n __10 <:doubloon:878297091057807400>__", inline=True)
+FISH_SHOP_EMBED.add_field(name="Plant Life", value="This gives you the plant life theme for one of your tanks \n __250 <:doubloon:878297091057807400>__", inline=True)
 
 
 class Shop(vbu.Cog):
@@ -46,7 +46,7 @@ class Shop(vbu.Cog):
     @vbu.bot_has_permissions(send_messages=True, embed_links=True)
     async def buy(self, ctx: commands.Context, item: str, amount: int = 1):
         """
-        This command buys an item from a shop with the given value.
+        This command buys an item from a shop with the given amount.
         """
 
         # Say what's valid
@@ -66,18 +66,18 @@ class Shop(vbu.Cog):
             "(user_id) DO UPDATE SET {0}=user_item_inventory.{0}+excluded.{0}"
         )
         item_name_dict = {
-            "cfb": (utils.COMMON_BAG_NAMES, 50, "Common Fish Bag", inventory_insert_sql.format("cfb")),
-            "ufb": (utils.UNCOMMON_BAG_NAMES, 100, "Uncommon Fish Bag", inventory_insert_sql.format("ufb")),
-            "rfb": (utils.RARE_BAG_NAMES, 200, "Rare Fish Bag", inventory_insert_sql.format("rfb")),
-            "efb": (utils.EPIC_BAG_NAMES, 400, "Epic Fish Bag", inventory_insert_sql.format("efb")),
-            "lfb": (utils.LEGENDARY_BAG_NAMES, 500, "Legendary Fish Bag", inventory_insert_sql.format("lfb")),
-            "mfb": (utils.MYSTERY_BAG_NAMES, 250),
-            "flakes": (utils.FISH_FLAKES_NAMES, 100, "Fish Flakes", inventory_insert_sql.format("flakes")),
-            "revival": (utils.FISH_REVIVAL_NAMES, 1000, "Fish Revival", inventory_insert_sql.format("revival")),
+            "cfb": (utils.COMMON_BAG_NAMES, 25, "Common Fish Bag", inventory_insert_sql.format("cfb")),
+            "ufb": (utils.UNCOMMON_BAG_NAMES, 50, "Uncommon Fish Bag", inventory_insert_sql.format("ufb")),
+            "rfb": (utils.RARE_BAG_NAMES, 100, "Rare Fish Bag", inventory_insert_sql.format("rfb")),
+            "efb": (utils.EPIC_BAG_NAMES, 200, "Epic Fish Bag", inventory_insert_sql.format("efb")),
+            "lfb": (utils.LEGENDARY_BAG_NAMES, 250, "Legendary Fish Bag", inventory_insert_sql.format("lfb")),
+            "mfb": (utils.MYSTERY_BAG_NAMES, 125),
+            "flakes": (utils.FISH_FLAKES_NAMES, 200, "Fish Flakes", inventory_insert_sql.format("flakes")),
+            "revival": (utils.FISH_REVIVAL_NAMES, 2500, "Fish Revival", inventory_insert_sql.format("revival")),
             "Fish Bowl": (utils.FISH_BOWL_NAMES, 100, "Fish Bowl", ""),
-            "Small Tank": (utils.SMALL_TANK_NAMES, 500, "Small Tank", ""),
-            "Medium Tank": (utils.MEDIUM_TANK_NAMES, 2500, "Medium Tank", ""),
-            "Plant Life": (utils.PLANT_LIFE_NAMES, 10, "Plant Life", "")
+            "Small Tank": (utils.SMALL_TANK_NAMES, 1000, "Small Tank", ""),
+            "Medium Tank": (utils.MEDIUM_TANK_NAMES, 5000, "Medium Tank", ""),
+            "Plant Life": (utils.PLANT_LIFE_NAMES, 250, "Plant Life", "")
         }
         item_name_singular = [
             utils.FISH_BOWL_NAMES, utils.SMALL_TANK_NAMES, utils.MEDIUM_TANK_NAMES, utils.PLANT_LIFE_NAMES
@@ -99,7 +99,7 @@ class Shop(vbu.Cog):
                     [.5, .3, .125, .05, .025,]
                 )[0]
                 _, _, response, db_call = item_name_dict[rarity_type]
-                cost = 250
+                cost = 125
             else:
                 _, cost, response, db_call = data
             for names in item_name_singular:
@@ -148,7 +148,7 @@ class Shop(vbu.Cog):
     @vbu.bot_has_permissions(send_messages=True, embed_links=True)
     async def use(self, ctx: commands.Context, item: str):
         """
-        This command is only for using fish bags, it is just like using the fish command.
+        This command is only for using fish bags, and is just like using the fish command.
         """
 
         if ctx.author.id in utils.current_fishers:
@@ -249,10 +249,9 @@ class Shop(vbu.Cog):
         embed.color = utils.RARITY_CULERS[rarity]
         embed.set_image(url="attachment://new_fish.png")
         fish_file = discord.File(new_fish["image"], "new_fish.png")
-        message = await ctx.send(file=fish_file, embed=embed)
 
         # Ask the user if they want to sell the fish
-        await utils.ask_to_sell_fish(self.bot, ctx.author, message, new_fish)
+        await utils.ask_to_sell_fish(self.bot, ctx, new_fish, embed = embed, file=fish_file)
 
         utils.current_fishers.remove(ctx.author.id)
 
@@ -261,7 +260,7 @@ class Shop(vbu.Cog):
     @vbu.bot_has_permissions(send_messages=True, embed_links=True)
     async def inventory(self, ctx: commands.Context):
         """
-        Shows your bag inventory.
+        Shows the user's item inventory.
         """
 
         fetched_info = []
@@ -286,7 +285,7 @@ class Shop(vbu.Cog):
     @vbu.bot_has_permissions(send_messages=True, embed_links=True)
     async def slots(self, ctx: commands.Context):
         """
-        This command roles the slots.
+        This command rolls the slots, costing 5 Sand Dollars.
         """
 
         if ctx.author.id in utils.current_fishers:
@@ -336,7 +335,6 @@ class Shop(vbu.Cog):
             row.append(f"{emoji_id}{emoji_id}{emoji_id}")
             embed.add_field(name="*spent 5 <:sand_dollar:877646167494762586>*", value="\n".join(row), inline=False)
             embed.add_field(name="Lucky", value=f"You won {fish_random_name.title()} :)", inline=False)
-            message = await ctx.send(embed=embed)
             async with self.bot.database() as db:
                 # Achievements
                 await db(
@@ -344,7 +342,8 @@ class Shop(vbu.Cog):
                     ON CONFLICT (user_id) DO UPDATE SET times_caught = user_achievements.times_caught + 1""",
                     ctx.author.id
                     )
-            await utils.ask_to_sell_fish(ctx.author, message, used_fish)
+            await utils.ask_to_sell_fish(self.bot, ctx, used_fish, embed=embed)
+            utils.current_fishers.remove(ctx.author.id)
         else:
             for i in range(0, 9, 3):
                 row.append(
@@ -361,7 +360,7 @@ class Shop(vbu.Cog):
     @vbu.bot_has_permissions(send_messages=True)
     async def balance(self, ctx: commands.Context, user: discord.Member = None):
         """
-        This command checks your balance or another users.
+        This command checks the user's balance or another user's balance.
         """
 
         async with self.bot.database() as db:
@@ -452,7 +451,7 @@ class Shop(vbu.Cog):
     @vbu.bot_has_permissions(send_messages=True)
     async def daily(self, ctx: commands.Context):
         """
-        This command gives you a daily reward of 100 Sand Dollars.
+        This command gives the user a daily reward of 100 Sand Dollars.
         """
 
         # Adds the money to the users balance
@@ -464,8 +463,8 @@ class Shop(vbu.Cog):
             )
             # Achievements
             await db(
-                """INSERT INTO user_achievements (user_id, money_gained) VALUES ($1, 1000000000)
-                ON CONFLICT (user_id) DO UPDATE SET money_gained = user_achievements.money_gained + 1000000000""",
+                """INSERT INTO user_achievements (user_id, money_gained) VALUES ($1, 100)
+                ON CONFLICT (user_id) DO UPDATE SET money_gained = user_achievements.money_gained + 100""",
                 ctx.author.id
                 )
 
@@ -479,30 +478,16 @@ class Shop(vbu.Cog):
         if not isinstance(error, commands.CommandOnCooldown):
             raise error
 
-        time = error.retry_after
-        if 5_400 > time >= 3_600:
-            form = 'hour'
-            time /= 60 * 60
-        elif time > 3_600:
-            form = 'hours'
-            time /= 60 * 60
-        elif 90 > time >= 60:
-            form = 'minute'
-            time /= 60
-        elif time >= 60:
-            form = 'minutes'
-            time /= 60
-        elif time < 1.5:
-            form = 'second'
-        else:
-            form = 'seconds'
-        await ctx.send(f'Daily reward claimed, please try again in {round(time)} {form}.')
+        time = timedelta(seconds=int(error.retry_after))
+
+        await ctx.send(f'Daily reward claimed, please try again {vbu.TimeFormatter(dt.utcnow() + time - timedelta(hours=4)).relative_time}.')
 
     @vbu.command()
+    @vbu.cooldown.cooldown(1, 30, commands.BucketType.user)
     @vbu.bot_has_permissions(send_messages=True, embed_links=True)
     async def gamble(self, ctx: commands.Context):
         """
-        The gamble command.
+        This command is similar to slots, but doesn't cost anything.
         """
 
         # Pick the rarity that the user rolled
@@ -596,14 +581,15 @@ class Shop(vbu.Cog):
                 break
 
         # Sees if they won the fish they rolled
-        if emojis[0] == emojis[1] == emojis[2] and emojis != "<a:first_set_roll:875259843571748924>":
+        if emojis[0] == emojis[1] == emojis[2] and "<a:first_set_roll:875259843571748924>" not in emojis:
             fish_won = fish_type[0]
             for rarity, fish_types in self.bot.fish.items():
                 for fish_type, fish_info in fish_types.items():
                     if fish_info["raw_name"] == fish_won:
                         fish_won_info = fish_info
                         break
-            message = await ctx.send(f"{ctx.author.mention} has won a {' '.join(fish_won.split('_')).title()}!")
+            embed = discord.Embed()
+            embed.add_field(name=f"{ctx.author.display_name} has won:", value=' '.join(fish_won.split('_')).title())
             async with self.bot.database() as db:
                 # Achievements
                 await db(
@@ -611,13 +597,22 @@ class Shop(vbu.Cog):
                     ON CONFLICT (user_id) DO UPDATE SET times_caught = user_achievements.times_caught + 1""",
                     ctx.author.id
                     )
-            await utils.ask_to_sell_fish(self.bot, ctx.author, message, fish_won_info)
+            await utils.ask_to_sell_fish(self.bot, ctx, fish_won_info, embed=embed)
         else:
             await ctx.send(f"{ctx.author.mention} lost!")
 
         utils.current_fishers.remove(ctx.author.id)
 
+    @gamble.error
+    async def gamble_error(self, ctx, error):
 
+        # Only handle cooldown errors
+        if not isinstance(error, commands.CommandOnCooldown):
+            raise error
+
+        time = timedelta(seconds=int(error.retry_after))
+
+        await ctx.send(f'Gamble cooldown, please try again {vbu.TimeFormatter(dt.utcnow() + time - timedelta(hours=4)).relative_time}.')
 
 
 

@@ -35,7 +35,7 @@ CREDITS_EMBED.add_field(
     name="Credits to all the people who have helped me test the bot!",
     value="""Aria, Astro, Dessy, Finn, George,
     Jack, Kae, Nafezra, Quig Quonk,
-    Schlöpp, Toby, Tor
+    Schlöpp, Toby, Victor, Ween
     """,
     inline=False
 )
@@ -48,7 +48,7 @@ class Informative(vbu.Cog):
     @vbu.bot_has_permissions(send_messages=True)
     async def tanks(self, ctx: commands.Context):
         """
-        Shows information about the users tanks.
+        Shows information about the user's tanks.
         """
 
         # Get the user's data
@@ -94,7 +94,7 @@ class Informative(vbu.Cog):
     @vbu.bot_has_permissions(send_messages=True, embed_links=True)
     async def profile(self, ctx: commands.Context):
         """
-        Shows the users profile.
+        Shows the user's profile.
         """
 
         items = {
@@ -106,7 +106,7 @@ class Informative(vbu.Cog):
             "flakes": "<:fish_flakes:877646167188602880>",
             "revival": "<:revival:878297091158474793>",
         }
-
+        fields_dict = {}
         # Get the user's inventory from the database
         async with self.bot.database() as db:
             fish_row = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1""", ctx.author.id)
@@ -114,88 +114,83 @@ class Informative(vbu.Cog):
             balance = await db("""SELECT * FROM user_balance WHERE user_id = $1""", ctx.author.id)
             inventory_row = await db("""SELECT * FROM user_item_inventory WHERE user_id = $1""", ctx.author.id)
 
-        # Get a list of the user's fish types and levels
-        user_fish = []
-        user_fish_info = []
-        for row in fish_row:
-            user_fish.append(row['fish'])
-            user_fish_info.append(row['fish_level'])
-
-        # Work out the user's highest level fish
-        highest_level_index = user_fish_info.index(max(user_fish_info))
-        highest_level_fish = fish_row[highest_level_index]
-
-        # Get the emoji for the user's highest level fish, as well as how many of each given
-        # fish they have
-        fish_number = {}
-        highest_level_fish_emoji = ""
-        for rarity, fish in utils.EMOJI_RARITIES.items():
-
-            # Get the emoji for the highest level fish that the user has
-            for name, emoji in fish.items():
-                if highest_level_fish['fish'] == name:
-                    highest_level_fish_emoji = emoji
-                    break
-
-            # Get the number of fish that the user has by emoji
-            for fish_owned in set(user_fish):
-                if fish_owned in fish.keys():
-                    emoji = fish[fish_owned]
-                    fish_number[emoji] = user_fish.count(fish_owned)
-
-        # Format a string for the embed
-        fish_info = [f"{fish_key}: x{fish_value}" for fish_key, fish_value in fish_number.items()]
-
-        # Work out how many fish from each rarity level the user has
-        collection_data = []
-        user_fish_types = set([i['fish'] for i in fish_row])
-        for rarity, fish in self.bot.fish.items():
-            rarity_fish_count = len(fish)  # The number of fish in a given rarity
-            user_rarity_fish_count = 0  # The number in that rarity that the user has
-            for info in fish.values():
-                if info['raw_name'] in user_fish_types:
-                    user_rarity_fish_count += 1
-            collection_data.append([rarity, rarity_fish_count, user_rarity_fish_count])
-
-        # Get the number of items that the user has from their inventory
-        inventory_number = {}
-        for row in inventory_row:
-            for key, value in row.items():
-                if key == "user_id":
-                    continue
-                inventory_number[items[key]] = value
-
-        # Get the number of tanks that the user has
-        number_of_tanks = 0
-        if tank_row:
-            number_of_tanks = tank_row[0]['tank'].count(True)
-
-        # Format some strings for our embed
-        inventory_info = [f"{inv_key}: x{inv_value}" for inv_key, inv_value in inventory_number.items()]
-        collection_info = [f"{x[0]}: {x[2]}/{x[1]}" for x in collection_data]
-        fields_dict = {
-            'Collection': ("\n".join(collection_info), False),
-            'Balance': (f'<:sand_dollar:877646167494762586>: x{balance[0]["balance"]}\n<:doubloon:878297091057807400>: x{balance[0]["doubloon"]}', False),
-            '# of Tanks': (number_of_tanks, False),
-            'Highest Level Fish': (f'{highest_level_fish_emoji} {highest_level_fish["fish_name"]}: Lvl. {highest_level_fish["fish_level"]} {highest_level_fish["fish_xp"]}/ {highest_level_fish["fish_xp_max"]}', False),
-            'Achievements': ("Soon To Be Added.", True),
-            'Owned Fish': (' '.join(fish_info), True),
-            'Items': (' '.join(inventory_info), True),
-        }
-
         # Work out the information to be displayed in the embed
-        if not collection_info:
+        if not fish_row:
             fields_dict['Collection'] = ("none", False)
+            fields_dict['Highest Level Fish'] = ("none", False)
+            fields_dict['Owned Fish'] = ("none", True)
+        else:
+            # Get a list of the user's fish types and levels
+            user_fish = []
+            user_fish_info = []
+            for row in fish_row:
+                user_fish.append(row['fish'])
+                user_fish_info.append(row['fish_level'])
+
+            # Work out the user's highest level fish
+            highest_level_index = user_fish_info.index(max(user_fish_info))
+            highest_level_fish = fish_row[highest_level_index]
+
+            # Get the emoji for the user's highest level fish, as well as how many of each given
+            # fish they have
+            fish_number = {}
+            highest_level_fish_emoji = ""
+            for rarity, fish in utils.EMOJI_RARITIES.items():
+
+                # Get the emoji for the highest level fish that the user has
+                for name, emoji in fish.items():
+                    if highest_level_fish['fish'] == name:
+                        highest_level_fish_emoji = emoji
+                        break
+
+                # Get the number of fish that the user has by emoji
+                for fish_owned in set(user_fish):
+                    if fish_owned in fish.keys():
+                        emoji = fish[fish_owned]
+                        fish_number[emoji] = user_fish.count(fish_owned)
+
+            # Format a string for the embed
+            fish_info = [f"{fish_key}: x{fish_value}" for fish_key, fish_value in fish_number.items()]
+
+            # Work out how many fish from each rarity level the user has
+            collection_data = []
+            user_fish_types = set([i['fish'] for i in fish_row])
+            for rarity, fish in self.bot.fish.items():
+                rarity_fish_count = len(fish)  # The number of fish in a given rarity
+                user_rarity_fish_count = 0  # The number in that rarity that the user has
+                for info in fish.values():
+                    if info['raw_name'] in user_fish_types:
+                        user_rarity_fish_count += 1
+                collection_data.append([rarity, rarity_fish_count, user_rarity_fish_count])
+                collection_info = [f"{x[0]}: {x[2]}/{x[1]}" for x in collection_data]
+                fields_dict['Collection']= ("\n".join(collection_info), False)
+                fields_dict['Highest Level Fish']= (f'{highest_level_fish_emoji} {highest_level_fish["fish_name"]}: Lvl. {highest_level_fish["fish_level"]} {highest_level_fish["fish_xp"]}/ {highest_level_fish["fish_xp_max"]}', False)
+                fields_dict['Owned Fish']= (' '.join(fish_info), True)
         if not balance:
             fields_dict['Balance'] = ("none", False)
-        if not number_of_tanks:
+        else:
+            fields_dict['Balance']= (f'<:sand_dollar:877646167494762586>: x{balance[0]["balance"]}\n<:doubloon:878297091057807400>: x{balance[0]["doubloon"]}', False)
+        if not tank_row:
             fields_dict['# of Tanks'] = ("none", False)
-        if not highest_level_fish_emoji:
-            fields_dict['Highest Level Fish'] = ("none", False)
-        if not fish_info:
-            fields_dict['Owned Fish'] = ("none", True)
-        if not inventory_info:
+        else:
+            # Get the number of tanks that the user has
+            number_of_tanks = 0
+            if tank_row:
+                number_of_tanks = tank_row[0]['tank'].count(True)
+            fields_dict['# of Tanks']= (number_of_tanks, False)
+        if not inventory_row:
             fields_dict['Items'] = ("none", True)
+        else:
+            # Get the number of items that the user has from their inventory
+            inventory_number = {}
+            for row in inventory_row:
+                for key, value in row.items():
+                    if key == "user_id":
+                        continue
+                    inventory_number[items[key]] = value
+            inventory_info = [f"{inv_key}: x{inv_value}" for inv_key, inv_value in inventory_number.items()]
+            fields_dict['Items']= (' '.join(inventory_info), True)
+        fields_dict['Achievements']= ("Soon To Be Added.", True)
 
         # Create and format the embed
         embed = vbu.Embed(title=f"{ctx.author.display_name}'s Profile")
@@ -208,7 +203,7 @@ class Informative(vbu.Cog):
     @vbu.bot_has_permissions(send_messages=True, embed_links=True)
     async def bestiary(self, ctx: commands.Context, *, fish_name: str = None):
         """
-        This command shows you info about fish.
+        This command shows the user info about fish.
         """
 
         # See if we want to list all of the fish
@@ -236,7 +231,7 @@ class Informative(vbu.Cog):
         embed = discord.Embed(title=selected_fish["name"])
         embed.set_image(url="attachment://new_fish.png")
         embed.add_field(name='Rarity:', value=f"{selected_fish['rarity']}", inline=False)
-        embed.add_field(name='Base Sell Price:', value=f"{int(int(selected_fish['cost']) / 10)} <:sand_dollar:877646167494762586>", inline=False)
+        embed.add_field(name='Base Sell Price:', value=f"{int(int(selected_fish['cost']) / 2)} <:sand_dollar:877646167494762586>", inline=False)
         embed.add_field(name='Size:', value=f"{selected_fish['size']}", inline=False)
         embed.color = {
             "common": 0xFFFFFE,  # White - FFFFFF doesn't work with Discord
@@ -304,7 +299,7 @@ class Informative(vbu.Cog):
     @vbu.bot_has_permissions(send_messages=True, embed_links=True)
     async def achievements(self, ctx: commands.Context):
         """
-        Shows the achievements and lets the user claim them..
+        Shows the achievements and lets the user claim them.
         """
         # The milestones for each achievement type
         milestones_dict_of_achievements = {
@@ -464,7 +459,7 @@ class Informative(vbu.Cog):
     @vbu.bot_has_permissions(send_messages=True, embed_links=True)
     async def credits(self, ctx: commands.Context):
         """
-        This command gives credit to the people who helped.
+        Gives credit to the people who helped.
         """
         await ctx.send(embed=CREDITS_EMBED)
 
@@ -472,7 +467,7 @@ class Informative(vbu.Cog):
     @vbu.bot_has_permissions(send_messages=True, embed_links=True)
     async def leaderboard(self, ctx: commands.Context):
         """
-        This gives a global leaderboard of balances.
+        Shows a global leaderboard of balances.
         """
         async with ctx.typing():
             user_info_unsorted = {}
