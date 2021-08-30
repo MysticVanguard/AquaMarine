@@ -27,10 +27,10 @@ CREATE TABLE IF NOT EXISTS channel_list(
 );
 
 CREATE TABLE IF NOT EXISTS user_balance (
-  user_id BIGINT,
-  balance INTEGER NOT NULL DEFAULT 0,
-  doubloon INTEGER NOT NULL DEFAULT 0,
-  PRIMARY KEY (user_id)
+    user_id BIGINT,
+    balance INTEGER NOT NULL DEFAULT 0,
+    doubloon INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (user_id)
 );
 
 CREATE TABLE IF NOT EXISTS user_fish_inventory (
