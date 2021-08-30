@@ -157,12 +157,11 @@ class Shop(vbu.Cog):
 
         rarity_chances = {
             "cfb": {"common": .6689, "uncommon": .2230, "rare": .0743, "epic": .0248, "legendary": .0082, "mythic": .0008},
-            "ufb": {"common": .6062, "uncommon": .2423, "rare": .0967, "epic": .0385, "legendary": .0154, "mythic": .0009},
-            "rfb": {"common": .5156, "uncommon": .2578, "rare": .1289, "epic": .0645, "legendary": .0322, "mythic": .0010},
-            "efb": {"common": .4558, "uncommon": .2605, "rare": .1490, "epic": .0850, "legendary": .0486, "mythic": .0011},
-            "lfb": {"common": .3843, "uncommon": .2558, "rare": .1701, "epic": .1134, "legendary": .0752, "mythic": .0012},
+            "ufb": {"common": .6377, "uncommon": .2326, "rare": .0855, "epic": .0316, "legendary": .0118, "mythic": .0008},
+            "rfb": {"common": .6062, "uncommon": .2423, "rare": .0967, "epic": .0385, "legendary": .0154, "mythic": .0009},
+            "efb": {"common": .5610, "uncommon": .2500, "rare": .1128, "epic": .0850, "legendary": .0238, "mythic": .0009},
+            "lfb": {"common": .5156, "uncommon": .2578, "rare": .1289, "epic": .0645, "legendary": .0322, "mythic": .0010},
         }
-
         # See if they are trying to use a bag
         used_bag = None
         if item.title() in utils.COMMON_BAG_NAMES:
