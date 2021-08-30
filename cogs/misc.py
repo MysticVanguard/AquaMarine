@@ -7,7 +7,7 @@ class Misc(vbu.Cog):
 
     @vbu.command()
     @vbu.bot_has_permissions(send_messages=True)
-    async def stab(self, ctx: commands.Context, user: discord.User = None):
+    async def stab(self, ctx: commands.Context, user: discord.User):
         """
         This command has a fish stab a user.
         """
