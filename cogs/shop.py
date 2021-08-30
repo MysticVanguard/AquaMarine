@@ -33,7 +33,7 @@ FISH_SHOP_EMBED.add_field(name="Plant Life", value="This gives you the plant lif
 
 class Shop(vbu.Cog):
 
-    @vbu.command(aliases=["s"])
+    @vbu.command(aliases=["s", "store"])
     @vbu.bot_has_permissions(send_messages=True, embed_links=True)
     async def shop(self, ctx: commands.Context):
         """
