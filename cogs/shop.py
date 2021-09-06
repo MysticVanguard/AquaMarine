@@ -289,11 +289,11 @@ class Shop(vbu.Cog):
 
         if ctx.author.id in utils.current_fishers:
             return await ctx.send(f"{ctx.author.display_name}, you're already fishing!")
-        utils.current_fishers.append(ctx.author.id)
 
         # See if the user has enough money
         if not await utils.check_price(self.bot, ctx.author.id, 5, 'balance'):
             return await ctx.send("You don't have enough money for this! (5)")
+        utils.current_fishers.append(ctx.author.id)
 
         # Remove money from the user
         async with self.bot.database() as db:
