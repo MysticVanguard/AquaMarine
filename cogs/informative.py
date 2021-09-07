@@ -484,9 +484,8 @@ class Informative(vbu.Cog):
             fields = []
             field_info = []
             for user_id_sorted_single in user_id_sorted:
-                user = await self.bot.fetch_user(user_id_sorted_single[1])
                 place += 1
-                field_info.append(f"#{place:,}. {user.name} ({user_id_sorted_single[0]:,})")
+                field_info.append(f"#{place:,}. <@{user_id_sorted_single[1]}> ({user_id_sorted_single[0]:,})")
                 set += 1
                 if set == 10:
                     page += 1
