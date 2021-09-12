@@ -3,35 +3,35 @@ import re
 import typing
 
 
-SPECIAL_RARITY_PERCENTAGES = {
+LURE_UPGRADES = {
     1: [
-        ("normal", .989),
-        ("inverted", .010),
-        ("golden", .001)
+        ("normal", .9989),
+        ("inverted", .0010),
+        ("golden", .0001)
     ],
     2: [
-        ("normal", .978),
-        ("inverted", .020),
-        ("golden", .002)
+        ("normal", .9978),
+        ("inverted", .0020),
+        ("golden", .0002)
     ],
     3: [
-        ("normal", .956),
-        ("inverted", .040),
-        ("golden", .004)
+        ("normal", .9956),
+        ("inverted", .0040),
+        ("golden", .0004)
     ],
     4: [
-        ("normal", .912),
-        ("inverted", .080),
-        ("golden", .008)
+        ("normal", .9912),
+        ("inverted", .0080),
+        ("golden", .0008)
     ],
     5: [
-        ("normal", .824),
-        ("inverted", .160),
-        ("golden", .016)
+        ("normal", .9824),
+        ("inverted", .0160),
+        ("golden", .0016)
     ]
 }
 
-_RARITY_PERCENTAGES = {
+BAIT_UPGRADE = {
     1: [
         ("common", 0.6689),
         ("uncommon", 0.2230),
@@ -41,6 +41,14 @@ _RARITY_PERCENTAGES = {
         ("mythic", 0.0008),
     ],
     2: [
+        ("common", 0.6689),
+        ("uncommon", 0.2230),
+        ("rare", 0.0743),
+        ("epic", 0.0248),
+        ("legendary", 0.0082),
+        ("mythic", 0.0008),
+    ],
+    3: [
         ("common", 0.6377),
         ("uncommon", 0.2326),
         ("rare", 0.0855),
@@ -48,7 +56,7 @@ _RARITY_PERCENTAGES = {
         ("legendary", 0.0118),
         ("mythic", 0.0008),
     ],
-    3: [
+    4: [
         ("common", 0.6062),
         ("uncommon", 0.2423),
         ("rare", 0.0967),
@@ -56,7 +64,7 @@ _RARITY_PERCENTAGES = {
         ("legendary", 0.0154),
         ("mythic", 0.0009),
     ],
-    4: [
+    5: [
         ("common", 0.5610),
         ("uncommon", 0.2500),
         ("rare", 0.1128),
@@ -64,32 +72,67 @@ _RARITY_PERCENTAGES = {
         ("legendary", 0.0238),
         ("mythic", 0.0009),
     ],
-    5: [
+    6: [
         ("common", 0.5156),
         ("uncommon", 0.2578),
         ("rare", 0.1289),
         ("epic", 0.0645),
         ("legendary", 0.0322),
         ("mythic", 0.0010),
-    ]
+    ],
+    7: [
+        ("common", 0.4858),
+        ("uncommon", 0.2592),
+        ("rare", 0.1389),
+        ("epic", 0.0747),
+        ("legendary", 0.0404),
+        ("mythic", 0.0010),
+    ],
+    8: [
+        ("common", 0.4558),
+        ("uncommon", 0.2605),
+        ("rare", 0.1490),
+        ("epic", 0.0850),
+        ("legendary", 0.0486),
+        ("mythic", 0.0011),
+    ],
+    9: [
+        ("common", 0.4201),
+        ("uncommon", 0.2581),
+        ("rare", 0.1596),
+        ("epic", 0.0992),
+        ("legendary", 0.0619),
+        ("mythic", 0.0011),
+    ],
+    10: [
+        ("common", 0.3843),
+        ("uncommon", 0.2558),
+        ("rare", 0.1701),
+        ("epic", 0.1134),
+        ("legendary", 0.0752),
+        ("mythic", 0.0012),
+    ],
 }
-    # 4: [
-    #     ("common", 0.4558),
-    #     ("uncommon", 0.2605),
-    #     ("rare", 0.1490),
-    #     ("epic", 0.0850),
-    #     ("legendary", 0.0486),
-    #     ("mythic", 0.0011),
-    # ],
-    # 5: [
-    #     ("common", 0.3843),
-    #     ("uncommon", 0.2558),
-    #     ("rare", 0.1701),
-    #     ("epic", 0.1134),
-    #     ("legendary", 0.0752),
-    #     ("mythic", 0.0012),
-    # ]
-RARITY_PERCENTAGE_DICT = dict(_RARITY_PERCENTAGES)  # A dictionary of `rarity: percentage`
+WEIGHT_UPGRADES = {1: (1, 2), 2: (1, 4), 3: (2, 6), 4: (2, 8), 5: (3, 10)}
+ROD_UPGRADES = {1: 1, 2: 1.1, 3: 1.2, 4: 1.3, 5: 1.5}
+LINE_UPGRADES = {
+    1: 10000,
+    2: 10000,
+    3: 9990,
+    4: 9980,
+    5: 9960,
+    6: 9920,
+    7: 9840,
+    8: 9680,
+    9: 9360,
+    10: 8720,
+}
+FEEDING_UPGRADES = {1: (3, 0), 2: (3,6), 3: (3, 12), 4: (3, 18), 5: (4, 0)}
+TOYS_UPGRADE = {1: (1, 25), 2: (1, 25), 3: (2, 30), 4: (3, 35), 5: (4, 40), 6: (5, 45), 7: (6, 50), 8: (7, 55), 9: (8, 60), 10: (10, 75)}
+AMAZEMENT_UPGRADE = {1: 100, 2: 95, 3: 90, 4: 80, 5: 60}
+BLEACH_UPGRADE = {1: 1, 2: 1, 3: 1.1, 4: 1.2, 5: 1.3, 6: 1.5, 7: 1.6, 8: 1.8, 9: 1.9, 10: 2.0}
+HYGIENIC_UPGRADE = {1: (1, 5), 2: (2, 10), 3: (3, 15), 4: (4, 20), 5: (5, 25)}
+RARITY_PERCENTAGE_DICT = dict(BAIT_UPGRADE)  # A dictionary of `rarity: percentage`
 
 RARITY_CULERS = {
     "common": 0xFFFFFE,  # White - FFFFFF doesn't work with Discord
@@ -222,8 +265,8 @@ FISH_REVIVAL_NAMES = ["Fish Revival", "Revival", "Fr"]
 
 def special_percentage_finder(upgrade_level):
     return [
-        list(i[0] for i in SPECIAL_RARITY_PERCENTAGES[upgrade_level]),
-        list(i[1] for i in SPECIAL_RARITY_PERCENTAGES[upgrade_level]),
+        list(i[0] for i in LURE_UPGRADES[upgrade_level]),
+        list(i[1] for i in LURE_UPGRADES[upgrade_level]),
     ]
 
 
@@ -233,8 +276,8 @@ def rarity_percentage_finder(upgrade_level: int) -> typing.List[float]:
     """
 
     return [
-        list(i[0] for i in _RARITY_PERCENTAGES[upgrade_level]),
-        list(i[1] for i in _RARITY_PERCENTAGES[upgrade_level]),
+        list(i[0] for i in BAIT_UPGRADE[upgrade_level]),
+        list(i[1] for i in BAIT_UPGRADE[upgrade_level]),
     ]
 
 

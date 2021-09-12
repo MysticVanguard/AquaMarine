@@ -21,14 +21,17 @@ async def ask_to_sell_fish(bot, ctx, new_fish: dict, embed, file= None):
             vbu.Button(custom_id="sell", emoji="<:sell:844594478392147968>"),
         ),
     )
-    message = await ctx.send(embed=embed, components=components, file=file)
+    try:
+        message = await ctx.send(embed=embed, components=components, file=file)
+    except discord.HTTPException:
+        return
 
     async with bot.database() as db:
         fish_rows = await db("""SELECT * FROM user_fish_inventory WHERE user_id=$1""", ctx.author.id)
-        upgrades = await db("""SELECT rod_upgrade, bait_upgrade, weight_upgrade, line_upgrade, lure_upgrade FROM user_upgrades WHERE user_id = $1""", ctx.author.id)
+        upgrades = await db("""SELECT rod_upgrade, bait_upgrade, weight_upgrade, line_upgrade, better_line_upgrade, better_bait_upgrade, lure_upgrade FROM user_upgrades WHERE user_id = $1""", ctx.author.id)
         if not upgrades:
             await db("""INSERT INTO user_upgrades (user_id) VALUES ($1)""", ctx.author.id)
-            upgrades = await db("""SELECT rod_upgrade, bait_upgrade, weight_upgrade, line_upgrade, lure_upgrade FROM user_upgrades WHERE user_id = $1""", ctx.author.id)
+            upgrades = await db("""SELECT rod_upgrade, weight_upgrade FROM user_upgrades WHERE user_id = $1""", ctx.author.id)
 
 
     # See what reaction the user is adding to the message
@@ -38,6 +41,10 @@ async def ask_to_sell_fish(bot, ctx, new_fish: dict, embed, file= None):
         bot.loop.create_task(payload.defer_update())
         return payload.user.id == ctx.author.id
             # Keep going...
+
+    # Level variables
+    level = random.randint(utils.WEIGHT_UPGRADES[upgrades[0]['weight_upgrade']][0], utils.WEIGHT_UPGRADES[upgrades[0]['weight_upgrade']][1])
+
     while True:
 
         # Wait for them to click a button
@@ -49,8 +56,10 @@ async def ask_to_sell_fish(bot, ctx, new_fish: dict, embed, file= None):
             await message.channel.send("Did you forget about me? I've been waiting for a while now! I'll just assume you wanted to sell the fish.")
             # See if they want to sell the fish
             print("sell confirm")
-            sell_multipliers = {1: 1, 2: 1.5, 3: 2, 4: 2.5, 5: 3}
-            money_earned = math.ceil((int(new_fish['cost']) / 2) * sell_multipliers[upgrades[0]['rod_upgrade']])
+
+            level_multiplier = level / 20
+            money_earned = math.ceil((int(new_fish['cost']) / 2) * utils.ROD_UPGRADES[upgrades[0]['rod_upgrade']] * level_multiplier)
+
             async with bot.database() as db:
                 await db(
                     """INSERT INTO user_balance (user_id, balance) VALUES ($1, $2)
@@ -76,12 +85,9 @@ async def ask_to_sell_fish(bot, ctx, new_fish: dict, embed, file= None):
             # Get their current fish names
             print("keep confirm")
             fish_names = []
-
             fish_names = [i['fish_name'] for i in fish_rows]
             fish_list = [(i['fish_name'], i['fish']) for i in fish_rows]
             fish_list = sorted(fish_list, key=lambda x: x[1])
-            levels_start = {1: (1, 2), 2: (1, 4), 3: (2, 6), 4: (2, 8), 5: (3, 10)}
-            level = random.randint(levels_start[upgrades[0]['weight_upgrade']][0], levels_start[upgrades[0]['weight_upgrade']][1])
             xp_max = math.floor(25 * level ** 1.5)
             sorted_fish = {
                 "common": [],
@@ -121,8 +127,8 @@ async def ask_to_sell_fish(bot, ctx, new_fish: dict, embed, file= None):
         if chosen_button == "sell":
             # See if they want to sell the fish
             print("sell confirm")
-            sell_multipliers = {1: 1, 2: 1.5, 3: 2, 4: 2.5, 5: 3}
-            money_earned = math.ceil((int(new_fish['cost']) / 2) * sell_multipliers[upgrades[0]['rod_upgrade']])
+            level_multiplier = level / 20
+            money_earned = math.ceil((int(new_fish['cost']) / 2) * utils.ROD_UPGRADES[upgrades[0]['rod_upgrade']] * (1 +level_multiplier))
             async with bot.database() as db:
                 await db(
                     """INSERT INTO user_balance (user_id, balance) VALUES ($1, $2)

@@ -424,11 +424,15 @@ class Shop(vbu.Cog):
             return await ctx.send(f"You have no fish named {fish_sold}!")
         if fish_row[0]['tank_fish']:
             return await ctx.send("That fish is in a tank, please remove it to sell it.")
-        multiplier = fish_row[0]['fish_level'] / 10
+        if fish_row[0]['fish_alive'] is False:
+            async with self.bot.database() as db:
+                await db("""DELETE FROM user_fish_inventory WHERE user_id=$1 AND fish_name = $2""", ctx.author.id, fish_sold)
+            return await ctx.send(f"You have flushed your dead fish, {fish_sold} for 0 <:sand_dollar:877646167494762586>!")
+        multiplier = fish_row[0]['fish_level'] / 20
         for rarity, fish_types in self.bot.fish.items():
             for fish_type, fish_info in fish_types.items():
                 if fish_info["raw_name"] == utils.get_normal_name(fish_row[0]['fish']):
-                    cost = int(fish_info['cost'])
+                    cost = int(int(fish_info['cost']) / 2)
         sell_money = int(cost * (1 + multiplier))
         async with self.bot.database() as db:
             await db(
@@ -510,7 +514,7 @@ class Shop(vbu.Cog):
         # Set up some vars for later
         fish_type = []  # The list of fish that they rolled
         emoji_id = []  # The list of fish emojis that they rolled
-        emojis = ["<a:first_set_roll:875259843571748924>", "<a:first_set_roll:875259843571748924>", "<a:first_set_roll:875259843571748924>"]
+        emojis = ["<a:roll:886068357378502717>", "<a:roll:886068357378502717>", "<a:roll:886068357378502717>"]
         picked_buttons = [False, False, False]
 
         # Pick three fish names from their rarity
@@ -576,11 +580,11 @@ class Shop(vbu.Cog):
             )
 
             # Break when they're done picking fish
-            if "<a:first_set_roll:875259843571748924>" not in emojis:
+            if "<a:roll:886068357378502717>" not in emojis:
                 break
 
         # Sees if they won the fish they rolled
-        if emojis[0] == emojis[1] == emojis[2] and "<a:first_set_roll:875259843571748924>" not in emojis:
+        if emojis[0] == emojis[1] == emojis[2] and "<a:roll:886068357378502717>" not in emojis:
             fish_won = fish_type[0]
             for rarity, fish_types in self.bot.fish.items():
                 for fish_type, fish_info in fish_types.items():

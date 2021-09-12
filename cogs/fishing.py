@@ -31,7 +31,7 @@ class Fishing(vbu.Cog):
         # Upgrades be like
         async with self.bot.database() as db:
             upgrades = await db(
-                """SELECT rod_upgrade, bait_upgrade, weight_upgrade, line_upgrade, lure_upgrade FROM user_upgrades WHERE user_id = $1""",
+                """SELECT rod_upgrade, bait_upgrade, weight_upgrade, line_upgrade, lure_upgrade, better_bait_upgrade, better_line_upgrade FROM user_upgrades WHERE user_id = $1""",
                 ctx.author.id,
             )
 
@@ -40,14 +40,8 @@ class Fishing(vbu.Cog):
                 upgrades = await db("""INSERT INTO user_upgrades (user_id) VALUES ($1) RETURNING *""", ctx.author.id)
 
         # Roll a dice to see if they caught multiple fish
-        two_in_one_chance = {
-            1: 10000,
-            2: 9500,
-            3: 8500,
-            4: 6000,
-            5: 1000,
-        }
-        two_in_one_roll = random.randint(1, two_in_one_chance[upgrades[0]['line_upgrade']])
+
+        two_in_one_roll = random.randint(1, utils.LINE_UPGRADES[(upgrades[0]['line_upgrade'] + upgrades[0]['better_line_upgrade'])])
         if two_in_one_roll == 1:
             caught_fish = 2
 
@@ -55,7 +49,7 @@ class Fishing(vbu.Cog):
         for x in range(caught_fish):
 
             # See what our chances of getting each fish are
-            rarity = random.choices(*utils.rarity_percentage_finder(upgrades[0]['bait_upgrade']))[0]  # Chance of each rarity
+            rarity = random.choices(*utils.rarity_percentage_finder((upgrades[0]['bait_upgrade'] + upgrades[0]['better_bait_upgrade'])))[0]  # Chance of each rarity
             special = random.choices(*utils.special_percentage_finder(upgrades[0]['lure_upgrade']))[0]  # Chance of modifier
 
             # See which fish they caught
@@ -117,21 +111,48 @@ class Fishing(vbu.Cog):
     @vbu.bot_has_permissions(send_messages=True, embed_links=True)
     async def rename(self, ctx: commands.Context, old: str, new: str):
         """
-        This command renames a specified fish.
+        This command renames a specified fish or tank.
         """
 
         # Get the user's fish inventory based on the fish's name
         async with self.bot.database() as db:
             fish_row = await db("""SELECT fish_name FROM user_fish_inventory WHERE fish_name=$1 and user_id=$2""", old, ctx.author.id)
+            tank_rows = await db("""SELECT tank_name FROM user_tank_inventory WHERE user_id=$1""", ctx.author.id)
             fish_rows = await db("""SELECT fish_name FROM user_fish_inventory WHERE user_id=$1""", ctx.author.id)
 
         # Check if the user doesn't have the fish
-        if not fish_row:
-            return await ctx.send(
-                f"You have no fish named **{old}**!",
-                allowed_mentions=discord.AllowedMentions.none()
-            )
 
+        spot_of_old = None
+        print(tank_rows)
+        if old in tank_rows[0]['tank_name']:
+            for spot, tank in enumerate(tank_rows[0]['tank_name']):
+                if old == tank:
+                    spot_of_old = spot + 1
+                if new == tank:
+                    return await ctx.send(
+                        f"You already have a tank named **{new}**!",
+                        allowed_mentions=discord.AllowedMentions.none()
+                    )
+            async with self.bot.database() as db:
+                await db(
+                    """UPDATE user_tank_inventory SET tank_name[$3]=$1 WHERE user_id=$2;""",
+                    new, ctx.author.id, spot_of_old,
+                )
+                await db(
+                    """UPDATE user_fish_inventory SET tank_fish=$1 WHERE user_id = $2 AND tank_fish=$3""",
+                    new, ctx.author.id, old
+                )
+            # Send confirmation message
+            return await ctx.send(
+                f"Congratulations, you have renamed **{old}** to **{new}**!",
+                allowed_mentions=discord.AllowedMentions.none(),
+            )
+        if not spot_of_old:
+            if not fish_row:
+                return await ctx.send(
+                    f"You have no fish or tank named **{old}**!",
+                    allowed_mentions=discord.AllowedMentions.none()
+                )
         # Check of fish is being changed to a name of a new fish
         for fish_name in fish_rows:
             if new == fish_name:

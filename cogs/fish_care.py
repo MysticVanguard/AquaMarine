@@ -3,6 +3,7 @@ from datetime import datetime as dt, timedelta
 import voxelbotutils as vbu
 from discord.ext import commands, tasks
 import discord
+import math
 
 from cogs import utils
 
@@ -91,6 +92,10 @@ class FishCare(vbu.Cog):
 
         # Fetches needed rows and gets the users amount of food
         async with self.bot.database() as db:
+            upgrades = await db(
+                """SELECT feeding_upgrade FROM user_upgrades WHERE user_id = $1""",
+                ctx.author.id,
+            )
             fish_rows = await db(
                 """SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2 AND tank_fish != ''""",
                 ctx.author.id, fish_fed,
@@ -116,7 +121,8 @@ class FishCare(vbu.Cog):
             return await ctx.send("That fish is dead!", wait=False)
 
         # Update the user's inv and the fish's death date
-        death_date = dt.utcnow() + timedelta(days=3)
+        day, hour = utils.FEEDING_UPGRADES[upgrades[0]['feeding_upgrade']]
+        death_date = dt.utcnow() + timedelta(days=day, hours=hour)
         async with self.bot.database() as db:
             await db(
                 """UPDATE user_fish_inventory SET death_time = $3, fish_feed_time = $4 WHERE user_id = $1 AND fish_name = $2""",
@@ -143,6 +149,10 @@ class FishCare(vbu.Cog):
 
         # Get the fish and tank data from the database
         async with self.bot.database() as db:
+            upgrades = await db(
+                """SELECT bleach_upgrade, better_bleach_upgrade, hygienic_upgrade FROM user_upgrades WHERE user_id = $1""",
+                ctx.author.id,
+            )
             fish_rows = await db(
                 """SELECT * FROM user_fish_inventory WHERE user_id = $1 AND tank_fish = $2 AND fish_alive = TRUE""",
                 ctx.author.id, tank_cleaned,
@@ -162,9 +172,10 @@ class FishCare(vbu.Cog):
 
 
         # See if they're able to clean their tank
+        multiplier, time = utils.HYGIENIC_UPGRADE[upgrades[0]['hygienic_upgrade']]
         if tank_rows[0]['tank_clean_time'][tank_slot]:
-            if tank_rows[0]['tank_clean_time'][tank_slot] + timedelta(minutes=5) > dt.utcnow():
-                time_left = timedelta(seconds=(tank_rows[0]['tank_clean_time'][tank_slot] - dt.utcnow() + timedelta(minutes=5)).total_seconds())
+            if tank_rows[0]['tank_clean_time'][tank_slot] + timedelta(minutes=time) > dt.utcnow():
+                time_left = timedelta(seconds=(tank_rows[0]['tank_clean_time'][tank_slot] - dt.utcnow() + timedelta(minutes=time)).total_seconds())
                 return await ctx.send(f"This tank is clean, please try again in {vbu.TimeFormatter(dt.utcnow() + time_left - timedelta(hours=4)).relative_time}.")
 
         # See if there are any fish in the tank
@@ -175,6 +186,7 @@ class FishCare(vbu.Cog):
         money_gained = 0
         for fish in fish_rows:
             money_gained += (fish["fish_level"])
+        money_gained = math.floor(money_gained  * (utils.BLEACH_UPGRADE[(upgrades[0]['bleach_upgrade'] + upgrades[0]['bleach_upgrade'])]) * multiplier)
 
         # Add their fish money to your sand database dollars
         async with self.bot.database() as db:

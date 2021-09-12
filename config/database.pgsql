@@ -83,6 +83,15 @@ CREATE TABLE IF NOT EXISTS user_upgrades (
     weight_upgrade INT NOT NULL DEFAULT 1,
     line_upgrade INT NOT NULL DEFAULT 1,
     lure_upgrade INT NOT NULL DEFAULT 1,
+    better_line_upgrade INT NOT NULL DEFAULT 1,
+    better_bait_upgrade INT NOT NULL DEFAULT 1,
+    feeding_upgrade INT NOT NULL DEFAULT 1,
+    toys_upgrade INT NOT NULL DEFAULT 1,
+    better_toys_upgrade INT NOT NULL DEFAULT 1,
+    amazement_upgrade INT NOT NULL DEFAULT 1,
+    bleach_upgrade INT NOT NULL DEFAULT 1,
+    better_bleach_upgrade INT NOT NULL DEFAULT 1,
+    hygienic_upgrade INT NOT NULL DEFAULT 1,
     PRIMARY KEY (user_id)
 );
 

@@ -1,3 +1,4 @@
+from cogs.utils.fish_handler import TOYS_UPGRADE
 import discord
 import random
 import math
@@ -7,12 +8,17 @@ import voxelbotutils as vbu
 
 # Does all the xp stuff
 async def xp_finder_adder(bot, user: discord.User, played_with_fish):
-    # ranges of how much will be added
-    total_xp_to_add = random.randint(1, 25)
 
     # initial acquired fish data
     async with bot.database() as db:
         fish_rows = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2""", user.id, played_with_fish)
+        upgrades = await db(
+            """SELECT toys_upgrade, better_toys_upgrade FROM user_upgrades WHERE user_id = $1""",
+            user.id,
+        )
+
+    # ranges of how much will be added
+    total_xp_to_add = random.randint(TOYS_UPGRADE[(upgrades[0]['toys_upgrade'] + upgrades[0]['better_toys_upgrade'])][0], TOYS_UPGRADE[(upgrades[0]['toys_upgrade'] + upgrades[0]['better_toys_upgrade'])][1])
 
     # level increase xp calculator
     xp_per_level = math.floor(25 * fish_rows[0]['fish_level'] ** 1.5)

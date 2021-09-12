@@ -7,13 +7,46 @@ from cogs import utils
 class Upgrades(vbu.Cog):
 
     UPGRADE_DESCRIPTIONS = {
-        'line_upgrade': 'This upgrade makes your chance of getting two fish in one cast higher.',
-        'rod_upgrade': 'This upgrade makes the price a fish sells for when caught increase.',
-        'bait_upgrade': 'This upgrade makes it so your chances of catching higher rarity fish increase.',
-        'lure_upgrade': 'This upgrade increases the chance of getting an inverted or golden fish.',
-        'weight_upgrade': 'This upgrade increases the possible level a caught fish can be.'
+        'rod_upgrade': 'Increases price caught fish sell for',
+        'line_upgrade': 'Increases chance of catching two fish',
+        'better_line_upgrade': 'Increases chance of catching two fish even more',
+        'weight_upgrade': 'Increases the level fish are when caught',
+        'bait_upgrade': 'Increases chance of catching rarer fish',
+        'better_bait_upgrade': 'Increases chance of catching rarer fish even more',
+        'lure_upgrade': 'Increases chance of catching a \'skinned\' fish',
+        'feeding_upgrade': 'Increases fish lifespan after feeding',
+        'toys_upgrade': 'Increases xp gained from entertaining',
+        'better_toys_upgrade': 'Increases xp gained from entertaining even more',
+        'amazement_upgrade': 'Increases chance of bonus level when entertaining',
+        'bleach_upgrade': 'Increases the cleaning multiplier',
+        'better_bleach_upgrade': 'Increases the cleaning multiplier even more',
+        'hygienic_upgrade': 'Lessens the frequency of cleaning',
+
     }
-    UPGRADE_COST_LIST = (250, 500, 1000, 2000, 5000)
+
+    TIER_RANKS = {
+        'rod_upgrade': {
+            'line_upgrade': [
+                'better_line_upgrade',
+                'weight_upgrade'
+            ],
+            'bait_upgrade': [
+                'better_bait_upgrade',
+                'lure_upgrade'
+            ]
+        },
+        'feeding_upgrade': {
+            'toys_upgrade': [
+                'better_toys_upgrade',
+                'amazement_upgrade'
+            ],
+            'bleach_upgrade': [
+                'better_bleach_upgrade',
+                'hygienic_upgrade'
+            ]
+        }
+    }
+    UPGRADE_COST_LIST = (1000, 2000, 3000, 4000, 5000, 6000, 1000, 2000, 3000, 4000, 5000, 6000)
 
     @vbu.command()
     @vbu.bot_has_permissions(send_messages=True, embed_links=True)
@@ -29,42 +62,109 @@ class Upgrades(vbu.Cog):
         # Grab their upgrades from the database
         async with self.bot.database() as db:
             upgrades = await db(
-                """SELECT rod_upgrade, bait_upgrade, weight_upgrade, line_upgrade, lure_upgrade FROM user_upgrades WHERE user_id = $1""",
+                """SELECT rod_upgrade, line_upgrade, better_line_upgrade, weight_upgrade, bait_upgrade, better_bait_upgrade, lure_upgrade, feeding_upgrade, toys_upgrade, better_toys_upgrade, amazement_upgrade, bleach_upgrade, better_bleach_upgrade, hygienic_upgrade FROM user_upgrades WHERE user_id = $1""",
                 ctx.author.id,
             )
             if not upgrades:
                 upgrades = await db("""INSERT INTO user_upgrades (user_id) VALUES ($1) RETURNING *""", ctx.author.id)
 
         # Build out output strings
+        tier = 0
+        tree_number = 0
+        fields = []
         for upgrade, level in upgrades[0].items():
+            tier += 1
+            description = self.UPGRADE_DESCRIPTIONS[upgrade]
+            name = ' '.join(upgrade.split('_')).title()
+            # Get the cost of an upgrade
+            cost_string = f"{self.UPGRADE_COST_LIST[int(level - 1)]:,} <:sand_dollar:877646167494762586>"
+
+            # If they're fully upgraded
+            if level == 5:
+                cost_string = "This Upgrade is fully upgraded."
+
+            if tier == 1:
+                parent_one = upgrade
+
+
+
+
+            left_bar = "<:bar_L:886377903615528971>"
+            start = ""
+            start_two = ""
+            emote = "<:bar_1:877646167184408617>"
+            if tier == 2 or tier == 5:
+                parent_two = upgrade
+                if upgrades[0][parent_one] != 5:
+                    description = "???"
+                    name = "???"
+                    cost_string = "???"
+                start = '<:straight_branch:886377903837806602>'
+                start_two = "<:straight:886377903879753728>"
+                emote = "<:bar_2:877646166823694437>"
+                left_bar = "<:bar_L_branch:886377903581986848>"
+                if tier == 5:
+                    start = '<:branch:886377903825252402>'
+                    start_two = "<:straight:886377903879753728>"
+            elif tier == 6 or tier == 3:
+                if upgrades[0][parent_two] != 5:
+                    description = "???"
+                    name = "???"
+                    cost_string = "???"
+                start = "<:__:886381017051586580><:straight_branch:886377903837806602>"
+                emote = "<:bar_3:877646167138267216>"
+                left_bar = "<:bar_L_straight:886379040884260884>"
+                if tier == 3:
+                    start_two = "<:straight:886377903879753728><:straight:886377903879753728>"
+                    start = "<:straight:886377903879753728><:straight_branch:886377903837806602>"
+                else:
+                    start_two = "<:__:886381017051586580><:straight:886377903879753728>"
+            elif tier == 4 or tier == 7:
+                if upgrades[0][parent_two] != 5:
+                    description = "???"
+                    name = "???"
+                    cost_string = "???"
+                emote = "<:bar_3:877646167138267216>"
+                left_bar = "<:bar_L_straight:886379040884260884>"
+                if tier == 4:
+                    start_two = "<:straight:886377903879753728><:straight:886377903879753728>"
+                    start = "<:straight:886377903879753728><:branch:886377903825252402>"
+                else:
+                    start_two = "<:__:886381017051586580><:straight:886377903879753728>"
+                    start = "<:__:886381017051586580><:branch:886377903825252402>"
+            print(emote)
 
             # Each level they have is a full bar emoji, up to 5 characters long
             emote_string_list.clear()  # Clear our emoji list first
             for _ in range(level):
-                emote_string_list.append("<:full_upgrade_bar_tier_one:877646167184408617>")
+
+                emote_string_list.append(emote)
+
             while len(emote_string_list) < 5:
-                emote_string_list.append("<:empty_upgrade_bar:877646167146643556>")
-
-            # Get the cost of an upgrade
-            cost_string = f"Costs {self.UPGRADE_COST_LIST[int(level - 1)]} to upgrade."
-
-            # If they're fully upgraded
-            if level == 5:
-                # emote_string_list = ["<:full_upgrade_bar:865028622766702602>", "<:full_upgrade_bar:865028622766702602>", "<:full_upgrade_bar:865028622766702602>", "<:full_upgrade_bar:865028622766702602>", "<:full_upgrade_bar:865028622766702602>"]
-                cost_string = "This Upgrade is fully upgraded."
+                emote_string_list.append("<:bar_e:877646167146643556>")
+            print(emote_string_list)
 
             # Generate the message to send
-            progress_bar = f"<:left_upgrade_bar:877646167121481758>{''.join(emote_string_list)}<:right_upgrade_bar:877646167113080842>"
-            message.append(
-                f"{progress_bar} **{' '.join(upgrade.split('_')).title()}: Lvl. {level}. {cost_string}**\n*{self.UPGRADE_DESCRIPTIONS[upgrade]}*",
-            )
+
+
+            progress_bar = f"{left_bar}{''.join(emote_string_list)}<:bar_R:877646167113080842>"
+            message.append((f"{start}{progress_bar} *{description}*", f"{start_two}**{name}: (Lvl. {level}.): {cost_string}**"))
+            print(len(progress_bar))
+
+            if tier == 7:
+                message.append(("** **", "** **"))
+                tree_number += 1
+                tier = 0
 
         # And send our message
-        await ctx.send('\n'.join(message))
+        embed = vbu.Embed()
+        for message_data in message:
+            embed.add_field(name=message_data[1], value=message_data[0], inline=False)
+        await ctx.send(embed=embed)
 
     @vbu.command()
     @vbu.bot_has_permissions(send_messages=True, embed_links=True)
-    async def upgrade(self, ctx: commands.Context, upgrade: str):
+    async def upgrade(self, ctx: commands.Context, *, upgrade: str):
         """
         Upgrade one of your items.
         """
@@ -72,14 +172,28 @@ class Upgrades(vbu.Cog):
         # Grab the user's current upgrades
         async with self.bot.database() as db:
             upgrades = await db(
-                """SELECT rod_upgrade, bait_upgrade, weight_upgrade, line_upgrade, lure_upgrade FROM user_upgrades WHERE user_id = $1""",
+                """SELECT rod_upgrade, line_upgrade, better_line_upgrade, weight_upgrade, bait_upgrade, better_bait_upgrade, lure_upgrade, feeding_upgrade, toys_upgrade, better_toys_upgrade, amazement_upgrade, bleach_upgrade, better_bleach_upgrade, hygienic_upgrade FROM user_upgrades WHERE user_id = $1""",
                 ctx.author.id,
             )
 
         # Make sure the upgrade is valid
-        upgraded = f"{upgrade}_upgrade"
+        upgraded = f"{upgrade.replace(' ', '_')}_upgrade"
         if upgraded not in upgrades[0].keys():
             return await ctx.send("That's not a valid upgrade.")
+        if upgraded in ['line_upgrade', 'bait_upgrade', 'better_bait_upgrade', 'lure_upgrade', 'better_line_upgrade', 'weight_upgrade']:
+            if upgrades[0]['rod_upgrade'] != 5:
+                return await ctx.send("The Rod Upgrade needs upgraded first!")
+            if upgrades[0]['line_upgrade'] != 5 and upgraded in ['better_line_upgrade', 'weight_upgrade']:
+                return await ctx.send("The Line Upgrade needs upgraded first!")
+            if upgrades[0]['bait_upgrade'] != 5 and upgraded in ['bait_upgrade', 'better_bait_upgrade']:
+                return await ctx.send("The Bait Upgrade needs upgraded first!")
+        if upgraded in ['toys_upgrade', 'better_toys_upgrade', 'amazement_upgrade', 'bleach_upgrade', 'better_bleach_upgrade', 'hygienic_upgrade']:
+            if upgrades[0]['feeding_upgrade'] != 5:
+                return await ctx.send("The Feeding Upgrade needs upgraded first!")
+            if upgrades[0]['toys_upgrade'] != 5 and upgraded in ['better_toys_upgrade', 'amazement_upgrade']:
+                return await ctx.send("The Toys Upgrade needs upgraded first!")
+            if upgrades[0]['bleach_upgrade'] != 5 and upgraded in ['better_bleach_upgrade', 'hygienic_upgrade']:
+                return await ctx.send("The Bleach Upgrade needs upgraded first!")
 
         # See how upgraded the user currently is
         upgrade_level = upgrades[0][upgraded]

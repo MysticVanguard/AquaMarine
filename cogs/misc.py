@@ -33,6 +33,13 @@ class Misc(vbu.Cog):
             allowed_mentions=discord.AllowedMentions.none()
             )
         await ctx.send("Bug report sent!")
+    @vbu.command()
+    @vbu.bot_has_permissions(send_messages=True)
+    async def support(self, ctx: commands.Context):
+        """
+        This command sends the server link to the support server.
+        """
+        await ctx.send("https://discord.gg/FUyr8QmrD8")
 
 def setup(bot):
     bot.add_cog(Misc(bot))
