@@ -174,6 +174,20 @@ class Fishing(vbu.Cog):
             allowed_mentions=discord.AllowedMentions.none(),
         )
 
+    @vbu.command()
+    @vbu.bot_has_permissions(send_messages=True, embed_links=True)
+    async def skin(self, ctx: commands.Context, skin: str, *, fish: str):
+        '''
+        Applies a skin to a fish you own
+        '''
+    @vbu.command()
+    @vbu.bot_has_permissions(send_messages=True, embed_links=True)
+    async def preview(self, ctx: commands.Context, type: str, *, skin: str):
+        '''
+        Previews a skin
+        '''
+
+
 
 def setup(bot):
     bot.add_cog(Fishing(bot))

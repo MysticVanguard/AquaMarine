@@ -46,7 +46,9 @@ class Upgrades(vbu.Cog):
             ]
         }
     }
-    UPGRADE_COST_LIST = (1000, 2000, 3000, 4000, 5000, 6000, 1000, 2000, 3000, 4000, 5000, 6000)
+    UPGRADE_COST_LIST = (1000, 1500, 2500, 3000, 4000)
+    UPGRADE_COST_LIST_TWO = (4000, 4500, 5500, 6000, 7000)
+    UPGRADE_COST_LIST_THREE = (7000, 7500, 8500, 9000, 10000)
 
     @vbu.command()
     @vbu.bot_has_permissions(send_messages=True, embed_links=True)
@@ -79,9 +81,6 @@ class Upgrades(vbu.Cog):
             # Get the cost of an upgrade
             cost_string = f"{self.UPGRADE_COST_LIST[int(level - 1)]:,} <:sand_dollar:877646167494762586>"
 
-            # If they're fully upgraded
-            if level == 5:
-                cost_string = "This Upgrade is fully upgraded."
 
             if tier == 1:
                 parent_one = upgrade
@@ -94,6 +93,7 @@ class Upgrades(vbu.Cog):
             start_two = ""
             emote = "<:bar_1:877646167184408617>"
             if tier == 2 or tier == 5:
+                cost_string = f"{self.UPGRADE_COST_LIST_TWO[int(level - 1)]:,} <:sand_dollar:877646167494762586>"
                 parent_two = upgrade
                 if upgrades[0][parent_one] != 5:
                     description = "???"
@@ -107,6 +107,7 @@ class Upgrades(vbu.Cog):
                     start = '<:branch:886377903825252402>'
                     start_two = "<:straight:886377903879753728>"
             elif tier == 6 or tier == 3:
+                cost_string = f"{self.UPGRADE_COST_LIST_THREE[int(level - 1)]:,} <:sand_dollar:877646167494762586>"
                 if upgrades[0][parent_two] != 5:
                     description = "???"
                     name = "???"
@@ -120,6 +121,7 @@ class Upgrades(vbu.Cog):
                 else:
                     start_two = "<:__:886381017051586580><:straight:886377903879753728>"
             elif tier == 4 or tier == 7:
+                cost_string = f"{self.UPGRADE_COST_LIST_THREE[int(level - 1)]:,} <:sand_dollar:877646167494762586>"
                 if upgrades[0][parent_two] != 5:
                     description = "???"
                     name = "???"
@@ -132,7 +134,9 @@ class Upgrades(vbu.Cog):
                 else:
                     start_two = "<:__:886381017051586580><:straight:886377903879753728>"
                     start = "<:__:886381017051586580><:branch:886377903825252402>"
-            print(emote)
+            # If they're fully upgraded
+            if level == 5:
+                cost_string = "This Upgrade is fully upgraded."
 
             # Each level they have is a full bar emoji, up to 5 characters long
             emote_string_list.clear()  # Clear our emoji list first
@@ -185,7 +189,7 @@ class Upgrades(vbu.Cog):
                 return await ctx.send("The Rod Upgrade needs upgraded first!")
             if upgrades[0]['line_upgrade'] != 5 and upgraded in ['better_line_upgrade', 'weight_upgrade']:
                 return await ctx.send("The Line Upgrade needs upgraded first!")
-            if upgrades[0]['bait_upgrade'] != 5 and upgraded in ['bait_upgrade', 'better_bait_upgrade']:
+            if upgrades[0]['bait_upgrade'] != 5 and upgraded in ['lure_upgrade', 'better_bait_upgrade']:
                 return await ctx.send("The Bait Upgrade needs upgraded first!")
         if upgraded in ['toys_upgrade', 'better_toys_upgrade', 'amazement_upgrade', 'bleach_upgrade', 'better_bleach_upgrade', 'hygienic_upgrade']:
             if upgrades[0]['feeding_upgrade'] != 5:
@@ -199,16 +203,23 @@ class Upgrades(vbu.Cog):
         upgrade_level = upgrades[0][upgraded]
         if upgrade_level == 5:
             return await ctx.send("That upgrade is fully upgraded.")
-        if not await utils.check_price(self.bot, ctx.author.id, self.UPGRADE_COST_LIST[int(upgrade_level) - 1], 'balance'):
+        if upgraded in ('rod_upgrade', 'feeding_upgrade'):
+            upgrade_cost_list_used = self.UPGRADE_COST_LIST
+        elif upgraded in ('line_upgrade', 'bait_upgrade', 'toys_upgrade', 'bleach_upgrade'):
+            upgrade_cost_list_used = self.UPGRADE_COST_LIST_TWO
+        else:
+            upgrade_cost_list_used = self.UPGRADE_COST_LIST_THREE
+
+        if not await utils.check_price(self.bot, ctx.author.id, upgrade_cost_list_used[int(upgrade_level) - 1], 'balance'):
             return await ctx.send("You don't have enough Sand Dollars <:sand_dollar:877646167494762586> for this upgrade!")
 
         # Upgrade them in the database
         async with self.bot.database() as db:
-            await db("""UPDATE user_balance SET balance=balance-$1 WHERE user_id = $2""", self.UPGRADE_COST_LIST[int(upgrades[0][upgraded])- 1], ctx.author.id)
+            await db("""UPDATE user_balance SET balance=balance-$1 WHERE user_id = $2""", upgrade_cost_list_used[int(upgrades[0][upgraded])- 1], ctx.author.id)
             await db("""UPDATE user_upgrades SET {0}=user_upgrades.{0}+1 WHERE user_id = $1""".format(upgraded), ctx.author.id)
 
         # And bam
-        await ctx.send(f"{upgrade.title()} has been upgraded for {self.UPGRADE_COST_LIST[upgrade_level - 1]:,}!")
+        await ctx.send(f"{upgrade.title()} has been upgraded for {upgrade_cost_list_used[upgrade_level - 1]:,}!")
 
 
 def setup(bot):
