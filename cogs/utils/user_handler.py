@@ -58,7 +58,7 @@ async def ask_to_sell_fish(bot, ctx, new_fish: dict, embed, file= None):
             print("sell confirm")
 
             level_multiplier = level / 20
-            money_earned = math.ceil((int(new_fish['cost']) / 2) * utils.ROD_UPGRADES[upgrades[0]['rod_upgrade']] * level_multiplier)
+            money_earned = math.ceil((int(new_fish['cost']) / 2) * utils.ROD_UPGRADES[upgrades[0]['rod_upgrade']] * (1 +level_multiplier))
 
             async with bot.database() as db:
                 await db(

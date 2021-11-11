@@ -30,7 +30,7 @@ LURE_UPGRADES = {
         ("golden", .0016)
     ]
 }
-
+DAYLIGHT_SAVINGS = 5
 BAIT_UPGRADE = {
     1: [
         ("common", 0.6689),
@@ -49,67 +49,67 @@ BAIT_UPGRADE = {
         ("mythic", 0.0008),
     ],
     3: [
-        ("common", 0.6377),
-        ("uncommon", 0.2326),
-        ("rare", 0.0855),
-        ("epic", 0.0316),
-        ("legendary", 0.0118),
+        ("common", 0.6429),
+        ("uncommon", 0.2330),
+        ("rare", 0.0843),
+        ("epic", 0.0298),
+        ("legendary", 0.0092),
         ("mythic", 0.0008),
     ],
     4: [
-        ("common", 0.6062),
-        ("uncommon", 0.2423),
-        ("rare", 0.0967),
-        ("epic", 0.0385),
-        ("legendary", 0.0154),
+        ("common", 0.6168),
+        ("uncommon", 0.2430),
+        ("rare", 0.0943),
+        ("epic", 0.0348),
+        ("legendary", 0.0102),
         ("mythic", 0.0009),
     ],
     5: [
-        ("common", 0.5610),
-        ("uncommon", 0.2500),
-        ("rare", 0.1128),
-        ("epic", 0.0515),
-        ("legendary", 0.0238),
+        ("common", 0.5908),
+        ("uncommon", 0.2530),
+        ("rare", 0.1043),
+        ("epic", 0.0398),
+        ("legendary", 0.0112),
         ("mythic", 0.0009),
     ],
     6: [
-        ("common", 0.5156),
-        ("uncommon", 0.2578),
-        ("rare", 0.1289),
-        ("epic", 0.0645),
-        ("legendary", 0.0322),
+        ("common", 0.5697),
+        ("uncommon", 0.2630),
+        ("rare", 0.1143),
+        ("epic", 0.0448),
+        ("legendary", 0.0122),
         ("mythic", 0.0010),
     ],
     7: [
-        ("common", 0.4858),
-        ("uncommon", 0.2592),
-        ("rare", 0.1389),
-        ("epic", 0.0747),
-        ("legendary", 0.0404),
+        ("common", 0.5387),
+        ("uncommon", 0.2730),
+        ("rare", 0.1243),
+        ("epic", 0.0498),
+        ("legendary", 0.0132),
         ("mythic", 0.0010),
     ],
     8: [
-        ("common", 0.4558),
-        ("uncommon", 0.2605),
-        ("rare", 0.1490),
-        ("epic", 0.0850),
-        ("legendary", 0.0486),
+        ("common", 0.5126),
+        ("uncommon", 0.2830),
+        ("rare", 0.1343),
+        ("epic", 0.0548),
+        ("legendary", 0.0142),
         ("mythic", 0.0011),
     ],
     9: [
-        ("common", 0.4201),
-        ("uncommon", 0.2581),
-        ("rare", 0.1596),
-        ("epic", 0.0992),
-        ("legendary", 0.0619),
+        ("common", 0.4866),
+        ("uncommon", 0.2930),
+        ("rare", 0.1443),
+        ("epic", 0.0598),
+        ("legendary", 0.0152),
         ("mythic", 0.0011),
     ],
     10: [
-        ("common", 0.3843),
-        ("uncommon", 0.2558),
-        ("rare", 0.1701),
-        ("epic", 0.1134),
-        ("legendary", 0.0752),
+        ("common", 0.4605),
+        ("uncommon", 0.3030),
+        ("rare", 0.1543),
+        ("epic", 0.0648),
+        ("legendary", 0.0162),
         ("mythic", 0.0012),
     ],
 }
@@ -128,10 +128,10 @@ LINE_UPGRADES = {
     10: 8720,
 }
 FEEDING_UPGRADES = {1: (3, 0), 2: (3,6), 3: (3, 12), 4: (3, 18), 5: (4, 0)}
-TOYS_UPGRADE = {1: (1, 25), 2: (1, 25), 3: (2, 30), 4: (3, 35), 5: (4, 40), 6: (5, 45), 7: (6, 50), 8: (7, 55), 9: (8, 60), 10: (9, 65)}
+TOYS_UPGRADE = {1: (2, 40), 2: (2, 40), 3: (4, 50), 4: (6, 60), 5: (8, 70), 6: (10, 80), 7: (12, 90), 8: (14, 100), 9: (16, 110), 10: (18, 120)}
 AMAZEMENT_UPGRADE = {1: 1000, 2: 900, 3: 800, 4: 700, 5: 600}
 BLEACH_UPGRADE = {1: 1, 2: 1, 3: 1.1, 4: 1.2, 5: 1.3, 6: 1.4, 7: 1.5, 8: 1.6, 9: 1.7, 10: 1.8}
-HYGIENIC_UPGRADE = {1: (1, 1), 2: (2, 2), 3: (3, 3), 4: (4, 4), 5: (5, 5)}
+HYGIENIC_UPGRADE = {1: (1, 30), 2: (2, 60), 3: (3, 90), 4: (4, 120), 5: (5, 150)}
 RARITY_PERCENTAGE_DICT = dict(BAIT_UPGRADE)  # A dictionary of `rarity: percentage`
 
 RARITY_CULERS = {
@@ -175,7 +175,6 @@ EMOJI_RARITIES = {
         "banggai_cardinalfish": "<:banggai_cardinalfish:878370648894869605>",
         "bottlenose_dolphin": "<:bottlenose_dolphin:878370649075240991>",
         "starfish": "<:starfish:878377160870592522>",
-        "atlantic_sturgeon": "<:atlantic_sturgeon:878370649511432232>",
         "bluefin_notho": "<:bluefin_notho:878370648529969173>",
         "giant_sea_bass": "<:giant_sea_bass:878370648970387506>",
         "gold_doubloon_molly": "<:gold_doubloon_molly:878370648932626542>",
@@ -185,9 +184,7 @@ EMOJI_RARITIES = {
         "sea_goldie": "<:sea_goldie:878370649180106752>",
         "yellow_tang": "<:yellow_tang:878370649897328650>",
         "zebra_danios": "<:zebra_danios:878370648852922429>",
-        "carp": "<:carp:878377327271227462>",
-        "orca": "<:orca:878379352499310712>",
-        "whale_shark": "<:whale_shark:878379353015197817>"
+        "carp": "<:carp:878377327271227462>"
     },
     "uncommon": {
         "flowerhorn_cichlid": "<:flowerhorn_cichlid:878380626644979762>",
@@ -208,7 +205,10 @@ EMOJI_RARITIES = {
         "green_drakefish": "<:green_drakefish:878380261203644436>",
         "manatee": "<:manatee:878380626477211688>",
         "red_drakefish": "<:red_drakefish:878380261363036160>",
-        "victory_drakefish": "<:victory_drakefish:878380261379825724>"
+        "victory_drakefish": "<:victory_drakefish:878380261379825724>",
+        "orca": "<:orca:878379352499310712>",
+        "whale_shark": "<:whale_shark:878379353015197817>",
+        "mandarinfish": "<:mandarinfish:878379851776679986>"
     },
     "rare": {
         "axolotl": "<:axolotl:878370649893109790>",
@@ -217,7 +217,8 @@ EMOJI_RARITIES = {
         "starfish_with_pants": "<:starfish_with_pants:878380007947386932>",
         "bobtail_squid": "<:bobtail_squid:878370649880543252>",
         "mantis_shrimp": "<:mantis_shrimp:878370649872146512>",
-        "school_of_betta": "<:school_of_betta:878380008287133827>"
+        "school_of_betta": "<:school_of_betta:878380008287133827>",
+        "atlantic_sturgeon": "<:atlantic_sturgeon:878370649511432232>"
     },
     "epic": {
         "asian_arowana": "<:asian_arowana:878379497731276861>",
@@ -227,7 +228,7 @@ EMOJI_RARITIES = {
         "anglerfish": "<:anglerfish:878379836064825354>"
     },
     "mythic": {
-        "mandarinfish": "<:mandarinfish:878379851776679986>"
+
     }
 }
 EMOJI_RARITIES_SET_ONE = {
@@ -252,9 +253,6 @@ EMOJI_RARITIES_SET_ONE = {
 COMMON_BAG_NAMES = ["Common Fish Bag", "Common", "Cfb"]
 UNCOMMON_BAG_NAMES = ["Uncommon Fish Bag", "Uncommon", "Ufb"]
 RARE_BAG_NAMES = ["Rare Fish Bag", "Rare", "Rfb"]
-EPIC_BAG_NAMES = ["Epic Fish Bag", "Epic", "Efb"]
-LEGENDARY_BAG_NAMES = ["Legendary Fish Bag", "Legendary", "Lfb"]
-MYSTERY_BAG_NAMES = ["Mystery Fish Bag", "Mystery", "Mfb"]
 FISH_FLAKES_NAMES = ["Fish Flakes", "Flakes", "Ff"]
 FISH_BOWL_NAMES = ["Fish Bowl", "Bowl", "Fb"]
 SMALL_TANK_NAMES = ["Small Tank", "Small", "St"]

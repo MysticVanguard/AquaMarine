@@ -1,3 +1,4 @@
+from cogs.utils.fish_handler import DAYLIGHT_SAVINGS
 from cogs.utils.misc_utils import seconds_converter
 import random
 from datetime import datetime as dt, timedelta
@@ -50,7 +51,11 @@ class Fishing(vbu.Cog):
 
             # See what our chances of getting each fish are
             rarity = random.choices(*utils.rarity_percentage_finder((upgrades[0]['bait_upgrade'] + upgrades[0]['better_bait_upgrade'])))[0]  # Chance of each rarity
+            print(*utils.rarity_percentage_finder((upgrades[0]['bait_upgrade'] + upgrades[0]['better_bait_upgrade'])))
+            print(rarity)
             special = random.choices(*utils.special_percentage_finder(upgrades[0]['lure_upgrade']))[0]  # Chance of modifier
+            if special == "golden":
+                special = "inverted"
 
             # See which fish they caught
             new_fish = random.choice(list(self.bot.fish[rarity].values())).copy()
@@ -105,7 +110,7 @@ class Fishing(vbu.Cog):
 
         time = timedelta(seconds=int(error.retry_after))
 
-        await ctx.send(f'The fish are scared, please try again {vbu.TimeFormatter(dt.utcnow() + time - timedelta(hours=4)).relative_time}.')
+        await ctx.send(f'The fish are scared, please try again {vbu.TimeFormatter(dt.utcnow() + time - timedelta(hours=DAYLIGHT_SAVINGS)).relative_time}.')
 
     @vbu.command()
     @vbu.bot_has_permissions(send_messages=True, embed_links=True)
@@ -124,29 +129,30 @@ class Fishing(vbu.Cog):
 
         spot_of_old = None
         print(tank_rows)
-        if old in tank_rows[0]['tank_name']:
-            for spot, tank in enumerate(tank_rows[0]['tank_name']):
-                if old == tank:
-                    spot_of_old = spot + 1
-                if new == tank:
-                    return await ctx.send(
-                        f"You already have a tank named **{new}**!",
-                        allowed_mentions=discord.AllowedMentions.none()
+        if tank_rows:
+            if old in tank_rows[0]['tank_name']:
+                for spot, tank in enumerate(tank_rows[0]['tank_name']):
+                    if old == tank:
+                        spot_of_old = spot + 1
+                    if new == tank:
+                        return await ctx.send(
+                            f"You already have a tank named **{new}**!",
+                            allowed_mentions=discord.AllowedMentions.none()
+                        )
+                async with self.bot.database() as db:
+                    await db(
+                        """UPDATE user_tank_inventory SET tank_name[$3]=$1 WHERE user_id=$2;""",
+                        new, ctx.author.id, spot_of_old,
                     )
-            async with self.bot.database() as db:
-                await db(
-                    """UPDATE user_tank_inventory SET tank_name[$3]=$1 WHERE user_id=$2;""",
-                    new, ctx.author.id, spot_of_old,
+                    await db(
+                        """UPDATE user_fish_inventory SET tank_fish=$1 WHERE user_id = $2 AND tank_fish=$3""",
+                        new, ctx.author.id, old
+                    )
+                # Send confirmation message
+                return await ctx.send(
+                    f"Congratulations, you have renamed **{old}** to **{new}**!",
+                    allowed_mentions=discord.AllowedMentions.none(),
                 )
-                await db(
-                    """UPDATE user_fish_inventory SET tank_fish=$1 WHERE user_id = $2 AND tank_fish=$3""",
-                    new, ctx.author.id, old
-                )
-            # Send confirmation message
-            return await ctx.send(
-                f"Congratulations, you have renamed **{old}** to **{new}**!",
-                allowed_mentions=discord.AllowedMentions.none(),
-            )
         if not spot_of_old:
             if not fish_row:
                 return await ctx.send(

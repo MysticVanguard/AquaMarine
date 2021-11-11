@@ -10,6 +10,8 @@ import voxelbotutils as vbu
 import discord
 from discord.ext import commands
 
+from cogs.utils.fish_handler import DAYLIGHT_SAVINGS
+
 
 class Aquarium(vbu.Cog):
 
@@ -115,7 +117,7 @@ class Aquarium(vbu.Cog):
                 """UPDATE user_fish_inventory SET tank_fish = $3, death_time = $4 WHERE fish_name=$1 AND user_id=$2""",
                 fish_deposited, ctx.author.id, tank_name, (dt.utcnow() + timedelta(days=3)),
             )
-        return await ctx.send(f"Fish has been deposited and will die {vbu.TimeFormatter(dt.utcnow() + timedelta(days=3) - timedelta(hours=4)).relative_time}!")
+        return await ctx.send(f"Fish has been deposited and will die {vbu.TimeFormatter(dt.utcnow() + timedelta(days=3) - timedelta(hours=DAYLIGHT_SAVINGS)).relative_time}!")
 
     @vbu.command(aliases=["rem"])
     @vbu.bot_has_permissions(send_messages=True)
@@ -142,7 +144,7 @@ class Aquarium(vbu.Cog):
         if fish_row[0]['fish_remove_time']:
             if fish_row[0]['fish_remove_time'] + timedelta(days=5) > dt.utcnow():
                 time_left = timedelta(seconds=(fish_row[0]['fish_remove_time'] - dt.utcnow()).total_seconds())
-                return await ctx.send(f"This fish is resting, please try again {vbu.TimeFormatter(dt.utcnow() + time_left - timedelta(hours=4)).relative_time}.")
+                return await ctx.send(f"This fish is resting, please try again {vbu.TimeFormatter(dt.utcnow() + time_left - timedelta(hours=DAYLIGHT_SAVINGS)).relative_time}.")
 
 
         # finds the tank slot the tank in question is at
