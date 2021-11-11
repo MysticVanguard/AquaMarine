@@ -9,24 +9,22 @@ import voxelbotutils as vbu
 from datetime import datetime as dt, timedelta
 
 from cogs import utils
+from cogs.utils.fish_handler import DAYLIGHT_SAVINGS
 from cogs.utils.misc_utils import create_bucket_embed
 
 
 FISH_SHOP_EMBED = discord.Embed(title="Fish Shop")
-FISH_SHOP_EMBED.add_field(name="Fish Bags", value="These are bags containing a fish of a random rarity", inline=False)
-FISH_SHOP_EMBED.add_field(name="Common Fish Bag <:common_fish_bag:877646166983053383>", value="This gives you one fish with normal chances \n __25 <:sand_dollar:877646167494762586>__", inline=True)
-FISH_SHOP_EMBED.add_field(name="Uncommon Fish Bag <:uncommon_fish_bag:877646167146651768>", value="This gives you one fish with increased chances \n __50 <:sand_dollar:877646167494762586>__", inline=True)
-FISH_SHOP_EMBED.add_field(name="Rare Fish Bag <:rare_fish_bag:877646167121489930>", value="This gives you one fish with higher chances \n __100 <:sand_dollar:877646167494762586>__", inline=True)
-FISH_SHOP_EMBED.add_field(name="Epic Fish Bag <:epic_fish_bag:877646167243120701>", value="This gives you one fish with substantially better chances \n __200 <:sand_dollar:877646167494762586>__", inline=True)
-FISH_SHOP_EMBED.add_field(name="Legendary Fish Bag <:legendary_fish_bag:877646166953717813>", value="This gives you one fish with extremely better chances \n __250 <:sand_dollar:877646167494762586>__", inline=True)
-FISH_SHOP_EMBED.add_field(name="Mystery Fish Bag <:mystery_fish_bag:877646167054376992>", value="This gives you one bag of a random rarity \n __125 <:sand_dollar:877646167494762586>__", inline=True)
+FISH_SHOP_EMBED.add_field(name="Fish Bags", value="**These are bags containing a fish**", inline=False)
+FISH_SHOP_EMBED.add_field(name="Common Fish Bag <:common_fish_bag:877646166983053383>", value="This gives you one fish from the common rarity \n __100 <:sand_dollar:877646167494762586>__", inline=True)
+FISH_SHOP_EMBED.add_field(name="Uncommon Fish Bag <:uncommon_fish_bag:877646167146651768>", value="This gives you one fish from the uncommon rarity \n __300 <:sand_dollar:877646167494762586>__", inline=True)
+FISH_SHOP_EMBED.add_field(name="Rare Fish Bag <:rare_fish_bag:877646167121489930>", value="This gives you one fish from the rare rarity \n __900 <:sand_dollar:877646167494762586>__", inline=True)
 FISH_SHOP_EMBED.add_field(name="Fish Care", value="These are items to help keep your fish alive", inline=False)
 FISH_SHOP_EMBED.add_field(name="Fish Revival <:revival:878297091158474793>", value="This gives you a fish revival to bring your fish back to life \n __2,500 <:sand_dollar:877646167494762586>__", inline=True)
 FISH_SHOP_EMBED.add_field(name="Fish Flakes <:fish_flakes:877646167188602880>", value="This gives you fish flakes to feed your fish, keeping them alive \n __200 <:sand_dollar:877646167494762586>__", inline=True)
 FISH_SHOP_EMBED.add_field(name="Tanks", value="These are tanks you can buy to put your fish into, can only be purchased one at a time", inline=False)
-FISH_SHOP_EMBED.add_field(name="Fish Bowl", value="This gives you a Fish Bowl Tank that you can deposit one small fish into \n __100 <:sand_dollar:877646167494762586>__", inline=True)
-FISH_SHOP_EMBED.add_field(name="Small Tank", value="This gives you a Small Tank that you can deposit five small fish or one medium fish into\n __1,000 <:sand_dollar:877646167494762586>__", inline=True)
-FISH_SHOP_EMBED.add_field(name="Medium Tank", value="This gives you a Medium Tank that you can deposit twenty five small fish, five medium fish, or one large fish into \n __5,000 <:sand_dollar:877646167494762586>__", inline=True)
+FISH_SHOP_EMBED.add_field(name="Fish Bowl", value="This gives you a Fish Bowl Tank that you can deposit one small fish into \n __250 <:sand_dollar:877646167494762586>__", inline=True)
+FISH_SHOP_EMBED.add_field(name="Small Tank", value="This gives you a Small Tank that you can deposit five small fish or one medium fish into\n __2,000 <:sand_dollar:877646167494762586>__", inline=True)
+FISH_SHOP_EMBED.add_field(name="Medium Tank", value="This gives you a Medium Tank that you can deposit twenty five small fish, five medium fish, or one large fish into \n __12,000 <:sand_dollar:877646167494762586>__", inline=True)
 FISH_SHOP_EMBED.add_field(name="Tank Themes", value="These are themes you can buy for your tanks", inline=False)
 FISH_SHOP_EMBED.add_field(name="Plant Life", value="This gives you the plant life theme for one of your tanks \n __250 <:doubloon:878297091057807400>__", inline=True)
 
@@ -51,8 +49,7 @@ class Shop(vbu.Cog):
 
         # Say what's valid
         all_names = [
-            utils.COMMON_BAG_NAMES, utils.UNCOMMON_BAG_NAMES, utils.RARE_BAG_NAMES, utils.EPIC_BAG_NAMES,
-            utils.LEGENDARY_BAG_NAMES, utils.MYSTERY_BAG_NAMES, utils.FISH_FLAKES_NAMES, utils.FISH_BOWL_NAMES,
+            utils.COMMON_BAG_NAMES, utils.UNCOMMON_BAG_NAMES, utils.RARE_BAG_NAMES, utils.FISH_FLAKES_NAMES, utils.FISH_BOWL_NAMES,
             utils.SMALL_TANK_NAMES, utils.MEDIUM_TANK_NAMES, utils.PLANT_LIFE_NAMES, utils.FISH_REVIVAL_NAMES,
         ]
 
@@ -66,17 +63,14 @@ class Shop(vbu.Cog):
             "(user_id) DO UPDATE SET {0}=user_item_inventory.{0}+excluded.{0}"
         )
         item_name_dict = {
-            "cfb": (utils.COMMON_BAG_NAMES, 25, "Common Fish Bag", inventory_insert_sql.format("cfb")),
-            "ufb": (utils.UNCOMMON_BAG_NAMES, 50, "Uncommon Fish Bag", inventory_insert_sql.format("ufb")),
-            "rfb": (utils.RARE_BAG_NAMES, 100, "Rare Fish Bag", inventory_insert_sql.format("rfb")),
-            "efb": (utils.EPIC_BAG_NAMES, 200, "Epic Fish Bag", inventory_insert_sql.format("efb")),
-            "lfb": (utils.LEGENDARY_BAG_NAMES, 250, "Legendary Fish Bag", inventory_insert_sql.format("lfb")),
-            "mfb": (utils.MYSTERY_BAG_NAMES, 125),
+            "cfb": (utils.COMMON_BAG_NAMES, 100, "Common Fish Bag", inventory_insert_sql.format("cfb")),
+            "ufb": (utils.UNCOMMON_BAG_NAMES, 300, "Uncommon Fish Bag", inventory_insert_sql.format("ufb")),
+            "rfb": (utils.RARE_BAG_NAMES, 900, "Rare Fish Bag", inventory_insert_sql.format("rfb")),
             "flakes": (utils.FISH_FLAKES_NAMES, 200, "Fish Flakes", inventory_insert_sql.format("flakes")),
             "revival": (utils.FISH_REVIVAL_NAMES, 2500, "Fish Revival", inventory_insert_sql.format("revival")),
-            "Fish Bowl": (utils.FISH_BOWL_NAMES, 100, "Fish Bowl", ""),
-            "Small Tank": (utils.SMALL_TANK_NAMES, 1000, "Small Tank", ""),
-            "Medium Tank": (utils.MEDIUM_TANK_NAMES, 5000, "Medium Tank", ""),
+            "Fish Bowl": (utils.FISH_BOWL_NAMES, 250, "Fish Bowl", ""),
+            "Small Tank": (utils.SMALL_TANK_NAMES, 2000, "Small Tank", ""),
+            "Medium Tank": (utils.MEDIUM_TANK_NAMES, 12000, "Medium Tank", ""),
             "Plant Life": (utils.PLANT_LIFE_NAMES, 250, "Plant Life", "")
         }
         item_name_singular = [
@@ -93,15 +87,8 @@ class Shop(vbu.Cog):
                 continue
 
             # Unpack the given information
-            if possible_entries[-1] == "Mfb":
-                rarity_type = random.choices(
-                    ["cfb", "ufb", "rfb", "efb", "lfb"],
-                    [.5, .3, .125, .05, .025,]
-                )[0]
-                _, _, response, db_call = item_name_dict[rarity_type]
-                cost = 125
-            else:
-                _, cost, response, db_call = data
+            _, cost, response, db_call = data
+
             for names in item_name_singular:
                 if item.title() in names:
                     amount = 1
@@ -155,30 +142,20 @@ class Shop(vbu.Cog):
             return await ctx.send(f"{ctx.author.display_name}, you're already fishing!")
         utils.current_fishers.append(ctx.author.id)
 
-        rarity_chances = {
-            "cfb": {"common": .6689, "uncommon": .2230, "rare": .0743, "epic": .0248, "legendary": .0082, "mythic": .0008},
-            "ufb": {"common": .6377, "uncommon": .2326, "rare": .0855, "epic": .0316, "legendary": .0118, "mythic": .0008},
-            "rfb": {"common": .6062, "uncommon": .2423, "rare": .0967, "epic": .0385, "legendary": .0154, "mythic": .0009},
-            "efb": {"common": .5610, "uncommon": .2500, "rare": .1128, "epic": .0850, "legendary": .0238, "mythic": .0009},
-            "lfb": {"common": .5156, "uncommon": .2578, "rare": .1289, "epic": .0645, "legendary": .0322, "mythic": .0010},
-        }
         # See if they are trying to use a bag
         used_bag = None
         if item.title() in utils.COMMON_BAG_NAMES:
-            used_bag_humanize, _, used_bag = utils.COMMON_BAG_NAMES
+            used_bag_humanize, rarity_of_bag, used_bag = utils.COMMON_BAG_NAMES
         elif item.title() in utils.UNCOMMON_BAG_NAMES:
-            used_bag_humanize, _, used_bag = utils.UNCOMMON_BAG_NAMES
+            used_bag_humanize, rarity_of_bag, used_bag = utils.UNCOMMON_BAG_NAMES
         elif item.title() in utils.RARE_BAG_NAMES:
-            used_bag_humanize, _, used_bag = utils.RARE_BAG_NAMES
-        elif item.title() in utils.EPIC_BAG_NAMES:
-            used_bag_humanize, _, used_bag = utils.EPIC_BAG_NAMES
-        elif item.title() in utils.LEGENDARY_BAG_NAMES:
-            used_bag_humanize, _, used_bag = utils.LEGENDARY_BAG_NAMES
+            used_bag_humanize, rarity_of_bag, used_bag = utils.RARE_BAG_NAMES
 
         # Deal with bag usage
         if used_bag is not None:
 
             # See if they have the bag they're trying to use
+            rarity_of_bag = rarity_of_bag.lower()
             used_bag = used_bag.lower()
             async with self.bot.database() as db:
                 user_rows = await db("""SELECT * FROM user_item_inventory WHERE user_id=$1""", ctx.author.id)
@@ -200,33 +177,13 @@ class Shop(vbu.Cog):
             utils.current_fishers.remove(ctx.author.id)
             return await ctx.send("That is not a usable fish bag!")
 
-        # Get what rarity of fish they rolled
-        rarity_names = ["common", "uncommon", "rare", "epic", "legendary", "mythic"]
-        chances = rarity_chances[used_bag]
-        rarity = random.choices(
-            rarity_names,
-            [chances[n] for n in rarity_names]
-        )[0]
-
-        # See if they rolled a modified fish
-        special = random.choices(
-            ["normal", "inverted", "golden",],
-            [.94, .05, .01]
-        )[0]
-
         # Get them a new fish
-        new_fish = random.choice(list(self.bot.fish[rarity].values())).copy()
-
-        # Modify the fish if necessary
-        if special == "inverted":
-            new_fish = utils.make_inverted(new_fish)
-        elif special == "golden":
-            new_fish = utils.make_golden(new_fish)
+        new_fish = random.choice(list(self.bot.fish[rarity_of_bag].values())).copy()
 
         # Grammar wew
         amount = 0
         owned_unowned = "Unowned"
-        a_an = "an" if rarity[0].lower() in ("a", "e", "i", "o", "u") else "a"
+        a_an = "an" if rarity_of_bag[0].lower() in ("a", "e", "i", "o", "u") else "a"
         async with self.bot.database() as db:
             user_inventory = await db("""SELECT * FROM user_fish_inventory WHERE user_id=$1""", ctx.author.id)
 
@@ -243,9 +200,9 @@ class Shop(vbu.Cog):
 
         # Tell the user about the fish they rolled
         embed = discord.Embed()
-        embed.title = f"You got {a_an} {rarity} {new_fish['name']}!"
+        embed.title = f"You got {a_an} {rarity_of_bag} {new_fish['name']}!"
         embed.add_field(name=owned_unowned, value=f"You have {amount} {new_fish['name']}", inline=False)
-        embed.color = utils.RARITY_CULERS[rarity]
+        embed.color = utils.RARITY_CULERS[rarity_of_bag]
         embed.set_image(url="attachment://new_fish.png")
         fish_file = discord.File(new_fish["image"], "new_fish.png")
 
@@ -483,7 +440,7 @@ class Shop(vbu.Cog):
 
         time = timedelta(seconds=int(error.retry_after))
 
-        await ctx.send(f'Daily reward claimed, please try again {vbu.TimeFormatter(dt.utcnow() + time - timedelta(hours=4)).relative_time}.')
+        await ctx.send(f'Daily reward claimed, please try again {vbu.TimeFormatter(dt.utcnow() + time - timedelta(hours=DAYLIGHT_SAVINGS)).relative_time}.')
 
     @vbu.command()
     @vbu.cooldown.cooldown(1, 30, commands.BucketType.user)
@@ -615,7 +572,7 @@ class Shop(vbu.Cog):
 
         time = timedelta(seconds=int(error.retry_after))
 
-        await ctx.send(f'Gamble cooldown, please try again {vbu.TimeFormatter(dt.utcnow() + time - timedelta(hours=4)).relative_time}.')
+        await ctx.send(f'Gamble cooldown, please try again {vbu.TimeFormatter(dt.utcnow() + time - timedelta(hours=DAYLIGHT_SAVINGS)).relative_time}.')
 
 
 
