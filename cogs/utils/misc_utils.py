@@ -7,43 +7,51 @@ import voxelbotutils as vbu
 
 
 # Does all the xp stuff
-async def xp_finder_adder(bot, user: discord.User, played_with_fish):
+async def xp_finder_adder(bot, user: discord.User, played_with_fish, xp_per_fish, level):
 
     # initial acquired fish data
     async with bot.database() as db:
         fish_rows = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2""", user.id, played_with_fish)
-        upgrades = await db(
-            """SELECT toys_upgrade, better_toys_upgrade, amazement_upgrade FROM user_upgrades WHERE user_id = $1""",
-            user.id,
-        )
 
-    # ranges of how much will be added
-    total_xp_to_add = random.randint(TOYS_UPGRADE[(upgrades[0]['toys_upgrade'] + upgrades[0]['better_toys_upgrade'])][0], TOYS_UPGRADE[(upgrades[0]['toys_upgrade'] + upgrades[0]['better_toys_upgrade'])][1])
 
     # level increase xp calculator
-    xp_per_level = math.floor(25 * fish_rows[0]['fish_level'] ** 1.5)
 
+    current_xp = fish_rows[0]['fish_xp'] + xp_per_fish
+    xp_needed = fish_rows[0]['fish_xp_max']
+    added_level = 0
+    if level is True:
+        added_level += 1
     async with bot.database() as db:
-    # for each tick of xp...
-        for i in range(total_xp_to_add):
+        while current_xp >= xp_needed:
+            level = await db("""UPDATE user_fish_inventory SET fish_level = fish_level + $3 WHERE user_id = $1 AND fish_name = $2 RETURNING fish_level""", user.id, played_with_fish, (1 + added_level))
+            print(level)
+            xp_for_next_level = math.floor(25 * level[0]['fish_level'] ** 1.5)
 
-            # if the xp is higher or equal to the xp recquired to level up...
-            if fish_rows[0]['fish_xp'] >= fish_rows[0]['fish_xp_max']:
+            current_xp = current_xp - xp_needed
+            xp_needed = xp_for_next_level
 
-                # update the level to increase by one, reset fish xp, and set fish xp max to the next level xp needed
-                await db("""UPDATE user_fish_inventory SET fish_level = fish_level + 1 WHERE user_id = $1 AND fish_name = $2""", user.id, played_with_fish)
-                await db("""UPDATE user_fish_inventory SET fish_xp = 0 WHERE user_id = $1 AND fish_name = $2""", user.id, played_with_fish)
-                await db("""UPDATE user_fish_inventory SET fish_xp_max = $1 WHERE user_id = $2 AND fish_name = $3""", int(xp_per_level), user.id, played_with_fish)
+        await db("""UPDATE user_fish_inventory SET fish_xp = $3 WHERE user_id = $1 AND fish_name = $2""", user.id, played_with_fish, current_xp)
+        await db("""UPDATE user_fish_inventory SET fish_xp_max = $1 WHERE user_id = $2 AND fish_name = $3""", xp_needed, user.id, played_with_fish)
 
-            # adds one xp regets new fish_rows
-            await db("""UPDATE user_fish_inventory SET fish_xp = fish_xp + 1 WHERE user_id = $1 AND fish_name = $2""", user.id, played_with_fish)
-            fish_rows = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2""", user.id, played_with_fish)
-        extra_level = random.randint(1, AMAZEMENT_UPGRADE[upgrades[0]['amazement_upgrade']])
-        if extra_level == 1:
-            await db("""UPDATE user_fish_inventory SET fish_level = fish_level + 1 WHERE user_id = $1 and fish_name = $2""", user.id, played_with_fish)
-            await db("""UPDATE user_fish_inventory SET fish_xp_max = fish_xp_max + $3 WHERE user_id = $1 and fish_name = $2""", user.id, played_with_fish, int(xp_per_level))
+    # async with bot.database() as db:
+    # # for each tick of xp...
+    #     for i in range(total_xp_to_add):
 
-    return total_xp_to_add
+    #         # if the xp is higher or equal to the xp recquired to level up...
+    #         if fish_rows[0]['fish_xp'] >= fish_rows[0]['fish_xp_max']:
+
+    #             # update the level to increase by one, reset fish xp, and set fish xp max to the next level xp needed
+    #             await db("""UPDATE user_fish_inventory SET fish_level = fish_level + 1 WHERE user_id = $1 AND fish_name = $2""", user.id, played_with_fish)
+    #             await db("""UPDATE user_fish_inventory SET fish_xp = 0 WHERE user_id = $1 AND fish_name = $2""", user.id, played_with_fish)
+    #             await db("""UPDATE user_fish_inventory SET fish_xp_max = $1 WHERE user_id = $2 AND fish_name = $3""", int(xp_per_level), user.id, played_with_fish)
+
+    #         # adds one xp regets new fish_rows
+    #         await db("""UPDATE user_fish_inventory SET fish_xp = fish_xp + 1 WHERE user_id = $1 AND fish_name = $2""", user.id, played_with_fish)
+    #         fish_rows = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2""", user.id, played_with_fish)
+
+    #     if extra_level == 1:
+    #         await db("""UPDATE user_fish_inventory SET fish_level = fish_level + 1 WHERE user_id = $1 and fish_name = $2""", user.id, played_with_fish)
+    #         await db("""UPDATE user_fish_inventory SET fish_xp_max = fish_xp_max + $3 WHERE user_id = $1 and fish_name = $2""", user.id, played_with_fish, int(xp_per_level))
 
 
 def get_fixed_field(field):
