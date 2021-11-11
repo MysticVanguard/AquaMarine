@@ -13,6 +13,8 @@ import voxelbotutils as vbu
 from voxelbotutils.cogs.utils.context_embed import Embed
 
 from cogs import utils
+from cogs.utils import fish_handler
+from cogs.utils.fish_handler import DAYLIGHT_SAVINGS
 
 CREDITS_EMBED = discord.Embed(title="Credits to all the people who have helped make this bot what it is!")
 CREDITS_EMBED.add_field(
@@ -64,7 +66,7 @@ class Informative(vbu.Cog):
             if fish['tank_fish'] != '':
                 fish_collections[fish['tank_fish']].append(
                     f"__**{fish['fish'].replace('_', ' ').title()}: \"{fish['fish_name']}\"**__\n"
-                    f"**Alive:** {fish['fish_alive']}\n **Death Date:** {vbu.TimeFormatter(fish['death_time'] - timedelta(hours=4)).relative_time}"
+                    f"**Alive:** {fish['fish_alive']}\n **Death Date:** {vbu.TimeFormatter(fish['death_time'] - timedelta(hours=DAYLIGHT_SAVINGS)).relative_time}"
                 )
 
         if not tank_rows:
@@ -262,7 +264,7 @@ class Informative(vbu.Cog):
                 return await ctx.send("You have no fish in your bucket!")
             return await ctx.send(f"**{user.display_name}** has no fish in their bucket!")
 
-        fish_list = [(i['fish_name'], i['fish']) for i in fish_rows]  # List of tuples (Fish Name, Fish Type)
+        fish_list = [(i['fish_name'], i['fish'], i['fish_alive']) for i in fish_rows]  # List of tuples (Fish Name, Fish Type)
         fish_list = sorted(fish_list, key=lambda x: x[1])
 
         fields = []  # The "pages" that the user can scroll through are the different rarity levels
@@ -281,14 +283,14 @@ class Informative(vbu.Cog):
         for rarity, fish_types in self.bot.fish.items():  # For each rarity level
             for _, fish_detail in fish_types.items():  # For each fish in that level
                 raw_name = fish_detail["raw_name"]
-                for user_fish_name, user_fish in fish_list:
+                for user_fish_name, user_fish, alive in fish_list:
                     if raw_name == utils.get_normal_name(user_fish):  # If the fish in the user's list matches the name of a fish in the rarity catgeory
-                        sorted_fish[rarity].append((user_fish_name, user_fish, fish_detail['size']))  # Append to the dictionary
+                        sorted_fish[rarity].append((user_fish_name, user_fish, fish_detail['size'], alive))  # Append to the dictionary
 
         # Get the display string for each field
         for rarity, fish_list in sorted_fish.items():
             if fish_list:
-                fish_string = [f"\"{fish_name}\": **{' '.join(fish_type.split('_')).title()}** ({fish_size.title()})" for fish_name, fish_type, fish_size in fish_list]
+                fish_string = [f"\"{fish_name}\": **{' '.join(fish_type.split('_')).title()}** (Size: {fish_size.title()}, Alive: {alive})" for fish_name, fish_type, fish_size, alive in fish_list]
                 field = (rarity.title(), "\n".join(fish_string))
                 [fields.append(i) for i in utils.get_fixed_field(field)]
 
@@ -304,7 +306,7 @@ class Informative(vbu.Cog):
         # The milestones for each achievement type
         milestones_dict_of_achievements = {
                'times_entertained': [5, 25, 100, 250, 500, 1000, 5000, 10000, 100000, 1000000],
-                'times_fed': [5, 25, 25, 50, 100, 500, 1000, 10000, 100000, 1000000],
+                'times_fed': [5, 25, 50, 100, 250, 500, 1000, 10000, 100000, 1000000],
                 'times_cleaned': [5, 25, 100, 250, 500, 1000, 5000, 10000, 100000, 1000000],
                 'times_caught': [5, 25, 100, 250, 500, 1000, 5000, 10000, 100000, 1000000],
                 'tanks_owned': [1, 3, 5, 10],
@@ -428,13 +430,8 @@ class Informative(vbu.Cog):
                 pressed = True
                 for achievement_button, user_achievement_position_button in Achievements_that_are_claimable.items():
                     amount_per_achievement = user_achievement_position_button + 1
-                    print(achievement_button)
-                    print(user_achievement_position_button)
-                    print(amount_per_achievement)
                     for x in range(amount_per_achievement):
-                        print(x)
                         amount_of_doubloons_earned += x + 1
-                        print(amount_of_doubloons_earned)
                     if achievement_button == 'tanks_owned' and user_achievement_position_button >= 3:
                         async with self.bot.database() as db:
                             await db("""UPDATE user_achievements_milestones SET {0} = TRUE WHERE user_id = $1""".format(f"{achievement_button}_milestone_done"), ctx.author.id)
@@ -473,11 +470,31 @@ class Informative(vbu.Cog):
             user_info_unsorted = {}
             user_info_sorted = {}
             async with self.bot.database() as db:
-                user_info_rows = await db("""SELECT * FROM user_balance""")
+                user_info_rows = await db("""SELECT * FROM user_fish_inventory""")
             for user_info in user_info_rows:
-                user_info_unsorted[user_info['balance']] = user_info['user_id']
-            user_info_unsorted_items = user_info_unsorted.items()
-            user_id_sorted = sorted(user_info_unsorted_items, reverse=True)
+                if user_info['user_id'] not in user_info_unsorted.keys():
+                    user_info_unsorted[user_info['user_id']] = []
+                    user_info_unsorted[user_info['user_id']].append(user_info['fish'])
+                else:
+                    user_info_unsorted[user_info['user_id']].append(user_info['fish'])
+            rarity_points = {
+                "common": 1,
+                "uncommon": 3,
+                "rare": 9,
+                "epic": 27,
+                "legendary": 81,
+                "mythic": 1728
+            }
+
+            user_points_unsorted = {}
+            for user, fish in user_info_unsorted.items():
+                user_points = 0
+                for rarity, fish_types in self.bot.fish.items():
+                    for fish_type in fish:
+                        if fish_type in fish_types:
+                            user_points += rarity_points[rarity]
+                user_points_unsorted[user] = user_points
+            user_id_sorted = [(user, points) for user, points in sorted(user_points_unsorted.items(), key=lambda item: item[1], reverse=True)]
             page = 0
             place = 0
             set = 0
@@ -485,7 +502,7 @@ class Informative(vbu.Cog):
             field_info = []
             for user_id_sorted_single in user_id_sorted:
                 place += 1
-                field_info.append(f"#{place:,}. <@{user_id_sorted_single[1]}> ({user_id_sorted_single[0]:,})")
+                field_info.append(f"#{place:,}. <@{user_id_sorted_single[0]}> ({user_id_sorted_single[1]:,})")
                 set += 1
                 if set == 10:
                     page += 1
