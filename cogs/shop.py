@@ -27,7 +27,8 @@ FISH_SHOP_EMBED.add_field(name="Small Tank", value="This gives you a Small Tank 
 FISH_SHOP_EMBED.add_field(name="Medium Tank", value="This gives you a Medium Tank that you can deposit twenty five small fish, five medium fish, or one large fish into \n __12,000 <:sand_dollar:877646167494762586>__", inline=True)
 FISH_SHOP_EMBED.add_field(name="Tank Themes", value="These are themes you can buy for your tanks", inline=False)
 FISH_SHOP_EMBED.add_field(name="Plant Life", value="This gives you the plant life theme for one of your tanks \n __250 <:doubloon:878297091057807400>__", inline=True)
-
+FISH_SHOP_EMBED.add_field(name="Misc", value="These are just some random things", inline=False)
+FISH_SHOP_EMBED.add_field(name="Fishing Casts", value="This will give you five casts \n __5 <:doubloon:878297091057807400>__", inline=True)
 
 class Shop(vbu.Cog):
 
@@ -50,7 +51,7 @@ class Shop(vbu.Cog):
         # Say what's valid
         all_names = [
             utils.COMMON_BAG_NAMES, utils.UNCOMMON_BAG_NAMES, utils.RARE_BAG_NAMES, utils.FISH_FLAKES_NAMES, utils.FISH_BOWL_NAMES,
-            utils.SMALL_TANK_NAMES, utils.MEDIUM_TANK_NAMES, utils.PLANT_LIFE_NAMES, utils.FISH_REVIVAL_NAMES,
+            utils.SMALL_TANK_NAMES, utils.MEDIUM_TANK_NAMES, utils.PLANT_LIFE_NAMES, utils.FISH_REVIVAL_NAMES, utils.CASTS_NAMES,
         ]
 
         # See if they gave a valid item
@@ -62,6 +63,10 @@ class Shop(vbu.Cog):
             "INSERT INTO user_item_inventory (user_id, {0}) VALUES ($1, $2) ON CONFLICT "
             "(user_id) DO UPDATE SET {0}=user_item_inventory.{0}+excluded.{0}"
         )
+        balance_insert_sql = (
+            "INSERT INTO user_balance (user_id, {0}) VALUES ($1, $2) ON CONFLICT "
+            "(user_id) DO UPDATE SET {0}=user_balance.{0}+excluded.{0}"
+        )
         item_name_dict = {
             "cfb": (utils.COMMON_BAG_NAMES, 100, "Common Fish Bag", inventory_insert_sql.format("cfb")),
             "ufb": (utils.UNCOMMON_BAG_NAMES, 300, "Uncommon Fish Bag", inventory_insert_sql.format("ufb")),
@@ -71,15 +76,12 @@ class Shop(vbu.Cog):
             "Fish Bowl": (utils.FISH_BOWL_NAMES, 250, "Fish Bowl", ""),
             "Small Tank": (utils.SMALL_TANK_NAMES, 2000, "Small Tank", ""),
             "Medium Tank": (utils.MEDIUM_TANK_NAMES, 12000, "Medium Tank", ""),
-            "Plant Life": (utils.PLANT_LIFE_NAMES, 250, "Plant Life", "")
+            "Plant Life": (utils.PLANT_LIFE_NAMES, 250, "Plant Life", ""),
+            "Casts": (utils.CASTS_NAMES, 5, "Casts", balance_insert_sql.format("casts")),
         }
-        item_name_singular = [
-            utils.FISH_BOWL_NAMES, utils.SMALL_TANK_NAMES, utils.MEDIUM_TANK_NAMES, utils.PLANT_LIFE_NAMES
-        ]
-        Doubloon_things = [
-            utils.PLANT_LIFE_NAMES
-        ]
-
+        item_name_singular = utils.FISH_BOWL_NAMES + utils.SMALL_TANK_NAMES + utils.MEDIUM_TANK_NAMES + utils.PLANT_LIFE_NAMES
+        Doubloon_things = utils.PLANT_LIFE_NAMES + utils.CASTS_NAMES
+        print(Doubloon_things)
         # Work out which of the SQL statements to use
         for table, data in item_name_dict.items():
             possible_entries = data[0]
@@ -89,28 +91,25 @@ class Shop(vbu.Cog):
             # Unpack the given information
             _, cost, response, db_call = data
 
-            for names in item_name_singular:
-                if item.title() in names:
-                    amount = 1
+            if item.title() in item_name_singular:
+                amount = 1
             # See if the user has enough money
             type_of_balance = 'balance'
             emoji = "<:sand_dollar:877646167494762586>"
-            for names in Doubloon_things:
-                if item.title() in names:
-                    emoji = "<:doubloon:878297091057807400>"
-                    type_of_balance = 'doubloon'
+            if item.title() in Doubloon_things:
+                emoji = "<:doubloon:878297091057807400>"
+                type_of_balance = 'doubloon'
 
             full_cost = cost * amount
+            if response == "Casts":
+                amount = amount * 5
             if not await utils.check_price(self.bot, ctx.author.id, full_cost, type_of_balance):
                 return await ctx.send(f"You don't have enough {emoji} for this!")
 
             # here
             check = False
             # Add item to user, check if item is a singular item and if so runs that function
-            for item_names in item_name_singular:
-                if item.title() in item_names:
-                    check = True
-            if check is True:
+            if item.title() in item_name_singular:
                 if await utils.buying_singular(self.bot, ctx.author, ctx, str(response)) is False:
                     return
             else:
@@ -118,15 +117,14 @@ class Shop(vbu.Cog):
                     await db(db_call, ctx.author.id, amount)
 
         # Remove money from the user
-        for names in Doubloon_things:
-            if item.title() in names:
-                async with self.bot.database() as db:
-                    await db("""
-                        UPDATE user_balance SET doubloon=doubloon-$1 WHERE user_id = $2""", full_cost, ctx.author.id)
-            else:
-                async with self.bot.database() as db:
-                    await db("""
-                        UPDATE user_balance SET balance=balance-$1 WHERE user_id = $2""", full_cost, ctx.author.id)
+        if item.title() in Doubloon_things:
+            async with self.bot.database() as db:
+                await db("""
+                    UPDATE user_balance SET doubloon=doubloon-$1 WHERE user_id = $2""", full_cost, ctx.author.id)
+        else:
+            async with self.bot.database() as db:
+                await db("""
+                    UPDATE user_balance SET balance=balance-$1 WHERE user_id = $2""", full_cost, ctx.author.id)
 
         # And tell the user we're done
         await ctx.send(f"You bought {amount:,} {response} for {full_cost:,} {emoji}!")
@@ -321,50 +319,27 @@ class Shop(vbu.Cog):
 
         async with self.bot.database() as db:
             if user:
+                other_or_self = f"{user.display_name} has"
                 fetched = await db("""SELECT * FROM user_balance WHERE user_id = $1""", user.id)
-                if not fetched:
-                    response = [
-                        f"{user.display_name} has no Sand Dollars <:sand_dollar:877646167494762586>!",
-                        f"{user.display_name} has no doubloons!"
-                    ]
-                elif not fetched[0]['doubloon'] or fetched[0]['doubloon'] == 0:
-                    response = [
-                        f"{user.display_name} has {fetched[0]['balance']:,} <:sand_dollar:877646167494762586>!",
-                        f"{user.display_name} has no doubloons!"
-                        ]
-                elif not fetched[0]['balance']:
-                    response = [
-                        f"{user.display_name} has no Sand Dollars <:sand_dollar:877646167494762586>!",
-                        f"{user.display_name} has {fetched[0]['doubloon']:,} <:doubloon:878297091057807400>!"
-                        ]
-                else:
-                    response = [
-                        f"{user.display_name} has {fetched[0]['balance']:,} <:sand_dollar:877646167494762586>!",
-                        f"{user.display_name} has {fetched[0]['doubloon']:,}! <:doubloon:878297091057807400>"
-                        ]
             else:
+                other_or_self = "You have"
                 fetched = await db("""SELECT * FROM user_balance WHERE user_id = $1""", ctx.author.id)
-                if not fetched:
-                    response = [
-                        f"You have no Sand Dollars <:sand_dollar:877646167494762586>!",
-                        f"You have no doubloons!"
-                    ]
-                elif not fetched[0]['doubloon'] or fetched[0]['doubloon'] == 0:
-                    response = [
-                        f"You have {fetched[0]['balance']:,} <:sand_dollar:877646167494762586>!",
-                        f"You have no doubloons!"
-                        ]
-                elif not fetched[0]['balance']:
-                    response = [
-                        f"You have no Sand Dollars <:sand_dollar:877646167494762586>!",
-                        f"You have {fetched[0]['doubloon']:,} <:doubloon:878297091057807400>!"
-                        ]
-                else:
-                    response = [
-                        f"You have {fetched[0]['balance']:,} <:sand_dollar:877646167494762586>!",
-                        f"You have {fetched[0]['doubloon']:,} <:doubloon:878297091057807400>!"
-                        ]
-        await ctx.send("\n".join(response_single for response_single in response))
+            if not fetched[0]['balance']:
+                amount_one = "no"
+            else:
+                amount_one = f"{fetched[0]['balance']:,}"
+            if not fetched[0]['doubloon']:
+                amount_two = "no"
+            else:
+                amount_two = f"{fetched[0]['doubloon']:,}"
+            if not fetched[0]['casts']:
+                amount_three = "no"
+            else:
+                amount_three = f"{fetched[0]['casts']:,}"
+        await ctx.send(f"""{other_or_self} {amount_one} Sand Dollars <:sand_dollar:877646167494762586>!
+        {other_or_self} {amount_two} Doubloons <:doubloon:878297091057807400>!
+        {other_or_self} {amount_three} Casts <:Casts:908941461666545674>!
+        """)
 
     @vbu.command()
     @vbu.bot_has_permissions(send_messages=True)
