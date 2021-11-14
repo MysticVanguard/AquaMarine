@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS user_balance (
     user_id BIGINT,
     balance INTEGER NOT NULL DEFAULT 0,
     doubloon INTEGER NOT NULL DEFAULT 0,
+    casts INTEGER NOT NULL DEFAULT 0,
     PRIMARY KEY (user_id)
 );
 
@@ -98,12 +99,12 @@ CREATE TABLE IF NOT EXISTS user_upgrades (
 
 CREATE TABLE IF NOT EXISTS user_achievements_milestones (
     user_id BIGINT,
-    times_entertained_milestone INT NOT NULL DEFAULT 5,
-    times_fed_milestone INT NOT NULL DEFAULT 5,
-    times_cleaned_milestone INT NOT NULL DEFAULT 5,
-    times_caught_milestone INT NOT NULL DEFAULT 5,
+    times_entertained_milestone INT NOT NULL DEFAULT 96,
+    times_fed_milestone INT NOT NULL DEFAULT 1,
+    times_cleaned_milestone INT NOT NULL DEFAULT 12,
+    times_caught_milestone INT NOT NULL DEFAULT 24,
     times_gambled_milestone INT NOT NULL DEFAULT 5,
-    money_gained_milestone INT NOT NULL DEFAULT 100,
+    money_gained_milestone INT NOT NULL DEFAULT 1000,
     tanks_owned_milestone INT NOT NULL DEFAULT 1,
     times_entertained_milestone_done BOOLEAN NOT NULL DEFAULT FALSE,
     times_fed_milestone_done BOOLEAN NOT NULL DEFAULT FALSE,
