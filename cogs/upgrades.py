@@ -46,9 +46,9 @@ class Upgrades(vbu.Cog):
             ]
         }
     }
-    UPGRADE_COST_LIST = (1000, 1500, 2500, 3000, 4000)
-    UPGRADE_COST_LIST_TWO = (4000, 4500, 5500, 6000, 7000)
-    UPGRADE_COST_LIST_THREE = (7000, 7500, 8500, 9000, 10000)
+    UPGRADE_COST_LIST = (250, 500, 1000, 2000, 2000)
+    UPGRADE_COST_LIST_TWO = (1000, 2500, 5000, 10000, 10000)
+    UPGRADE_COST_LIST_THREE = (5000, 10000, 25000, 50000, 50000)
 
     @vbu.command()
     @vbu.bot_has_permissions(send_messages=True, embed_links=True)
@@ -75,90 +75,91 @@ class Upgrades(vbu.Cog):
         tree_number = 0
         fields = []
         for upgrade, level in upgrades[0].items():
-            tier += 1
-            description = self.UPGRADE_DESCRIPTIONS[upgrade]
-            name = ' '.join(upgrade.split('_')).title()
-            # Get the cost of an upgrade
-            cost_string = f"{self.UPGRADE_COST_LIST[int(level - 1)]:,} <:sand_dollar:877646167494762586>"
+            if upgrade != "user_id":
+                tier += 1
+                description = self.UPGRADE_DESCRIPTIONS[upgrade]
+                name = ' '.join(upgrade.split('_')).title()
+                # Get the cost of an upgrade
+                cost_string = f"{self.UPGRADE_COST_LIST[int(level - 1)]:,} <:sand_dollar:877646167494762586>"
 
 
-            if tier == 1:
-                parent_one = upgrade
+                if tier == 1:
+                    parent_one = upgrade
 
 
 
 
-            left_bar = "<:bar_L:886377903615528971>"
-            start = ""
-            start_two = ""
-            emote = "<:bar_1:877646167184408617>"
-            if tier == 2 or tier == 5:
-                cost_string = f"{self.UPGRADE_COST_LIST_TWO[int(level - 1)]:,} <:sand_dollar:877646167494762586>"
-                parent_two = upgrade
-                if upgrades[0][parent_one] != 5:
-                    description = "???"
-                    name = "???"
-                    cost_string = "???"
-                start = '<:straight_branch:886377903837806602>'
-                start_two = "<:straight:886377903879753728>"
-                emote = "<:bar_2:877646166823694437>"
-                left_bar = "<:bar_L_branch:886377903581986848>"
-                if tier == 5:
-                    start = '<:branch:886377903825252402>'
+                left_bar = "<:bar_L:886377903615528971>"
+                start = ""
+                start_two = ""
+                emote = "<:bar_1:877646167184408617>"
+                if tier == 2 or tier == 5:
+                    cost_string = f"{self.UPGRADE_COST_LIST_TWO[int(level - 1)]:,} <:sand_dollar:877646167494762586>"
+                    parent_two = upgrade
+                    if upgrades[0][parent_one] != 5:
+                        description = "???"
+                        name = "???"
+                        cost_string = "???"
+                    start = '<:straight_branch:886377903837806602>'
                     start_two = "<:straight:886377903879753728>"
-            elif tier == 6 or tier == 3:
-                cost_string = f"{self.UPGRADE_COST_LIST_THREE[int(level - 1)]:,} <:sand_dollar:877646167494762586>"
-                if upgrades[0][parent_two] != 5:
-                    description = "???"
-                    name = "???"
-                    cost_string = "???"
-                start = "<:__:886381017051586580><:straight_branch:886377903837806602>"
-                emote = "<:bar_3:877646167138267216>"
-                left_bar = "<:bar_L_straight:886379040884260884>"
-                if tier == 3:
-                    start_two = "<:straight:886377903879753728><:straight:886377903879753728>"
-                    start = "<:straight:886377903879753728><:straight_branch:886377903837806602>"
-                else:
-                    start_two = "<:__:886381017051586580><:straight:886377903879753728>"
-            elif tier == 4 or tier == 7:
-                cost_string = f"{self.UPGRADE_COST_LIST_THREE[int(level - 1)]:,} <:sand_dollar:877646167494762586>"
-                if upgrades[0][parent_two] != 5:
-                    description = "???"
-                    name = "???"
-                    cost_string = "???"
-                emote = "<:bar_3:877646167138267216>"
-                left_bar = "<:bar_L_straight:886379040884260884>"
-                if tier == 4:
-                    start_two = "<:straight:886377903879753728><:straight:886377903879753728>"
-                    start = "<:straight:886377903879753728><:branch:886377903825252402>"
-                else:
-                    start_two = "<:__:886381017051586580><:straight:886377903879753728>"
-                    start = "<:__:886381017051586580><:branch:886377903825252402>"
-            # If they're fully upgraded
-            if level == 5:
-                cost_string = "This Upgrade is fully upgraded."
+                    emote = "<:bar_2:877646166823694437>"
+                    left_bar = "<:bar_L_branch:886377903581986848>"
+                    if tier == 5:
+                        start = '<:branch:886377903825252402>'
+                        start_two = "<:straight:886377903879753728>"
+                elif tier == 6 or tier == 3:
+                    cost_string = f"{self.UPGRADE_COST_LIST_THREE[int(level - 1)]:,} <:sand_dollar:877646167494762586>"
+                    if upgrades[0][parent_two] != 5:
+                        description = "???"
+                        name = "???"
+                        cost_string = "???"
+                    start = "<:__:886381017051586580><:straight_branch:886377903837806602>"
+                    emote = "<:bar_3:877646167138267216>"
+                    left_bar = "<:bar_L_straight:886379040884260884>"
+                    if tier == 3:
+                        start_two = "<:straight:886377903879753728><:straight:886377903879753728>"
+                        start = "<:straight:886377903879753728><:straight_branch:886377903837806602>"
+                    else:
+                        start_two = "<:__:886381017051586580><:straight:886377903879753728>"
+                elif tier == 4 or tier == 7:
+                    cost_string = f"{self.UPGRADE_COST_LIST_THREE[int(level - 1)]:,} <:sand_dollar:877646167494762586>"
+                    if upgrades[0][parent_two] != 5:
+                        description = "???"
+                        name = "???"
+                        cost_string = "???"
+                    emote = "<:bar_3:877646167138267216>"
+                    left_bar = "<:bar_L_straight:886379040884260884>"
+                    if tier == 4:
+                        start_two = "<:straight:886377903879753728><:straight:886377903879753728>"
+                        start = "<:straight:886377903879753728><:branch:886377903825252402>"
+                    else:
+                        start_two = "<:__:886381017051586580><:straight:886377903879753728>"
+                        start = "<:__:886381017051586580><:branch:886377903825252402>"
+                # If they're fully upgraded
+                if level == 5:
+                    cost_string = "This Upgrade is fully upgraded."
 
-            # Each level they have is a full bar emoji, up to 5 characters long
-            emote_string_list.clear()  # Clear our emoji list first
-            for _ in range(level):
+                # Each level they have is a full bar emoji, up to 5 characters long
+                emote_string_list.clear()  # Clear our emoji list first
+                for _ in range(level):
 
-                emote_string_list.append(emote)
+                    emote_string_list.append(emote)
 
-            while len(emote_string_list) < 5:
-                emote_string_list.append("<:bar_e:877646167146643556>")
-            print(emote_string_list)
+                while len(emote_string_list) < 5:
+                    emote_string_list.append("<:bar_e:877646167146643556>")
+                print(emote_string_list)
 
-            # Generate the message to send
+                # Generate the message to send
 
 
-            progress_bar = f"{left_bar}{''.join(emote_string_list)}<:bar_R:877646167113080842>"
-            message.append((f"{start}{progress_bar} *{description}*", f"{start_two}**{name}: (Lvl. {level}.): {cost_string}**"))
-            print(len(progress_bar))
+                progress_bar = f"{left_bar}{''.join(emote_string_list)}<:bar_R:877646167113080842>"
+                message.append((f"{start}{progress_bar} *{description}*", f"{start_two}**{name}: (Lvl. {level}.): {cost_string}**"))
+                print(len(progress_bar))
 
-            if tier == 7:
-                message.append(("** **", "** **"))
-                tree_number += 1
-                tier = 0
+                if tier == 7:
+                    message.append(("** **", "** **"))
+                    tree_number += 1
+                    tier = 0
 
         # And send our message
         embed = vbu.Embed()
