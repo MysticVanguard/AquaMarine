@@ -2,7 +2,10 @@ from os import walk
 import re
 import typing
 
-
+'''
+The following utils are for upgrades used in various commands throughout the bot, and are based on the level of the upgrade
+'''
+# Lure upgrades to give users a better chance at special fish
 LURE_UPGRADES = {
     1: [
         ("normal", .9989),
@@ -15,22 +18,23 @@ LURE_UPGRADES = {
         ("golden", .0002)
     ],
     3: [
+        ("normal", .9967),
+        ("inverted", .0030),
+        ("golden", .0003)
+    ],
+    4: [
         ("normal", .9956),
         ("inverted", .0040),
         ("golden", .0004)
     ],
-    4: [
-        ("normal", .9912),
-        ("inverted", .0080),
-        ("golden", .0008)
-    ],
     5: [
-        ("normal", .9824),
-        ("inverted", .0160),
-        ("golden", .0016)
+        ("normal", .9945),
+        ("inverted", .0050),
+        ("golden", .0005)
     ]
 }
-DAYLIGHT_SAVINGS = 5
+
+# Bait upgrade that increases your chances of catching rarer fish
 BAIT_UPGRADE = {
     1: [
         ("common", 0.6689),
@@ -113,36 +117,62 @@ BAIT_UPGRADE = {
         ("mythic", 0.0012),
     ],
 }
-WEIGHT_UPGRADES = {1: (1, 2), 2: (1, 4), 3: (2, 6), 4: (2, 8), 5: (3, 10)}
-ROD_UPGRADES = {1: 1, 2: 1.1, 3: 1.2, 4: 1.3, 5: 1.5}
+
+# Weight upgrade that increases the level of the caught fish
+WEIGHT_UPGRADES = {1: (1, 2), 2: (3, 10), 3: (5, 15), 4: (8, 20), 5: (10, 25)}
+
+# Rod upgrade that increases the multiplier of a fish when it is sold
+ROD_UPGRADES = {1: 1, 2: 1.1, 3: 1.1, 4: 1.2, 5: 1.3}
+
+# Line upgrade that increases the chance of catching two fish in one cast
 LINE_UPGRADES = {
     1: 10000,
     2: 10000,
-    3: 9990,
-    4: 9980,
-    5: 9960,
-    6: 9920,
-    7: 9840,
-    8: 9680,
-    9: 9360,
-    10: 8720,
+    3: 9950,
+    4: 9900,
+    5: 9800,
+    6: 9700,
+    7: 8700,
+    8: 7000,
+    9: 5500,
+    10: 3500,
 }
-FEEDING_UPGRADES = {1: (3, 0), 2: (3,6), 3: (3, 12), 4: (3, 18), 5: (4, 0)}
-TOYS_UPGRADE = {1: (2, 40), 2: (2, 40), 3: (4, 50), 4: (6, 60), 5: (8, 70), 6: (10, 80), 7: (12, 90), 8: (14, 100), 9: (16, 110), 10: (18, 120)}
+
+# Feeding upgrade that increases the time before a fish dies from not being fed
+FEEDING_UPGRADES = {1: (3, 0), 2: (3, 3), 3: (3, 6), 4: (3, 9), 5: (3, 12)}
+
+# Toys upgrade that increases the amount of xp gained
+TOYS_UPGRADE = {1: (2, 40), 2: (2, 40), 3: (4, 50), 4: (6, 60), 5: (10, 80), 6: (15, 100), 7: (20, 120), 8: (30, 150), 9: (45, 180), 10: (65, 225)}
+
+# Amazement upgrade increases the chance of a fish to gain a level when entertained
 AMAZEMENT_UPGRADE = {1: 1000, 2: 900, 3: 800, 4: 700, 5: 600}
-BLEACH_UPGRADE = {1: 1, 2: 1, 3: 1.1, 4: 1.2, 5: 1.3, 6: 1.4, 7: 1.5, 8: 1.6, 9: 1.7, 10: 1.8}
-HYGIENIC_UPGRADE = {1: (1, 30), 2: (2, 60), 3: (3, 90), 4: (4, 120), 5: (5, 150)}
-RARITY_PERCENTAGE_DICT = dict(BAIT_UPGRADE)  # A dictionary of `rarity: percentage`
 
-RARITY_CULERS = {
-    "common": 0xFFFFFE,  # White - FFFFFF doesn't work with Discord
-    "uncommon": 0x75FE66,  # Green
-    "rare": 0x4AFBEF,  # Blue
-    "epic": 0xE379FF,  # Light Purple
-    "legendary": 0xFFE80D,  # Gold
-    "mythic": 0xFF0090  # Hot Pink
-}
+# Bleach upgrade increases the multiplier of sand dollars gained from cleaning
+BLEACH_UPGRADE = {1: 1, 2: 1, 3: 1.1, 4: 1.2, 5: 1.3, 6: 1.5, 7: 1.7, 8: 2.0, 9: 2.5, 10: 3.0}
 
+# Hygienic upgrade increases the time between cleans and the multiplier with that time
+HYGIENIC_UPGRADE = {1: (1, 60), 2: (3, 180), 3: (6, 360), 4: (12, 720), 5: (24, 1240)}
+
+# This returns the results of the lure upgrade in [(list of types), (list of chances)]
+def special_percentage_finder(upgrade_level):
+    return [
+        list(i[0] for i in LURE_UPGRADES[upgrade_level]),
+        list(i[1] for i in LURE_UPGRADES[upgrade_level]),
+    ]
+
+# This returns the results of the bait upgrade in [(list of rarities), (list of chances)]
+def rarity_percentage_finder(upgrade_level: int) -> typing.List[float]:
+    return [
+        list(i[0] for i in BAIT_UPGRADE[upgrade_level]),
+        list(i[1] for i in BAIT_UPGRADE[upgrade_level]),
+    ]
+
+
+'''
+The following utils are used for commands that use emojis such as slots and gamble
+'''
+
+# A dictionary of every fish and its emoji_id counterpart, seperated by rarity
 EMOJI_RARITIES = {
     "common": {
         "clownfish": "<:clownfish:878370648936820786>",
@@ -231,6 +261,8 @@ EMOJI_RARITIES = {
 
     }
 }
+
+# These are the fish and fish ids that are a part of the gamble command
 EMOJI_RARITIES_SET_ONE = {
     "common": {
         "clownfish": "<:clownfish:878370648936820786>",
@@ -250,6 +282,12 @@ EMOJI_RARITIES_SET_ONE = {
     },
 }
 
+
+'''
+Other utils with various uses
+'''
+
+# The different acceptable names for items bought in the shop
 COMMON_BAG_NAMES = ["Common Fish Bag", "Common", "Cfb"]
 UNCOMMON_BAG_NAMES = ["Uncommon Fish Bag", "Uncommon", "Ufb"]
 RARE_BAG_NAMES = ["Rare Fish Bag", "Rare", "Rfb"]
@@ -259,26 +297,22 @@ SMALL_TANK_NAMES = ["Small Tank", "Small", "St"]
 MEDIUM_TANK_NAMES = ["Medium Tank", "Medium", "Mt"]
 PLANT_LIFE_NAMES = ["Plant Life", "Plant", "Pl"]
 FISH_REVIVAL_NAMES = ["Fish Revival", "Revival", "Fr"]
+CASTS_NAMES = ["Fishing Casts", "Casts", "C"]
 
+# Daylight savings variable because for some reason i need to add four and then an hour when its daylight savings, will be changed to 4 when daylight savings is over
+DAYLIGHT_SAVINGS = 5
 
-def special_percentage_finder(upgrade_level):
-    return [
-        list(i[0] for i in LURE_UPGRADES[upgrade_level]),
-        list(i[1] for i in LURE_UPGRADES[upgrade_level]),
-    ]
+# What colors the embed should have based on rarity
+RARITY_CULERS = {
+    "common": 0xFFFFFE,  # White - FFFFFF doesn't work with Discord
+    "uncommon": 0x75FE66,  # Green
+    "rare": 0x4AFBEF,  # Blue
+    "epic": 0xE379FF,  # Light Purple
+    "legendary": 0xFFE80D,  # Gold
+    "mythic": 0xFF0090  # Hot Pink
+}
 
-
-def rarity_percentage_finder(upgrade_level: int) -> typing.List[float]:
-    """
-    Gets a list of rarities for each level of commodity, per level.
-    """
-
-    return [
-        list(i[0] for i in BAIT_UPGRADE[upgrade_level]),
-        list(i[1] for i in BAIT_UPGRADE[upgrade_level]),
-    ]
-
-
+# This parses file names
 def parse_fish_filename(filename: str) -> dict:
     """
     Parse a given fish filename into a dict of `modifier`, `rarity`, `cost`,
@@ -288,21 +322,21 @@ def parse_fish_filename(filename: str) -> dict:
     # Initial filename splitterboi
     filename = filename[:-4]  # Remove file extension
     modifier = None
-    rarity, cost, size, *raw_name = filename.split("_")
+    rarity, cost, size, *raw_name = filename.split("_") # Splits the formatted file name into its parts
 
     # See if our fish name has a modifier on it
-    if rarity in ["inverted", "golden"]:
-        modifier, rarity, cost, size, raw_name = rarity, cost, size, raw_name[0], raw_name[1:]
-    raw_name = "_".join(raw_name)
+    if rarity in ["inverted", "golden"]: # If rarity is actually the modifier...
+        modifier, rarity, cost, size, raw_name = rarity, cost, size, raw_name[0], raw_name[1:] # Change the variables to what they actually should be
+    raw_name = "_".join(raw_name) # Make sure the raw name is the name with underscores joining
 
-    # And we done
+    # Return the parts of the filename in a dict of the stats
     return {
         "modifier": modifier,
         "rarity": rarity,
         "cost": cost,
         "size": size,
         "raw_name": raw_name,
-        "name": raw_name.replace("_", " ").title(),
+        "name": raw_name.replace("_", " ").title(), # make the name "Example Text" instead of "example_text"
     }
 
 
@@ -338,33 +372,35 @@ def fetch_fish(directory: str) -> dict:
 
     return fetched_fish
 
-
+# This will make the fish golden
 def make_golden(fish: dict) -> dict:
     """
     Take the given fish and change the dict to make it golden.
     """
 
-    fish["raw_name"] = f"golden_{fish['raw_name']}"
-    fish["name"] = f"Golden {fish['name']}"
-    fish["image"] = fish["image"][:40] + "golden_" + fish["image"][40:]
+    fish["raw_name"] = f"golden_{fish['raw_name']}" # Adds the modifier to the raw name
+    fish["name"] = f"Golden {fish['name']}" # Adds the modifier to the name
+    fish["image"] = fish["image"][:40] + "golden_" + fish["image"][40:] # Adds the modifier to the image folder path in the correct place
     return fish
 
-
+# This will make the fish inverted
 def make_inverted(fish: dict) -> dict:
     """
     Take the given fish and change the dict to make it inverted.
     """
 
-    fish["raw_name"] = f"inverted_{fish['raw_name']}"
-    fish["name"] = f"Inverted {fish['name']}"
-    fish["image"] = fish["image"][:40] + "inverted_" + fish["image"][40:]
+    fish["raw_name"] = f"inverted_{fish['raw_name']}" # Adds the modifier to the raw name
+    fish["name"] = f"Inverted {fish['name']}" # Adds the modifier to the name
+    fish["image"] = fish["image"][:40] + "inverted_" + fish["image"][40:] # Adds the modifier to the image folder path in the correct place
     return fish
 
-
+# This will get rid of any modifiers
 def get_normal_name(fish_name):
     """
     Get the non-inverted/golden name for the fish
     """
+
+    # If there is inverted or golden at the front of the fish name, take it off
     match = re.match(r"(inverted_|golden_)(?P<fish_name>.*)", fish_name)
     if match:
         return match.group("fish_name")
