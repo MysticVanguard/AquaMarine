@@ -3,9 +3,11 @@ from cogs.utils.misc_utils import seconds_converter
 import random
 from datetime import datetime as dt, timedelta
 
+import math
+import asyncio
 import voxelbotutils as vbu
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 
 from cogs import utils
 
@@ -14,9 +16,24 @@ class Fishing(vbu.Cog):
 
     def __init__(self, bot: commands.AutoShardedBot):
         super().__init__(bot)
+        self.user_cast_loop.start()
+
+    def cog_unload(self):
+        self.user_cast_loop.cancel()
+
+    @tasks.loop(hours=1)
+    async def user_cast_loop(self):
+
+        async with self.bot.database() as db:
+            await db("""UPDATE user_balance SET casts=casts+1""")
+
+    @user_cast_loop.before_loop
+    async def before_user_cast_loop(self):
+        await self.bot.wait_until_ready()
+
 
     @vbu.command()
-    @vbu.cooldown.cooldown(1, 15 * 60, commands.BucketType.user)
+    @vbu.cooldown.cooldown(1, 10 * 60, commands.BucketType.user)
     @vbu.bot_has_permissions(send_messages=True, embed_links=True)
     async def fish(self, ctx: commands.Context):
         """
@@ -35,13 +52,23 @@ class Fishing(vbu.Cog):
                 """SELECT rod_upgrade, bait_upgrade, weight_upgrade, line_upgrade, lure_upgrade, better_bait_upgrade, better_line_upgrade FROM user_upgrades WHERE user_id = $1""",
                 ctx.author.id,
             )
+            casts = await db(
+                """SELECT casts FROM user_balance WHERE user_id = $1""",
+                ctx.author.id
+            )
 
             # no upgrades bro
             if not upgrades:
                 upgrades = await db("""INSERT INTO user_upgrades (user_id) VALUES ($1) RETURNING *""", ctx.author.id)
+            if not casts:
+                casts = await db("""INSERT INTO user_balance (user_id, casts) VALUES ($1, 6) RETURNING casts""", ctx.author.id)
+
+        if casts[0]['casts'] <= 0:
+            utils.current_fishers.remove(ctx.author.id)
+            return await ctx.send("You have no casts, please wait atleast an hour until the next casts are out.")
+
 
         # Roll a dice to see if they caught multiple fish
-
         two_in_one_roll = random.randint(1, utils.LINE_UPGRADES[(upgrades[0]['line_upgrade'] + upgrades[0]['better_line_upgrade'])])
         if two_in_one_roll == 1:
             caught_fish = 2
@@ -80,9 +107,34 @@ class Fishing(vbu.Cog):
                     ON CONFLICT (user_id) DO UPDATE SET times_caught = user_achievements.times_caught + 1""",
                     ctx.author.id,
                 )
+                await db(
+                    """UPDATE user_balance SET casts = casts-1 WHERE user_id = $1""",
+                    ctx.author.id,
+                )
             for row in user_inventory:
                 if row['fish'] == new_fish['raw_name']:
                     amount += 1
+
+            fish_file = discord.File(new_fish["image"], "new_fish.png")
+            await ctx.send(f"Guess the name of this fish", file=fish_file)
+            check = lambda guess: guess.author == ctx.author and guess.channel == ctx.channel
+            try:
+                message_given = await ctx.bot.wait_for("message", timeout=60.0, check=check)
+                message = message_given.content
+                if message.title() == new_fish['name']:
+                    bonus = 10 + math.floor(int(new_fish['cost']) / 20)
+                    await ctx.send(f"You guessed correctly and recieved {bonus} bonus sand dollars <:sand_dollar:877646167494762586>!")
+                    async with self.bot.database() as db:
+                        await db(
+                            """INSERT INTO user_balance (user_id, balance) VALUES ($1, $2)
+                            ON CONFLICT (user_id) DO UPDATE SET balance = user_balance.balance + $2""",
+                            ctx.author.id, bonus
+                        )
+                else:
+                    await ctx.send(f"Incorrect, no bonus given.")
+            except asyncio.TimeoutError:
+                await ctx.send("Timed out asking for guess.")
+                return False
 
             # Tell the user about the fish they caught
             owned_unowned = "Owned" if amount > 0 else "Unowned"
@@ -90,12 +142,11 @@ class Fishing(vbu.Cog):
             embed.add_field(name=owned_unowned, value=f"You have {amount} **{new_fish['name']}**", inline=False)
             embed.set_image(url="attachment://new_fish.png")
             embed.color = utils.RARITY_CULERS[rarity]
-            fish_file = discord.File(new_fish["image"], "new_fish.png")
 
 
             # Ask if they want to sell the fish they just caught
             print(utils.current_fishers)
-            await utils.ask_to_sell_fish(self.bot, ctx, new_fish, embed=embed, file=fish_file)
+            await utils.ask_to_sell_fish(self.bot, ctx, new_fish, embed = embed)
 
         # And now they should be allowed to fish again
         utils.current_fishers.remove(ctx.author.id)
