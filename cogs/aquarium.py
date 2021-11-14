@@ -3,33 +3,31 @@ import asyncio
 from datetime import datetime as dt, timedelta
 import io
 
-from PIL import ImageOps
 from PIL import Image
 import imageio
-import voxelbotutils as vbu
 import discord
-from discord.ext import commands
+from discord.ext import commands, vbu
 
 from cogs.utils.fish_handler import DAYLIGHT_SAVINGS
 
 
 class Aquarium(vbu.Cog):
 
-    @vbu.command()
-    @vbu.bot_has_permissions(send_messages=True)
+    @commands.command()
+    @commands.bot_has_permissions(send_messages=True)
     async def firsttank(self, ctx: commands.Context):
         """
         This command gives the user their first tank.
         """
 
         # See if they already have a tank
-        async with self.bot.database() as db:
+        async with vbu.Database() as db:
             fetched = await db("""SELECT user_id FROM user_tank_inventory WHERE user_id=$1;""", ctx.author.id)
         if fetched:
             return await ctx.send("You have your first tank already!")
 
         # Add a tank to the user
-        async with self.bot.database() as db:
+        async with vbu.Database() as db:
             await db(
                 """INSERT INTO user_tank_inventory VALUES ($1);""", ctx.author.id)
             await db(
@@ -60,14 +58,14 @@ class Aquarium(vbu.Cog):
             ))
 
         # Save their tank name
-        async with self.bot.database() as db:
+        async with vbu.Database() as db:
             await db(
                 """UPDATE user_tank_inventory SET tank_name[1]=$1 WHERE user_id=$2;""",
                 name, ctx.author.id,
             )
 
     @vbu.command(aliases=["dep"])
-    @vbu.bot_has_permissions(send_messages=True)
+    @commands.bot_has_permissions(send_messages=True)
     async def deposit(self, ctx: commands.Context, tank_name: str, fish_deposited: str):
         """
         This command deposits a specified fish into a specified tank.
@@ -77,7 +75,7 @@ class Aquarium(vbu.Cog):
         size_values = {"small": 1, "medium": 5, "large": 10}
 
         # fetches the two needed rows from the database
-        async with self.bot.database() as db:
+        async with vbu.Database() as db:
             fish_row = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2""", ctx.author.id, fish_deposited)
             tank_row = await db("""SELECT * FROM user_tank_inventory WHERE user_id =$1""", ctx.author.id)
 
@@ -108,7 +106,7 @@ class Aquarium(vbu.Cog):
         tank_slot += 1
 
         # add the fish to the tank in the database
-        async with self.bot.database() as db:
+        async with vbu.Database() as db:
             await db(
                 """UPDATE user_tank_inventory SET fish_room[$2] = fish_room[$2] - $3 WHERE user_id=$1""",
                 ctx.author.id, tank_slot, size_values[fish_row[0]["fish_size"]],
@@ -117,20 +115,22 @@ class Aquarium(vbu.Cog):
                 """UPDATE user_fish_inventory SET tank_fish = $3, death_time = $4 WHERE fish_name=$1 AND user_id=$2""",
                 fish_deposited, ctx.author.id, tank_name, (dt.utcnow() + timedelta(days=3)),
             )
-        return await ctx.send(f"Fish has been deposited and will die {vbu.TimeFormatter(dt.utcnow() + timedelta(days=3) - timedelta(hours=DAYLIGHT_SAVINGS)).relative_time}!")
+        relative_time = discord.utils.format_dt(dt.utcnow() + timedelta(days=3) - timedelta(hours=DAYLIGHT_SAVINGS), style="R")
+        return await ctx.send(f"Fish has been deposited and will die {relative_time}!")
 
     @vbu.command(aliases=["rem"])
-    @vbu.bot_has_permissions(send_messages=True)
+    @commands.bot_has_permissions(send_messages=True)
     async def remove(self, ctx: commands.Context, tank_name: str, fish_removed: str):
-        '''
+        """
         This command removes a specified fish from a specified tank and has a cooldown.
-        '''
+        """
+
         # variables for size value and the slot the tank is in
         size_values = {"small": 1, "medium": 5, "large": 10}
         tank_slot = 0
 
         # fetches the two needed rows from the database
-        async with self.bot.database() as db:
+        async with vbu.Database() as db:
             fish_row = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2 AND tank_fish = $3""", ctx.author.id, fish_removed, tank_name)
             tank_row = await db("""SELECT * FROM user_tank_inventory WHERE user_id =$1""", ctx.author.id)
 
@@ -144,7 +144,8 @@ class Aquarium(vbu.Cog):
         if fish_row[0]['fish_remove_time']:
             if fish_row[0]['fish_remove_time'] + timedelta(days=5) > dt.utcnow():
                 time_left = timedelta(seconds=(fish_row[0]['fish_remove_time'] - dt.utcnow()).total_seconds())
-                return await ctx.send(f"This fish is resting, please try again {vbu.TimeFormatter(dt.utcnow() + time_left - timedelta(hours=DAYLIGHT_SAVINGS)).relative_time}.")
+                relative_time = discord.utils.format_dt(dt.utcnow() + time_left - timedelta(hours=DAYLIGHT_SAVINGS), style="R")
+                return await ctx.send(f"This fish is resting, please try again {relative_time}.")
 
 
         # finds the tank slot the tank in question is at
@@ -157,16 +158,16 @@ class Aquarium(vbu.Cog):
         # dumb
         tank_slot += 1
 
-        async with self.bot.database() as db:
+        async with vbu.Database() as db:
             await db("""UPDATE user_fish_inventory SET tank_fish = '', death_time = NULL, fish_remove_time = $3 WHERE user_id = $1 AND fish_name = $2""", ctx.author.id, fish_removed, (dt.utcnow() + timedelta(days=5)))
             await db("""UPDATE user_tank_inventory SET fish_room[$3] = fish_room[$3] + $2 WHERE user_id = $1""", ctx.author.id, int(size_values[fish_row[0]['fish_size']]), tank_slot)
         return await ctx.send(
             f"**{fish_removed}** removed from **{tank_name}**!",
             allowed_mentions=discord.AllowedMentions.none(),
-            )
+        )
 
-    @vbu.command()
-    @vbu.bot_has_permissions(send_messages=True, embed_links=True)
+    @commands.command()
+    @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def show(self, ctx: commands.Context, *, tank_name: str):
         """
         This command produces a gif of the specified tank. DO NOT USE SLASH COMMANDS
@@ -192,7 +193,7 @@ class Aquarium(vbu.Cog):
             tank_slot = 0
 
             # gets database info for tank
-            async with self.bot.database() as db:
+            async with vbu.Database() as db:
                 selected_fish = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND tank_fish = $2""", ctx.author.id, tank_name)
                 tank_row = await db("""SELECT * FROM user_tank_inventory WHERE user_id =$1""", ctx.author.id)
 
@@ -217,6 +218,7 @@ class Aquarium(vbu.Cog):
             for selected_fish_types in selected_fish:
                 fishes[selected_fish_types['fish']] = [selected_fish_types['fish_alive']]
             for name, info in fishes.items():
+
                 if "golden" in name:
                     fishes[name].append(name.lstrip("golden_"))
                     name = name.lstrip("golden_")
@@ -227,8 +229,10 @@ class Aquarium(vbu.Cog):
                     golden_inverted_normal = 'inverted'
                 else:
                     fishes[name].append(name)
+
+
                 for _, fish_types in self.bot.fish.items():
-                    for fish_type, fish_data in fish_types.items():
+                    for fish_data in fish_types.values():
                         if info[1] == fish_data['raw_name']:
                             move_x.append(random.randint(min_max_x[tank_info][0], min_max_x[tank_info][1]))
                             fish_y_value.append(random.randint(min_max_y[tank_info][0], min_max_y[tank_info][1]))
@@ -256,6 +260,7 @@ class Aquarium(vbu.Cog):
 
                 # Add a fish to the background image
                 this_background = background.copy()
+
                 # adds multiple fish and a midground if its a fishbowl
                 for x in range(0, len(im)):
                     if dead_alive[x] is False:
@@ -265,6 +270,7 @@ class Aquarium(vbu.Cog):
                         move_x[x] += fish_size_speed[tank_info]
                         if move_x[x] > min_max_x[tank_info][1]:
                             move_x[x] = min_max_x[tank_info][0]
+
                 this_background.paste(midground, (0, 0), midground)
                 this_background.paste(foreground, (0, 0), foreground)
 
@@ -275,6 +281,7 @@ class Aquarium(vbu.Cog):
                 files.append(f)
 
                 # Move fish
+                ...
 
             # Save the image sequence to a gif
             image_handles = [imageio.imread(i) for i in files]

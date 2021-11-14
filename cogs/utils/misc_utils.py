@@ -1,41 +1,58 @@
-from cogs.utils.fish_handler import AMAZEMENT_UPGRADE, TOYS_UPGRADE
-import discord
-import random
 import math
 import asyncio
-import voxelbotutils as vbu
+import typing
+
+import discord
+from discord.ext import vbu
 
 
 # Finds out what level and xp each fish will be
-async def xp_finder_adder(bot, user: discord.User, played_with_fish, xp_per_fish, level):
+async def xp_finder_adder(user: typing.Union[discord.User, discord.Member], played_with_fish: str, xp_per_fish: int, level: bool) -> None:
+    """
+    Takes umm it takes the uh so it takes the it's called every time every fish in a tank and it takes every
+    it it takes the xp for that uh that fish and uh um and then basically it stop i hate it
+    and then so it so it it gets the new uh it gets the new fish rows data and it's like
+    it sets the current xp to um uh the current xp plus the new xp added and it sets xp needed to the fish xp that
+    it got from the data and then added level is zero
+
+    Add to the fish's xp and level.
+    """
 
     # Intial data for fish
-    async with bot.database() as db:
+    async with vbu.Database() as db:
         fish_rows = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2""", user.id, played_with_fish)
-
 
     # Update what the current xp will be
     current_xp = fish_rows[0]['fish_xp'] + xp_per_fish
+
     # Find out the xp needed from the data
     xp_needed = fish_rows[0]['fish_xp_max']
+
     # Initiate how many levels added as 0
     added_level = 0
+
     # If the fish triggered the bonus level from amazement upgrade add a level
     if level is True:
         added_level += 1
 
     # Adds a level as long as the current xp is bigger than the xp needed, refinding xp needed and resetting current xp
-    async with bot.database() as db:
+    async with vbu.Database() as db:
 
         # While the fish has more xp after the entertain than the xp needed...
         while current_xp >= xp_needed:
 
             # Increase the level
-            level = await db("""UPDATE user_fish_inventory SET fish_level = fish_level + $3 WHERE user_id = $1 AND fish_name = $2 RETURNING fish_level""", user.id, played_with_fish, (1 + added_level))
+            inventory_rows = await db(
+                """UPDATE user_fish_inventory SET fish_level = fish_level + $3 WHERE
+                user_id = $1 AND fish_name = $2 RETURNING fish_level""",
+                user.id, played_with_fish, (1 + added_level),
+            )
+
             # Calculate the current xp by subtracting the xp needed for the last level from the old xp
             current_xp = current_xp - xp_needed
+
             # Calculate the next level using the fish's current level (and the added level if that was hit)
-            xp_needed = math.floor(25 * (level[0]['fish_level']+added_level) ** 1.5)
+            xp_needed = math.floor(25 * (inventory_rows[0]['fish_level'] + added_level) ** 1.5)
 
         # Once the fish is done leveling set the current xp and the xp needed to their appropriate values
         await db("""UPDATE user_fish_inventory SET fish_xp = $3 WHERE user_id = $1 AND fish_name = $2""", user.id, played_with_fish, current_xp)
@@ -49,6 +66,7 @@ def get_fixed_field(field):
 
     # This gets the main part of the field that will be put into an embed in a list of each time new line is given
     fish_string_split = field[1].split('\n')
+
     # Initializes the fixed field list, current string string, and fish char sum
     fixed_field = []
     current_string = ""
@@ -60,6 +78,7 @@ def get_fixed_field(field):
 
         # Find the length of that piece with the new line
         fish_character_sum += len("\n" + fish_string)
+
         # If it gets to a point where the sum is less than 1020...
         if fish_character_sum < 1020:
 
@@ -91,17 +110,20 @@ def get_fixed_field(field):
     return fixed_field
 
 # Puts together an embed based on the field given
-def create_bucket_embed(user, field, custom_title=None):
+def create_bucket_embed(user, field: typing.Tuple[str, str], custom_title: str = None):
     """
     Creates the embed for the pagination page for the fishbucket
     """
 
     # Creates a new embed
     embed = discord.Embed()
+
     # Sets the title to the custom title or just "user's fish bucket"
     embed.title = custom_title or f"**{user.display_name}'s Fish Bucket**\n"
+
     # Sets the name of the field to the first part of the given field, then the value to the second part
     embed.add_field(name=f"__{field[0]}__", value=field[1], inline=False)
+
     # Returns the field
     return embed
 
@@ -118,10 +140,10 @@ async def paginate(ctx, fields, user, custom_str=None):
     embed = create_bucket_embed(user, curr_field, custom_str)
 
     # Set up the buttons for pagination
-    left = vbu.Button(custom_id="left", emoji="◀️", style=vbu.ButtonStyle.PRIMARY)
-    right = vbu.Button(custom_id="right", emoji="▶️", style=vbu.ButtonStyle.PRIMARY)
-    stop = vbu.Button(custom_id="stop", emoji="⏹️", style=vbu.ButtonStyle.DANGER)
-    numbers = vbu.Button(custom_id="numbers", emoji="🔢", style=vbu.ButtonStyle.PRIMARY)
+    left = discord.ui.Button(custom_id="left", emoji="◀️", style=discord.ui.ButtonStyle.primary)
+    right = discord.ui.Button(custom_id="right", emoji="▶️", style=discord.ui.ButtonStyle.primary)
+    stop = discord.ui.Button(custom_id="stop", emoji="⏹️", style=discord.ui.ButtonStyle.danger)
+    numbers = discord.ui.Button(custom_id="numbers", emoji="🔢", style=discord.ui.ButtonStyle.primary)
 
     # Set up the valid buttons to be the first 3 always
     valid_buttons = [left, right, stop]
@@ -130,8 +152,8 @@ async def paginate(ctx, fields, user, custom_str=None):
         valid_buttons.append(numbers)
 
     # Put the buttons together
-    components = vbu.MessageComponents(
-        vbu.ActionRow(*valid_buttons)
+    components = discord.ui.MessageComponents(
+        discord.ui.ActionRow(*valid_buttons)
     )
 
     # Send the message
@@ -145,7 +167,7 @@ async def paginate(ctx, fields, user, custom_str=None):
             return False
         # The correct button
         if payload.component.custom_id in [left.custom_id, right.custom_id, stop.custom_id, numbers.custom_id]:
-            bot.loop.create_task(payload.ack())
+            bot.loop.create_task(payload.defer_update())
         # The correct user
         return payload.user.id == ctx.author.id
 

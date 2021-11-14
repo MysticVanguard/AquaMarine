@@ -1,12 +1,11 @@
 import discord
-from discord.ext import commands
-import voxelbotutils as vbu
+from discord.ext import commands, vbu
 
 
 class Misc(vbu.Cog):
 
-    @vbu.command()
-    @vbu.bot_has_permissions(send_messages=True)
+    @commands.command()
+    @commands.bot_has_permissions(send_messages=True)
     async def stab(self, ctx: commands.Context, user: discord.User):
         """
         This command has a fish stab a user.
@@ -19,26 +18,28 @@ class Misc(vbu.Cog):
             file=discord.File("C:/Users/JT/Pictures/Aqua/assets/images/background/stab.gif"),
         )
 
-    @vbu.command()
-    @vbu.bot_has_permissions(send_messages=True)
+    @commands.command()
+    @commands.bot_has_permissions(send_messages=True)
     async def bug(self, ctx: commands.Context, command: str, *, info: str):
         """
         This command sends a bug report to the support server.
         """
+
         user = ctx.author
-        channel = self.bot.get_channel(877446487087415337)
+        channel: discord.TextChannel = self.bot.get_channel(877446487087415337)  # type: ignore
         await channel.send(
-            f"From: {user.mention}\n"
-            f"**{command}**: {info}",
-            allowed_mentions=discord.AllowedMentions.none()
-            )
+            f"From: {user.mention}\n**{command}**: {info}",
+            allowed_mentions=discord.AllowedMentions.none(),
+        )
         await ctx.send("Bug report sent!")
-    @vbu.command()
-    @vbu.bot_has_permissions(send_messages=True)
+
+    @commands.command()
+    @commands.bot_has_permissions(send_messages=True)
     async def support(self, ctx: commands.Context):
         """
         This command sends the server link to the support server.
         """
+
         await ctx.send("https://discord.gg/FUyr8QmrD8")
 
 def setup(bot):

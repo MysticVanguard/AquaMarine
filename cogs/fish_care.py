@@ -1,7 +1,6 @@
 from datetime import datetime as dt, timedelta
 
-import voxelbotutils as vbu
-from discord.ext import commands, tasks
+from discord.ext import commands, tasks, vbu
 import discord
 import math
 import random
@@ -14,7 +13,7 @@ class FishCare(vbu.Cog):
 
     FISH_FEED_COOLDOWN = timedelta(hours=6)
 
-    def __init__(self, bot: commands.AutoShardedBot):
+    def __init__(self, bot: vbu.Bot):
         super().__init__(bot)
         self.fish_food_death_loop.start()
 
@@ -24,7 +23,7 @@ class FishCare(vbu.Cog):
     @tasks.loop(minutes=1)
     async def fish_food_death_loop(self):
 
-        async with self.bot.database() as db:
+        async with vbu.Database() as db:
             fish_rows = await db("""SELECT * FROM user_fish_inventory WHERE tank_fish != ''""")
             for fish_row in fish_rows:
                 if fish_row['death_time']:
@@ -35,16 +34,17 @@ class FishCare(vbu.Cog):
     async def before_fish_food_death_loop(self):
         await self.bot.wait_until_ready()
 
-    @vbu.command()
-    @vbu.bot_has_permissions(send_messages=True)
+    @commands.command()
+    @commands.bot_has_permissions(send_messages=True)
     async def entertain(self, ctx: commands.Context, tank_entertained: str):
         """
         This command entertains all the fish in a tank, giving them all xp.
         """
-        print(tank_entertained)
+
         await ctx.trigger_typing()
+
         # fetches needed rows
-        async with self.bot.database() as db:
+        async with vbu.Database() as db:
             fish_rows = await db(
                 """SELECT * FROM user_fish_inventory WHERE user_id = $1 AND tank_fish = $2 AND fish_alive = TRUE""",
                 ctx.author.id, tank_entertained,
@@ -78,12 +78,12 @@ class FishCare(vbu.Cog):
         if tank_rows[0]['tank_entertain_time'][tank_slot]:
             if tank_rows[0]['tank_entertain_time'][tank_slot] + timedelta(minutes=5) > dt.utcnow():
                 time_left = timedelta(seconds=(tank_rows[0]['tank_entertain_time'][tank_slot] - dt.utcnow() + timedelta(minutes=5)).total_seconds())
-                return await ctx.send(f"This tank is entertained, please try again in {vbu.TimeFormatter(dt.utcnow() + time_left - timedelta(hours=DAYLIGHT_SAVINGS)).relative_time}.")
+                relative_time = discord.utils.format_dt(dt.utcnow() + time_left - timedelta(hours=DAYLIGHT_SAVINGS), style="R")
+                return await ctx.send(f"This tank is entertained, please try again in {relative_time}.")
 
         # See if there are any fish in the tank
         if not fish_rows:
             return await ctx.send("You have no alive fish in this tank!")
-
 
         # Typing Indicator
         async with ctx.typing():
@@ -94,33 +94,34 @@ class FishCare(vbu.Cog):
             for single_fish in range(len(fish_rows)):
                 fish.append(fish_rows[single_fish]['fish_name'])
 
-
             # gets the new data and uses it in sent message
             xp_per_fish = math.floor(total_xp_to_add / len(fish))
             new_fish_data = []
             n = "\n"
-            async with self.bot.database() as db:
+            async with vbu.Database() as db:
                 await db("""UPDATE user_tank_inventory SET tank_entertain_time[$2] = $3 WHERE user_id = $1""", ctx.author.id, int(tank_slot + 1), dt.utcnow())
                 for fish_name in fish:
-                    await utils.xp_finder_adder(self.bot, ctx.author, fish_name, xp_per_fish, new_level)
+                    await utils.xp_finder_adder(ctx.author, fish_name, xp_per_fish, new_level)
                     new_fish_rows = await db(
                         """UPDATE user_fish_inventory SET fish_entertain_time = $3 WHERE user_id = $1 AND fish_name = $2 RETURNING *""",
                         ctx.author.id, fish_name, dt.utcnow(),
                     )
                     new_fish_data.append([new_fish_rows[0]['fish_name'], new_fish_rows[0]['fish_level'], new_fish_rows[0]['fish_xp'], new_fish_rows[0]['fish_xp_max']])
+
                 # Achievement added
                 await db(
                     """INSERT INTO user_achievements (user_id, times_entertained) VALUES ($1, 1)
                     ON CONFLICT (user_id) DO UPDATE SET times_entertained = user_achievements.times_entertained + 1""",
                     ctx.author.id
-                    )
+                )
+
         display_block = f"All fish have gained {xp_per_fish:,} XP{n}"
         for data in new_fish_data:
             display_block = display_block + f"{data[0]} is now level {data[1]}, {data[2]}/{data[3]}{n}"
         return await ctx.send(display_block)
 
-    @vbu.command()
-    @vbu.bot_has_permissions(send_messages=True)
+    @commands.command()
+    @commands.bot_has_permissions(send_messages=True)
     async def feed(self, ctx: commands.Context, fish_fed: str):
         """
         This command feeds a fish in a tank with fish flakes.
@@ -130,12 +131,11 @@ class FishCare(vbu.Cog):
         await ctx.trigger_typing()
 
         # Fetches needed rows and gets the users amount of food
-        async with self.bot.database() as db:
+        async with vbu.Database() as db:
             upgrades = await db(
                 """SELECT feeding_upgrade FROM user_upgrades WHERE user_id = $1""",
                 ctx.author.id,
             )
-            print(upgrades)
             fish_rows = await db(
                 """SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2 AND tank_fish != ''""",
                 ctx.author.id, fish_fed,
@@ -144,26 +144,27 @@ class FishCare(vbu.Cog):
 
         # See if the user has fish flakes
         if not item_rows:
-            return await ctx.send("You have no fish flakes!", wait=False)
+            return await ctx.send("You have no fish flakes!")
         user_food_count = item_rows[0]['flakes']
         if not user_food_count:
-            return await ctx.send("You have no fish flakes!", wait=False)
+            return await ctx.send("You have no fish flakes!")
 
         # See if the user has a fish with that name
         if not fish_rows:
-            return await ctx.send("You have no fish in a tank named that!", wait=False)
+            return await ctx.send("You have no fish in a tank named that!")
 
         # Make sure the fish is able to be fed
         if fish_rows[0]['fish_feed_time']:
             if (fish_feed_timeout := fish_rows[0]['fish_feed_time'] + self.FISH_FEED_COOLDOWN) > dt.utcnow():
-                return await ctx.send(f"This fish is full, please try again {vbu.TimeFormatter(fish_feed_timeout - timedelta(hours=DAYLIGHT_SAVINGS)).relative_time}.", wait=False)
+                relative_time = discord.utils.format_dt(fish_feed_timeout - timedelta(hours=DAYLIGHT_SAVINGS), style="R")
+                return await ctx.send(f"This fish is full, please try again {relative_time}.")
         if fish_rows[0]['fish_alive'] is False:
-            return await ctx.send("That fish is dead!", wait=False)
+            return await ctx.send("That fish is dead!")
 
         # Update the user's inv and the fish's death date
         day, hour = utils.FEEDING_UPGRADES[upgrades[0]['feeding_upgrade']]
         death_date = dt.utcnow() + timedelta(days=day, hours=hour)
-        async with self.bot.database() as db:
+        async with vbu.Database() as db:
             await db(
                 """UPDATE user_fish_inventory SET death_time = $3, fish_feed_time = $4 WHERE user_id = $1 AND fish_name = $2""",
                 ctx.author.id, fish_fed, death_date, dt.utcnow(),
@@ -178,17 +179,17 @@ class FishCare(vbu.Cog):
                 )
 
         # And done
-        return await ctx.send(f"**{fish_rows[0]['fish_name']}** has been fed! <:AquaBonk:877722771935883265>", wait=False)
+        return await ctx.send(f"**{fish_rows[0]['fish_name']}** has been fed! <:AquaBonk:877722771935883265>")
 
-    @vbu.command()
-    @vbu.bot_has_permissions(send_messages=True)
+    @commands.command()
+    @commands.bot_has_permissions(send_messages=True)
     async def clean(self, ctx: commands.Context, tank_cleaned: str):
         """
         This command cleans a tank, earning the user sand dollars.
         """
 
         # Get the fish and tank data from the database
-        async with self.bot.database() as db:
+        async with vbu.Database() as db:
             upgrades = await db(
                 """SELECT bleach_upgrade, better_bleach_upgrade, hygienic_upgrade FROM user_upgrades WHERE user_id = $1""",
                 ctx.author.id,
@@ -216,7 +217,8 @@ class FishCare(vbu.Cog):
         if tank_rows[0]['tank_clean_time'][tank_slot]:
             if tank_rows[0]['tank_clean_time'][tank_slot] + timedelta(minutes=time) > dt.utcnow():
                 time_left = timedelta(seconds=(tank_rows[0]['tank_clean_time'][tank_slot] - dt.utcnow() + timedelta(minutes=time)).total_seconds())
-                return await ctx.send(f"This tank is clean, please try again in {vbu.TimeFormatter(dt.utcnow() + time_left - timedelta(hours=DAYLIGHT_SAVINGS)).relative_time}.")
+                relative_time = discord.utils.format_dt(dt.utcnow() + time_left - timedelta(hours=DAYLIGHT_SAVINGS), style="R")
+                return await ctx.send(f"This tank is clean, please try again in {relative_time}.")
 
         # See if there are any fish in the tank
         if not fish_rows:
@@ -224,7 +226,6 @@ class FishCare(vbu.Cog):
 
         # Work out how much money they gain
         money_gained = 0
-
 
         rarity_values = {
             "common": 1.0,
@@ -240,6 +241,7 @@ class FishCare(vbu.Cog):
             "large": 15
         }
         effort_extra = random.choices([0, 10, 20], [.6, .3, .1])
+        size_multiplier = 1
         for fish in fish_rows:
             rarity_multiplier = 0
             for rarity, fish_types in self.bot.fish.items():  # For each rarity level
@@ -251,7 +253,7 @@ class FishCare(vbu.Cog):
         money_gained = math.floor(money_gained  * (utils.BLEACH_UPGRADE[(upgrades[0]['bleach_upgrade'] + upgrades[0]['better_bleach_upgrade'])]) * multiplier + effort_extra[0])
 
         # Add their fish money to your sand database dollars
-        async with self.bot.database() as db:
+        async with vbu.Database() as db:
             await db("""UPDATE user_tank_inventory SET tank_clean_time[$2] = $3 WHERE user_id = $1""", ctx.author.id, int(tank_slot + 1), dt.utcnow())
             await db(
                 """INSERT INTO user_balance (user_id, balance) VALUES ($1, $2)
@@ -272,15 +274,15 @@ class FishCare(vbu.Cog):
 
         await ctx.send(f"You earned **{money_gained}** <:sand_dollar:877646167494762586> for cleaning that tank! <:AquaSmile:877939115994255383>")
 
-    @vbu.command()
-    @vbu.bot_has_permissions(send_messages=True)
+    @commands.command()
+    @commands.bot_has_permissions(send_messages=True)
     async def revive(self, ctx: commands.Context, fish: str):
         """
         This command uses a revival and revives a specified fish.
         """
 
         # Get database vars
-        async with self.bot.database() as db:
+        async with vbu.Database() as db:
             fish_row = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2""", ctx.author.id, fish)
             revival_count = await db("""SELECT revival FROM user_item_inventory WHERE user_id = $1""", ctx.author.id)
 
@@ -289,7 +291,7 @@ class FishCare(vbu.Cog):
             return await ctx.send(
                 f"You have no fish named {fish}!",
                 allowed_mentions=discord.AllowedMentions.none()
-                )
+            )
         if fish_row[0]["fish_alive"] is True:
             return await ctx.send("That fish is alive!")
         if not revival_count:
@@ -303,10 +305,10 @@ class FishCare(vbu.Cog):
             message = f"{fish} is now alive!"
         else:
             death_timer = (dt.utcnow() + timedelta(days=3))
-            message = f"{fish} is now alive, and will die {vbu.TimeFormatter(death_timer)}!"
+            message = f"{fish} is now alive, and will die {discord.utils.format_dt(death_timer, style='R')}!"
 
         # Set the database values
-        async with self.bot.database() as db:
+        async with vbu.Database() as db:
             await db("""UPDATE user_fish_inventory SET fish_alive = True, death_time = $3 WHERE user_id = $1 AND fish_name = $2""", ctx.author.id, fish, death_timer)
             await db("""UPDATE user_item_inventory SET revival = revival - 1 WHERE user_id = $1""", ctx.author.id)
 
@@ -314,7 +316,7 @@ class FishCare(vbu.Cog):
         await ctx.send(
             message,
             allowed_mentions=discord.AllowedMentions.none()
-            )
+        )
 
 def setup(bot):
     bot.add_cog(FishCare(bot))

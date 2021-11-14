@@ -1,10 +1,10 @@
-from typing import Type
-import discord
 import asyncio
 import math
 import random
 
-import voxelbotutils as vbu
+import discord
+from discord.ext import vbu
+
 from cogs import utils
 
 current_fishers = []
@@ -15,10 +15,10 @@ async def ask_to_sell_fish(bot, ctx, new_fish: dict, embed, file= None):
     """
 
     # Add the buttons to the message
-    components = vbu.MessageComponents(
-        vbu.ActionRow(
-            vbu.Button(custom_id="keep", emoji="<:keep:844594468580491264>"),
-            vbu.Button(custom_id="sell", emoji="<:sell:844594478392147968>"),
+    components = discord.ui.MessageComponents(
+        discord.ui.ActionRow(
+            discord.ui.Button(custom_id="keep", emoji="<:keep:844594468580491264>"),
+            discord.ui.Button(custom_id="sell", emoji="<:sell:844594478392147968>"),
         ),
     )
     try:
@@ -147,11 +147,6 @@ async def ask_to_sell_fish(bot, ctx, new_fish: dict, embed, file= None):
             return
 
 
-
-
-
-
-
 async def check_price(bot, user_id: int, cost: int, type: str) -> bool:
     """
     Returns if a user_id has enough money based on the cost.
@@ -212,7 +207,6 @@ async def buying_singular(bot, user: discord.user, ctx, item: str):
             nonavailable_slots.append(str(tank_slot))
             continue
         available_slots.append(str(tank_slot))
-
 
     # If the item is a tank...
     if item in tanks:

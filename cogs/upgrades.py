@@ -1,5 +1,4 @@
-import voxelbotutils as vbu
-from discord.ext import commands
+from discord.ext import commands, vbu
 
 from cogs import utils
 
@@ -21,28 +20,27 @@ class Upgrades(vbu.Cog):
         'bleach_upgrade': 'Increases the cleaning multiplier',
         'big_servings_upgrade': 'Increases chance of a fish not',
         'hygienic_upgrade': 'Lessens the frequency of cleaning',
-
     }
 
     TIER_RANKS = {
         'rod_upgrade': {
             'bait_upgrade': [
                 'line_upgrade',
-                'lure_upgrade'
+                'lure_upgrade',
             ],
             'crate_chance_upgrade': [
                 'weight_upgrade',
-                'crate_tier_upgrade'
+                'crate_tier_upgrade',
             ]
         },
         'bleach_upgrade': {
             'toys_upgrade': [
                 'amazement_upgrade',
-                'mutation_upgrade'
+                'mutation_upgrade',
             ],
             'big_servings_upgrade': [
                 'hygienic_upgrade',
-                'feeding_upgrade'
+                'feeding_upgrade',
             ]
         }
     }
@@ -50,8 +48,8 @@ class Upgrades(vbu.Cog):
     UPGRADE_COST_LIST_TWO = (5000, 10000, 25000, 50000, 100000)
     UPGRADE_COST_LIST_THREE = (100000, 250000, 500000, 750000, 1000000)
 
-    @vbu.command()
-    @vbu.bot_has_permissions(send_messages=True, embed_links=True)
+    @commands.command()
+    @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def upgrades(self, ctx: commands.Context):
         """
         Show you your upgrades and the price of the next level.
@@ -62,9 +60,12 @@ class Upgrades(vbu.Cog):
         emote_string_list = []  # Their emoji progress bar
 
         # Grab their upgrades from the database
-        async with self.bot.database() as db:
+        async with vbu.Database() as db:
             upgrades = await db(
-                """SELECT rod_upgrade, line_upgrade, better_line_upgrade, weight_upgrade, bait_upgrade, better_bait_upgrade, lure_upgrade, feeding_upgrade, toys_upgrade, better_toys_upgrade, amazement_upgrade, bleach_upgrade, better_bleach_upgrade, hygienic_upgrade FROM user_upgrades WHERE user_id = $1""",
+                """SELECT rod_upgrade, line_upgrade, better_line_upgrade, weight_upgrade, bait_upgrade,
+                better_bait_upgrade, lure_upgrade, feeding_upgrade, toys_upgrade, better_toys_upgrade,
+                amazement_upgrade, bleach_upgrade, better_bleach_upgrade, hygienic_upgrade
+                FROM user_upgrades WHERE user_id = $1""",
                 ctx.author.id,
             )
             if not upgrades:
@@ -171,17 +172,20 @@ class Upgrades(vbu.Cog):
             embed.add_field(name=message_data[1], value=message_data[0], inline=False)
         await ctx.send(embed=embed)
 
-    @vbu.command()
-    @vbu.bot_has_permissions(send_messages=True, embed_links=True)
+    @commands.command()
+    @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def upgrade(self, ctx: commands.Context, *, upgrade: str):
         """
         Upgrade one of your items.
         """
 
         # Grab the user's current upgrades
-        async with self.bot.database() as db:
+        async with vbu.Database() as db:
             upgrades = await db(
-                """SELECT rod_upgrade, line_upgrade, better_line_upgrade, weight_upgrade, bait_upgrade, better_bait_upgrade, lure_upgrade, feeding_upgrade, toys_upgrade, better_toys_upgrade, amazement_upgrade, bleach_upgrade, better_bleach_upgrade, hygienic_upgrade FROM user_upgrades WHERE user_id = $1""",
+                """SELECT rod_upgrade, line_upgrade, better_line_upgrade, weight_upgrade, bait_upgrade,
+                better_bait_upgrade, lure_upgrade, feeding_upgrade, toys_upgrade, better_toys_upgrade,
+                amazement_upgrade, bleach_upgrade, better_bleach_upgrade, hygienic_upgrade
+                FROM user_upgrades WHERE user_id = $1""",
                 ctx.author.id,
             )
 
@@ -219,8 +223,11 @@ class Upgrades(vbu.Cog):
             return await ctx.send("You don't have enough Sand Dollars <:sand_dollar:877646167494762586> for this upgrade!")
 
         # Upgrade them in the database
-        async with self.bot.database() as db:
-            await db("""UPDATE user_balance SET balance=balance-$1 WHERE user_id = $2""", upgrade_cost_list_used[int(upgrades[0][upgraded])- 1], ctx.author.id)
+        async with vbu.Database() as db:
+            await db(
+                """UPDATE user_balance SET balance=balance-$1 WHERE user_id = $2""",
+                upgrade_cost_list_used[int(upgrades[0][upgraded])- 1], ctx.author.id,
+            )
             await db("""UPDATE user_upgrades SET {0}=user_upgrades.{0}+1 WHERE user_id = $1""".format(upgraded), ctx.author.id)
 
         # And bam

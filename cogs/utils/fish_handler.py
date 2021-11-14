@@ -151,11 +151,11 @@ def special_percentage_finder(upgrade_level):
     ]
 
 # This returns the results of the bait upgrade in [(list of rarities), (list of chances)]
-def rarity_percentage_finder(upgrade_level: int) -> typing.List[float]:
+def rarity_percentage_finder(upgrade_level: int) -> typing.Tuple[typing.List[str], typing.List[float]]:
     return [
         list(i[0] for i in BAIT_UPGRADE[upgrade_level]),
         list(i[1] for i in BAIT_UPGRADE[upgrade_level]),
-    ]
+    ]  # type:ignore
 
 
 '''
@@ -248,7 +248,6 @@ EMOJI_RARITIES = {
         "anglerfish": "<:anglerfish:878379836064825354>"
     },
     "mythic": {
-
     }
 }
 
@@ -289,7 +288,8 @@ PLANT_LIFE_NAMES = ["Plant Life", "Plant", "Pl"]
 FISH_REVIVAL_NAMES = ["Fish Revival", "Revival", "Fr"]
 CASTS_NAMES = ["Fishing Casts", "Casts", "C"]
 
-# Daylight savings variable because for some reason i need to add four and then an hour when its daylight savings, will be changed to 4 when daylight savings is over
+# Daylight savings variable because for some reason i need to add four and then an hour when its daylight savings,
+# will be changed to 4 when daylight savings is over
 DAYLIGHT_SAVINGS = 5
 
 # What colors the embed should have based on rarity

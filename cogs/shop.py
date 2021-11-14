@@ -1,6 +1,4 @@
 import random
-from time import time
-import typing
 import asyncio
 
 import discord
@@ -30,10 +28,11 @@ FISH_SHOP_EMBED.add_field(name="Plant Life", value="This gives you the plant lif
 FISH_SHOP_EMBED.add_field(name="Misc", value="These are just some random things", inline=False)
 FISH_SHOP_EMBED.add_field(name="Fishing Casts", value="This will give you five casts \n __5 <:doubloon:878297091057807400>__", inline=True)
 
+
 class Shop(vbu.Cog):
 
-    @vbu.command(aliases=["s", "store"])
-    @vbu.bot_has_permissions(send_messages=True, embed_links=True)
+    @commands.command(aliases=["s", "store"])
+    @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def shop(self, ctx: commands.Context):
         """
         This command shows everything buyable in the shop, along with their prices.
@@ -41,8 +40,8 @@ class Shop(vbu.Cog):
 
         await ctx.send(embed=FISH_SHOP_EMBED)
 
-    @vbu.command(aliases=["b"])
-    @vbu.bot_has_permissions(send_messages=True, embed_links=True)
+    @commands.command(aliases=["b"])
+    @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def buy(self, ctx: commands.Context, item: str, amount: int = 1):
         """
         This command buys an item from a shop with the given amount.
@@ -81,7 +80,7 @@ class Shop(vbu.Cog):
         }
         item_name_singular = utils.FISH_BOWL_NAMES + utils.SMALL_TANK_NAMES + utils.MEDIUM_TANK_NAMES + utils.PLANT_LIFE_NAMES
         Doubloon_things = utils.PLANT_LIFE_NAMES + utils.CASTS_NAMES
-        print(Doubloon_things)
+
         # Work out which of the SQL statements to use
         for table, data in item_name_dict.items():
             possible_entries = data[0]
@@ -113,24 +112,24 @@ class Shop(vbu.Cog):
                 if await utils.buying_singular(self.bot, ctx.author, ctx, str(response)) is False:
                     return
             else:
-                async with self.bot.database() as db:
+                async with vbu.Database() as db:
                     await db(db_call, ctx.author.id, amount)
 
         # Remove money from the user
         if item.title() in Doubloon_things:
-            async with self.bot.database() as db:
+            async with vbu.Database() as db:
                 await db("""
                     UPDATE user_balance SET doubloon=doubloon-$1 WHERE user_id = $2""", full_cost, ctx.author.id)
         else:
-            async with self.bot.database() as db:
+            async with vbu.Database() as db:
                 await db("""
                     UPDATE user_balance SET balance=balance-$1 WHERE user_id = $2""", full_cost, ctx.author.id)
 
         # And tell the user we're done
         await ctx.send(f"You bought {amount:,} {response} for {full_cost:,} {emoji}!")
 
-    @vbu.command(aliases=["u"])
-    @vbu.bot_has_permissions(send_messages=True, embed_links=True)
+    @commands.command(aliases=["u"])
+    @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def use(self, ctx: commands.Context, item: str):
         """
         This command is only for using fish bags, and is just like using the fish command.
@@ -141,7 +140,9 @@ class Shop(vbu.Cog):
         utils.current_fishers.append(ctx.author.id)
 
         # See if they are trying to use a bag
+        rarity_of_bag = None
         used_bag = None
+        used_bag_humanize = None
         if item.title() in utils.COMMON_BAG_NAMES:
             used_bag_humanize, rarity_of_bag, used_bag = utils.COMMON_BAG_NAMES
         elif item.title() in utils.UNCOMMON_BAG_NAMES:
@@ -152,19 +153,22 @@ class Shop(vbu.Cog):
         # Deal with bag usage
         if used_bag is not None:
 
+            # Make sure these exist
+            assert rarity_of_bag
+            assert used_bag_humanize
+
             # See if they have the bag they're trying to use
             rarity_of_bag = rarity_of_bag.lower()
             used_bag = used_bag.lower()
-            async with self.bot.database() as db:
+            async with vbu.Database() as db:
                 user_rows = await db("""SELECT * FROM user_item_inventory WHERE user_id=$1""", ctx.author.id)
                 user_bag_count = user_rows[0][used_bag]
             if not user_bag_count:
                 utils.current_fishers.remove(ctx.author.id)
                 return await ctx.send(f"You have no {used_bag_humanize}s!")
 
-
             # Remove the bag from their inventory
-            async with self.bot.database() as db:
+            async with vbu.Database() as db:
                 await db(
                     """UPDATE user_item_inventory SET {0}={0}-1 WHERE user_id=$1""".format(used_bag),
                     ctx.author.id,
@@ -182,7 +186,7 @@ class Shop(vbu.Cog):
         amount = 0
         owned_unowned = "Unowned"
         a_an = "an" if rarity_of_bag[0].lower() in ("a", "e", "i", "o", "u") else "a"
-        async with self.bot.database() as db:
+        async with vbu.Database() as db:
             user_inventory = await db("""SELECT * FROM user_fish_inventory WHERE user_id=$1""", ctx.author.id)
 
             # Achievements
@@ -190,7 +194,7 @@ class Shop(vbu.Cog):
                 """INSERT INTO user_achievements (user_id, times_caught) VALUES ($1, 1)
                 ON CONFLICT (user_id) DO UPDATE SET times_caught = user_achievements.times_caught + 1""",
                 ctx.author.id
-                )
+            )
         for row in user_inventory:
             if row['fish'] == new_fish['raw_name']:
                 amount = amount + 1
@@ -206,37 +210,35 @@ class Shop(vbu.Cog):
 
         # Ask the user if they want to sell the fish
         await utils.ask_to_sell_fish(self.bot, ctx, new_fish, embed = embed, file=fish_file)
-
         utils.current_fishers.remove(ctx.author.id)
 
-
-    @vbu.command(aliases=["inv"])
-    @vbu.bot_has_permissions(send_messages=True, embed_links=True)
+    @commands.command(aliases=["inv"])
+    @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def inventory(self, ctx: commands.Context):
         """
         Shows the user's item inventory.
         """
 
         fetched_info = []
-        async with self.bot.database() as db:
+        async with vbu.Database() as db:
             fetched = await db("""SELECT * FROM user_item_inventory WHERE user_id = $1""", ctx.author.id)
         if not fetched:
             return await ctx.send("You have no items in your inventory!")
-        for info in fetched:
-            for values in info:
-                if values < 1000000:
-                    fetched_info.append(values)
+
+        for row in fetched:
+            for key, value in row.items():
+                if key == "user_id":
+                    continue
+                fetched_info.append(value)
+
         items = ["Common Fish Bag", "Uncommon Fish Bag", "Rare Fish Bag", "Epic Fish Bag", "Legendary Fish Bag", "Fish Flake", "Fish Revives"]
-        count = 0
-        embed = discord.Embed()
-        embed.title = f"{ctx.author.display_name}'s Inventory"
-        for name in items:
+        embed = discord.Embed(title=f"{ctx.author.display_name}'s Inventory")
+        for count, name in enumerate(items):
             embed.add_field(name=f'{name}s', value=fetched_info[count], inline=True)
-            count += 1
         await ctx.send(embed=embed)
 
-    @vbu.command()
-    @vbu.bot_has_permissions(send_messages=True, embed_links=True)
+    @commands.command()
+    @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def slots(self, ctx: commands.Context):
         """
         This command rolls the slots, costing 5 Sand Dollars.
@@ -251,7 +253,7 @@ class Shop(vbu.Cog):
         utils.current_fishers.append(ctx.author.id)
 
         # Remove money from the user
-        async with self.bot.database() as db:
+        async with vbu.Database() as db:
             await db("""UPDATE user_balance SET balance=balance-5 WHERE user_id = $1""", ctx.author.id)
 
         # Chooses the random fish for nonwinning rows
@@ -283,13 +285,14 @@ class Shop(vbu.Cog):
             for i in range(0, 6, 3):
                 row.append(
                     f"{utils.EMOJI_RARITIES[rarities_of_fish[i]][chosen_fish[i]]}"
-                    f"{utils.EMOJI_RARITIES[rarities_of_fish[i+1]][chosen_fish[i+1]]}"
-                    f"{utils.EMOJI_RARITIES[rarities_of_fish[i+2]][chosen_fish[i+2]]}"
+                    f"{utils.EMOJI_RARITIES[rarities_of_fish[i + 1]][chosen_fish[i + 1]]}"
+                    f"{utils.EMOJI_RARITIES[rarities_of_fish[i + 2]][chosen_fish[i + 2]]}"
                 )
             row.append(f"{emoji_id}{emoji_id}{emoji_id}")
             embed.add_field(name="*spent 5 <:sand_dollar:877646167494762586>*", value="\n".join(row), inline=False)
             embed.add_field(name="Lucky", value=f"You won {fish_random_name.title()} :)", inline=False)
-            async with self.bot.database() as db:
+            async with vbu.Database() as db:
+
                 # Achievements
                 await db(
                     """INSERT INTO user_achievements (user_id, times_caught) VALUES ($1, 1)
@@ -302,22 +305,22 @@ class Shop(vbu.Cog):
             for i in range(0, 9, 3):
                 row.append(
                     f"{utils.EMOJI_RARITIES[rarities_of_fish[i]][chosen_fish[i]]}"
-                    f"{utils.EMOJI_RARITIES[rarities_of_fish[i+1]][chosen_fish[i+1]]}"
-                    f"{utils.EMOJI_RARITIES[rarities_of_fish[i+2]][chosen_fish[i+2]]}"
+                    f"{utils.EMOJI_RARITIES[rarities_of_fish[i + 1]][chosen_fish[i + 1]]}"
+                    f"{utils.EMOJI_RARITIES[rarities_of_fish[i + 2]][chosen_fish[i + 2]]}"
                 )
             embed.add_field(name="*spent 5 <:sand_dollar:877646167494762586>*", value="\n".join(row), inline=False)
             embed.add_field(name="Unlucky", value="You lost :(")
             await ctx.send(embed=embed)
             utils.current_fishers.remove(ctx.author.id)
 
-    @vbu.command(aliases=["bal"])
-    @vbu.bot_has_permissions(send_messages=True)
+    @commands.command(aliases=["bal"])
+    @commands.bot_has_permissions(send_messages=True)
     async def balance(self, ctx: commands.Context, user: discord.Member = None):
         """
         This command checks the user's balance or another user's balance.
         """
 
-        async with self.bot.database() as db:
+        async with vbu.Database() as db:
             if user:
                 other_or_self = f"{user.display_name} has"
                 fetched = await db("""SELECT * FROM user_balance WHERE user_id = $1""", user.id)
@@ -336,20 +339,22 @@ class Shop(vbu.Cog):
                 amount_three = "no"
             else:
                 amount_three = f"{fetched[0]['casts']:,}"
-        await ctx.send(f"""{other_or_self} {amount_one} Sand Dollars <:sand_dollar:877646167494762586>!
-        {other_or_self} {amount_two} Doubloons <:doubloon:878297091057807400>!
-        {other_or_self} {amount_three} Casts <:Casts:908941461666545674>!
-        """)
+        await ctx.send(
+            f"""{other_or_self} {amount_one} Sand Dollars <:sand_dollar:877646167494762586>!
+            {other_or_self} {amount_two} Doubloons <:doubloon:878297091057807400>!
+            {other_or_self} {amount_three} Casts <:Casts:908941461666545674>!
+            """
+        )
 
-    @vbu.command()
-    @vbu.bot_has_permissions(send_messages=True)
+    @commands.command()
+    @commands.bot_has_permissions(send_messages=True)
     async def sell(self, ctx: commands.Context, fish_sold: str):
         """
         This command sells the specified fish, and it must be out of a tank.
         """
 
         cost = 0
-        async with self.bot.database() as db:
+        async with vbu.Database() as db:
             fish_row = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2""", ctx.author.id, fish_sold)
 
         if not fish_row:
@@ -357,40 +362,43 @@ class Shop(vbu.Cog):
         if fish_row[0]['tank_fish']:
             return await ctx.send("That fish is in a tank, please remove it to sell it.")
         if fish_row[0]['fish_alive'] is False:
-            async with self.bot.database() as db:
+            async with vbu.Database() as db:
                 await db("""DELETE FROM user_fish_inventory WHERE user_id=$1 AND fish_name = $2""", ctx.author.id, fish_sold)
             return await ctx.send(f"You have flushed your dead fish, {fish_sold} for 0 <:sand_dollar:877646167494762586>!")
+
         multiplier = fish_row[0]['fish_level'] / 20
         for rarity, fish_types in self.bot.fish.items():
             for fish_type, fish_info in fish_types.items():
                 if fish_info["raw_name"] == utils.get_normal_name(fish_row[0]['fish']):
                     cost = int(int(fish_info['cost']) / 2)
         sell_money = int(cost * (1 + multiplier))
-        async with self.bot.database() as db:
+
+        async with vbu.Database() as db:
             await db(
                 """INSERT INTO user_balance (user_id, balance) VALUES ($1, $2)
                 ON CONFLICT (user_id) DO UPDATE SET balance = user_balance.balance + $2""",
                 ctx.author.id, sell_money,
             )
+
             # Achievements
             await db(
                 """INSERT INTO user_achievements (user_id, money_gained) VALUES ($1, $2)
                 ON CONFLICT (user_id) DO UPDATE SET money_gained = user_achievements.money_gained + $2""",
                 ctx.author.id, sell_money
-                )
+            )
             await db("""DELETE FROM user_fish_inventory WHERE user_id=$1 AND fish_name = $2""", ctx.author.id, fish_sold)
         await ctx.send(f"You have sold {fish_sold} for {sell_money} <:sand_dollar:877646167494762586>!")
 
-    @vbu.command(aliases=["d"])
-    @vbu.cooldown.cooldown(1, 60 * 60 * 24, commands.BucketType.user)
-    @vbu.bot_has_permissions(send_messages=True)
+    @commands.command(aliases=["d"])
+    @commands.cooldown(1, 60 * 60 * 24, commands.BucketType.user)
+    @commands.bot_has_permissions(send_messages=True)
     async def daily(self, ctx: commands.Context):
         """
         This command gives the user a daily reward of 100 Sand Dollars.
         """
 
         # Adds the money to the users balance
-        async with self.bot.database() as db:
+        async with vbu.Database() as db:
             await db(
                 """INSERT INTO user_balance (user_id, balance) VALUES ($1, 100)
                 ON CONFLICT (user_id) DO UPDATE SET balance = user_balance.balance + 100""",
@@ -401,7 +409,7 @@ class Shop(vbu.Cog):
                 """INSERT INTO user_achievements (user_id, money_gained) VALUES ($1, 100)
                 ON CONFLICT (user_id) DO UPDATE SET money_gained = user_achievements.money_gained + 100""",
                 ctx.author.id
-                )
+            )
 
         # confirmation message
         return await ctx.send("Daily reward of 100 <:sand_dollar:877646167494762586> claimed!")
@@ -414,12 +422,12 @@ class Shop(vbu.Cog):
             raise error
 
         time = timedelta(seconds=int(error.retry_after))
+        relative_time = discord.utils.format_dt(dt.utcnow() + time - timedelta(hours=DAYLIGHT_SAVINGS), style="R")
+        await ctx.send(f'Daily reward claimed, please try again {relative_time}.')
 
-        await ctx.send(f'Daily reward claimed, please try again {vbu.TimeFormatter(dt.utcnow() + time - timedelta(hours=DAYLIGHT_SAVINGS)).relative_time}.')
-
-    @vbu.command()
-    @vbu.cooldown.cooldown(1, 30, commands.BucketType.user)
-    @vbu.bot_has_permissions(send_messages=True, embed_links=True)
+    @commands.command()
+    @commands.cooldown(1, 30, commands.BucketType.user)
+    @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def gamble(self, ctx: commands.Context):
         """
         This command is similar to slots, but doesn't cost anything.
@@ -435,13 +443,13 @@ class Shop(vbu.Cog):
             return await ctx.send(f"{ctx.author.display_name}, you're already fishing!")
         utils.current_fishers.append(ctx.author.id)
 
-        async with self.bot.database() as db:
+        async with vbu.Database() as db:
             # Achievements
             await db(
                 """INSERT INTO user_achievements (user_id, times_gambled) VALUES ($1, 1)
                 ON CONFLICT (user_id) DO UPDATE SET times_gambled = user_achievements.times_gambled + 1""",
                 ctx.author.id
-                )
+            )
 
         # Set up some vars for later
         fish_type = []  # The list of fish that they rolled
@@ -459,11 +467,11 @@ class Shop(vbu.Cog):
         embed.add_field(name="Click the buttons to stop the rolls!", value="".join(emojis))
 
         # And send the message
-        components = vbu.MessageComponents(
-            vbu.ActionRow(
-                vbu.Button(custom_id="one", emoji="1\N{COMBINING ENCLOSING KEYCAP}"),
-                vbu.Button(custom_id="two", emoji="2\N{COMBINING ENCLOSING KEYCAP}"),
-                vbu.Button(custom_id="three", emoji="3\N{COMBINING ENCLOSING KEYCAP}"),
+        components = discord.ui.MessageComponents(
+            discord.ui.ActionRow(
+                discord.ui.Button(emoji="1\N{COMBINING ENCLOSING KEYCAP}", custom_id="one"),
+                discord.ui.Button(emoji="2\N{COMBINING ENCLOSING KEYCAP}", custom_id="two"),
+                discord.ui.Button(emoji="3\N{COMBINING ENCLOSING KEYCAP}", custom_id="three"),
             ),
         )
         gamble_message = await ctx.send(embed=embed, components=components)
@@ -498,7 +506,7 @@ class Shop(vbu.Cog):
                 picked_buttons[2] = True
 
             # Disable the given button
-            components.get_component(chosen_button).disable()
+            components.get_component(chosen_button).disable()  # type: ignore
             await gamble_message.edit(
                 embed=create_bucket_embed(
                     ctx.author,
@@ -518,20 +526,22 @@ class Shop(vbu.Cog):
         # Sees if they won the fish they rolled
         if emojis[0] == emojis[1] == emojis[2] and "<a:roll:886068357378502717>" not in emojis:
             fish_won = fish_type[0]
+            fish_won_info = None
             for rarity, fish_types in self.bot.fish.items():
                 for fish_type, fish_info in fish_types.items():
                     if fish_info["raw_name"] == fish_won:
                         fish_won_info = fish_info
                         break
+            assert fish_won_info
             embed = discord.Embed()
             embed.add_field(name=f"{ctx.author.display_name} has won:", value=' '.join(fish_won.split('_')).title())
-            async with self.bot.database() as db:
+            async with vbu.Database() as db:
                 # Achievements
                 await db(
                     """INSERT INTO user_achievements (user_id, times_caught) VALUES ($1, 1)
                     ON CONFLICT (user_id) DO UPDATE SET times_caught = user_achievements.times_caught + 1""",
                     ctx.author.id
-                    )
+                )
             await utils.ask_to_sell_fish(self.bot, ctx, fish_won_info, embed=embed)
         else:
             await ctx.send(f"{ctx.author.mention} lost!")
@@ -546,8 +556,8 @@ class Shop(vbu.Cog):
             raise error
 
         time = timedelta(seconds=int(error.retry_after))
-
-        await ctx.send(f'Gamble cooldown, please try again {vbu.TimeFormatter(dt.utcnow() + time - timedelta(hours=DAYLIGHT_SAVINGS)).relative_time}.')
+        relative_time = discord.utils.format_dt(dt.utcnow() + time - timedelta(hours=DAYLIGHT_SAVINGS), style="R")
+        await ctx.send(f'Gamble cooldown, please try again {relative_time}.')
 
 
 

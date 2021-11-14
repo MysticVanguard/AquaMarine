@@ -1,20 +1,18 @@
-from cogs.utils.fish_handler import DAYLIGHT_SAVINGS
-from cogs.utils.misc_utils import seconds_converter
 import random
 from datetime import datetime as dt, timedelta
 
 import math
 import asyncio
-import voxelbotutils as vbu
 import discord
-from discord.ext import commands, tasks
+from discord.ext import commands, tasks, vbu
 
 from cogs import utils
+from cogs.utils.fish_handler import DAYLIGHT_SAVINGS
 
 
 class Fishing(vbu.Cog):
 
-    def __init__(self, bot: commands.AutoShardedBot):
+    def __init__(self, bot: vbu.Bot):
         super().__init__(bot)
         self.user_cast_loop.start()
 
@@ -23,18 +21,16 @@ class Fishing(vbu.Cog):
 
     @tasks.loop(hours=1)
     async def user_cast_loop(self):
-
-        async with self.bot.database() as db:
+        async with vbu.Database() as db:
             await db("""UPDATE user_balance SET casts=casts+1""")
 
     @user_cast_loop.before_loop
     async def before_user_cast_loop(self):
         await self.bot.wait_until_ready()
 
-
-    @vbu.command()
-    @vbu.cooldown.cooldown(1, 10 * 60, commands.BucketType.user)
-    @vbu.bot_has_permissions(send_messages=True, embed_links=True)
+    @commands.command()
+    @commands.cooldown(1, 10 * 60, commands.BucketType.user)
+    @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def fish(self, ctx: commands.Context):
         """
         This command catches a fish.
@@ -47,7 +43,7 @@ class Fishing(vbu.Cog):
         caught_fish = 1
 
         # Upgrades be like
-        async with self.bot.database() as db:
+        async with vbu.Database() as db:
             upgrades = await db(
                 """SELECT rod_upgrade, bait_upgrade, weight_upgrade, line_upgrade, lure_upgrade, better_bait_upgrade, better_line_upgrade FROM user_upgrades WHERE user_id = $1""",
                 ctx.author.id,
@@ -67,19 +63,17 @@ class Fishing(vbu.Cog):
             utils.current_fishers.remove(ctx.author.id)
             return await ctx.send("You have no casts, please wait atleast an hour until the next casts are out.")
 
-
         # Roll a dice to see if they caught multiple fish
         two_in_one_roll = random.randint(1, utils.LINE_UPGRADES[(upgrades[0]['line_upgrade'] + upgrades[0]['better_line_upgrade'])])
         if two_in_one_roll == 1:
             caught_fish = 2
 
         #
-        for x in range(caught_fish):
+        for _ in range(caught_fish):
 
             # See what our chances of getting each fish are
             rarity = random.choices(*utils.rarity_percentage_finder((upgrades[0]['bait_upgrade'] + upgrades[0]['better_bait_upgrade'])))[0]  # Chance of each rarity
             print(*utils.rarity_percentage_finder((upgrades[0]['bait_upgrade'] + upgrades[0]['better_bait_upgrade'])))
-            print(rarity)
             special = random.choices(*utils.special_percentage_finder(upgrades[0]['lure_upgrade']))[0]  # Chance of modifier
             if special == "golden":
                 special = "inverted"
@@ -98,7 +92,7 @@ class Fishing(vbu.Cog):
             # Say how many of those fish they caught previously
             amount = 0
             a_an = "an" if rarity[0].lower() in ("a", "e", "i", "o", "u") else "a"
-            async with self.bot.database() as db:
+            async with vbu.Database() as db:
                 user_inventory = await db("SELECT * FROM user_fish_inventory WHERE user_id=$1", ctx.author.id)
 
                 # Achievements
@@ -124,7 +118,7 @@ class Fishing(vbu.Cog):
                 if message.title() == new_fish['name']:
                     bonus = 10 + math.floor(int(new_fish['cost']) / 20)
                     await ctx.send(f"You guessed correctly and recieved {bonus} bonus sand dollars <:sand_dollar:877646167494762586>!")
-                    async with self.bot.database() as db:
+                    async with vbu.Database() as db:
                         await db(
                             """INSERT INTO user_balance (user_id, balance) VALUES ($1, $2)
                             ON CONFLICT (user_id) DO UPDATE SET balance = user_balance.balance + $2""",
@@ -143,7 +137,6 @@ class Fishing(vbu.Cog):
             embed.set_image(url="attachment://new_fish.png")
             embed.color = utils.RARITY_CULERS[rarity]
 
-
             # Ask if they want to sell the fish they just caught
             print(utils.current_fishers)
             await utils.ask_to_sell_fish(self.bot, ctx, new_fish, embed = embed)
@@ -153,35 +146,34 @@ class Fishing(vbu.Cog):
         print(utils.current_fishers)
 
     @fish.error
-    async def fish_error(self, ctx, error):
+    async def fish_error(self, ctx: commands.Context, error: commands.CommandError):
 
         # Only handle cooldown errors
         if not isinstance(error, commands.CommandOnCooldown):
             raise error
 
         time = timedelta(seconds=int(error.retry_after))
+        relative_time = discord.utils.format_dt(dt.utcnow() + time - timedelta(hours=DAYLIGHT_SAVINGS), style="R")
+        await ctx.send(f'The fish are scared, please try again {relative_time}.')
 
-        await ctx.send(f'The fish are scared, please try again {vbu.TimeFormatter(dt.utcnow() + time - timedelta(hours=DAYLIGHT_SAVINGS)).relative_time}.')
-
-    @vbu.command()
-    @vbu.bot_has_permissions(send_messages=True, embed_links=True)
+    @commands.command()
+    @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def rename(self, ctx: commands.Context, old: str, new: str):
         """
         This command renames a specified fish or tank.
         """
 
         # Get the user's fish inventory based on the fish's name
-        async with self.bot.database() as db:
+        async with vbu.Database() as db:
             fish_row = await db("""SELECT fish_name FROM user_fish_inventory WHERE fish_name=$1 and user_id=$2""", old, ctx.author.id)
             tank_rows = await db("""SELECT tank_name FROM user_tank_inventory WHERE user_id=$1""", ctx.author.id)
             fish_rows = await db("""SELECT fish_name FROM user_fish_inventory WHERE user_id=$1""", ctx.author.id)
 
         # Check if the user doesn't have the fish
-
         spot_of_old = None
-        print(tank_rows)
         if tank_rows:
             if old in tank_rows[0]['tank_name']:
+
                 for spot, tank in enumerate(tank_rows[0]['tank_name']):
                     if old == tank:
                         spot_of_old = spot + 1
@@ -190,7 +182,8 @@ class Fishing(vbu.Cog):
                             f"You already have a tank named **{new}**!",
                             allowed_mentions=discord.AllowedMentions.none()
                         )
-                async with self.bot.database() as db:
+
+                async with vbu.Database() as db:
                     await db(
                         """UPDATE user_tank_inventory SET tank_name[$3]=$1 WHERE user_id=$2;""",
                         new, ctx.author.id, spot_of_old,
@@ -199,17 +192,20 @@ class Fishing(vbu.Cog):
                         """UPDATE user_fish_inventory SET tank_fish=$1 WHERE user_id = $2 AND tank_fish=$3""",
                         new, ctx.author.id, old
                     )
+
                 # Send confirmation message
                 return await ctx.send(
                     f"Congratulations, you have renamed **{old}** to **{new}**!",
                     allowed_mentions=discord.AllowedMentions.none(),
                 )
+
         if not spot_of_old:
             if not fish_row:
                 return await ctx.send(
                     f"You have no fish or tank named **{old}**!",
                     allowed_mentions=discord.AllowedMentions.none()
                 )
+
         # Check of fish is being changed to a name of a new fish
         for fish_name in fish_rows:
             if new == fish_name:
@@ -219,7 +215,7 @@ class Fishing(vbu.Cog):
                 )
 
         # Update the database
-        async with self.bot.database() as db:
+        async with vbu.Database() as db:
             await db(
                 """UPDATE user_fish_inventory SET fish_name=$1 WHERE user_id=$2 and fish_name=$3;""",
                 new, ctx.author.id, old,
@@ -231,19 +227,23 @@ class Fishing(vbu.Cog):
             allowed_mentions=discord.AllowedMentions.none(),
         )
 
-    @vbu.command()
-    @vbu.bot_has_permissions(send_messages=True, embed_links=True)
+    @commands.command(enabled=False)
+    @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def skin(self, ctx: commands.Context, skin: str, *, fish: str):
-        '''
+        """
         Applies a skin to a fish you own
-        '''
-    @vbu.command()
-    @vbu.bot_has_permissions(send_messages=True, embed_links=True)
-    async def preview(self, ctx: commands.Context, type: str, *, skin: str):
-        '''
-        Previews a skin
-        '''
+        """
 
+        ...
+
+    @commands.command(enabled=False)
+    @commands.bot_has_permissions(send_messages=True, embed_links=True)
+    async def preview(self, ctx: commands.Context, type: str, *, skin: str):
+        """
+        Previews a skin
+        """
+
+        ...
 
 
 def setup(bot):

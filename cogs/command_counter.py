@@ -1,18 +1,20 @@
-import voxelbotutils as vbu
+from discord.ext import commands, vbu
 
 
 class CommandCounter(vbu.Cog):
 
     @vbu.Cog.listener()
-    async def on_command(self, ctx: vbu.Context):
+    async def on_command(self, ctx: commands.Context):
         """
         Count every time a command is run uwu
         """
 
         command = ctx.command
+        if command is None:
+            return
         command_name = command.name
 
-        async with self.bot.database() as db:
+        async with vbu.Database() as db:
             current_count = await db("SELECT count FROM command_counter WHERE command_name=$1", command_name)
 
             # Make sure we get a current count
@@ -23,16 +25,16 @@ class CommandCounter(vbu.Cog):
 
             await db("INSERT INTO command_counter (command_name, count) VALUES ($1, $2) ON CONFLICT (command_name) DO UPDATE SET count = $2", command_name, current_count + 1)
 
-        self.bot.logger.info(f"Logging command completion: {ctx.command.name}")
+        self.bot.logger.info(f"Logging command completion: {command.name}")
 
-    @vbu.command(aliases=['commandstats', 'commandcount', 'commandcounter'])
-    async def commanddata(self, ctx: vbu.Context):
+    @commands.command(aliases=['commandstats', 'commandcount', 'commandcounter'])
+    async def commanddata(self, ctx: commands.Context):
         """
         Send out the list of commands and their current count
         """
 
         # Get info from database
-        async with self.bot.database() as db:
+        async with vbu.Database() as db:
             command_data = await db("SELECT * FROM command_counter")
 
         # Make sure we have data
