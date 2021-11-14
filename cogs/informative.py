@@ -305,13 +305,13 @@ class Informative(vbu.Cog):
         """
         # The milestones for each achievement type
         milestones_dict_of_achievements = {
-               'times_entertained': [5, 25, 100, 250, 500, 1000, 5000, 10000, 100000, 1000000],
-                'times_fed': [5, 25, 50, 100, 250, 500, 1000, 10000, 100000, 1000000],
-                'times_cleaned': [5, 25, 100, 250, 500, 1000, 5000, 10000, 100000, 1000000],
-                'times_caught': [5, 25, 100, 250, 500, 1000, 5000, 10000, 100000, 1000000],
+               'times_entertained': [96, 672, 1344, 2880, 8640, 17280, 25920, 35040, 52512, 70080],
+                'times_fed': [1, 10, 50, 100, 1500, 3000, 6000, 22750, 34125, 45500],
+                'times_cleaned': [12, 84, 168, 360, 540, 1080, 1620, 2190, 3285, 4928],
+                'times_caught': [24, 168, 336, 720, 1000, 2160, 3240, 4380, 6570, 9856],
                 'tanks_owned': [1, 3, 5, 10],
-                'times_gambled': [5, 25, 100, 250, 500, 1000, 5000, 10000, 100000, 1000000],
-                'money_gained': [100, 500, 1000, 5000, 10000, 50000, 100000, 500000, 1000000, 10000000],
+                'times_gambled': [5, 10, 50, 100, 500, 1000, 5000, 10000, 50000, 500000],
+                'money_gained': [1000, 10000, 50000, 100000, 250000, 500000, 1000000, 1500000, 2000000, 5000000],
         }
 
 
@@ -389,7 +389,7 @@ class Informative(vbu.Cog):
                 name_data = ''
             else:
                 value_data = ''
-                value_data = f"{(user_achievement_value/user_achievement_milestone_data[0][milestone])}% of **{next_unclaimable_star}**{st_nd_rd_th_grammar} star"
+                value_data = f"{((user_achievement_value/user_achievement_milestone_data[0][milestone])*100):.0f}% of **{next_unclaimable_star}**{st_nd_rd_th_grammar} star"
                 name_data = f"{user_achievement_value:,}/{user_achievement_milestone_data[0][milestone]:,}"
             embed.add_field(name=f"{achievement.replace('_', ' ').title()} {name_data}", value=f"{value_data}\n{''.join(list_of_stars_per_achievement)} \n**{is_achievement_claimable}**")
 
