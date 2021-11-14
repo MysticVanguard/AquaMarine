@@ -265,11 +265,6 @@ class FishCare(vbu.Cog):
                 ctx.author.id
                 )
             await db(
-                """INSERT INTO user_balance (user_id, balance) VALUES ($1, $2)
-                ON CONFLICT (user_id) DO UPDATE SET balance = user_balance.balance + $2""",
-                ctx.author.id, money_gained,
-            )
-            await db(
                 """INSERT INTO user_achievements (user_id, money_gained) VALUES ($1, $2)
                 ON CONFLICT (user_id) DO UPDATE SET money_gained = user_achievements.money_gained + $2""",
                 ctx.author.id, int(money_gained)
