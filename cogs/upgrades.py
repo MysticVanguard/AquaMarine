@@ -7,48 +7,48 @@ from cogs import utils
 class Upgrades(vbu.Cog):
 
     UPGRADE_DESCRIPTIONS = {
-        'rod_upgrade': 'Increases price caught fish sell for',
-        'line_upgrade': 'Increases chance of catching two fish',
-        'better_line_upgrade': 'Increases chance of catching two fish even more',
+        'rod_upgrade': 'Increases the price a caught fish sells for',
+        'line_upgrade': 'Increases the chance of catching two fish in one cast',
+        'crate_chance_upgrade': 'Increases chance of catching a crate when fishing',
         'weight_upgrade': 'Increases the level fish are when caught',
-        'bait_upgrade': 'Increases chance of catching rarer fish',
-        'better_bait_upgrade': 'Increases chance of catching rarer fish even more',
-        'lure_upgrade': 'Increases chance of catching a \'skinned\' fish',
-        'feeding_upgrade': 'Increases fish lifespan after feeding',
-        'toys_upgrade': 'Increases xp gained from entertaining',
-        'better_toys_upgrade': 'Increases xp gained from entertaining even more',
+        'bait_upgrade': 'Increases the chance of catching rarer fish when fishing',
+        'crate_tier_upgrade': 'Increases the tier of the crate caught',
+        'lure_upgrade': 'Increases the chance of catching a special fish when fishing',
+        'feeding_upgrade': 'Increases how long fish will live after being fed',
+        'toys_upgrade': 'Increases the xp gained from entertaining',
+        'mutation_upgrade': 'Increases the chance of a fish mutating to a special fish during cleaning',
         'amazement_upgrade': 'Increases chance of bonus level when entertaining',
         'bleach_upgrade': 'Increases the cleaning multiplier',
-        'better_bleach_upgrade': 'Increases the cleaning multiplier even more',
+        'big_servings_upgrade': 'Increases chance of a fish not',
         'hygienic_upgrade': 'Lessens the frequency of cleaning',
 
     }
 
     TIER_RANKS = {
         'rod_upgrade': {
-            'line_upgrade': [
-                'better_line_upgrade',
-                'weight_upgrade'
-            ],
             'bait_upgrade': [
-                'better_bait_upgrade',
+                'line_upgrade',
                 'lure_upgrade'
+            ],
+            'crate_chance_upgrade': [
+                'weight_upgrade',
+                'crate_tier_upgrade'
             ]
         },
-        'feeding_upgrade': {
+        'bleach_upgrade': {
             'toys_upgrade': [
-                'better_toys_upgrade',
-                'amazement_upgrade'
+                'amazement_upgrade',
+                'mutation_upgrade'
             ],
-            'bleach_upgrade': [
-                'better_bleach_upgrade',
-                'hygienic_upgrade'
+            'big_servings_upgrade': [
+                'hygienic_upgrade',
+                'feeding_upgrade'
             ]
         }
     }
-    UPGRADE_COST_LIST = (250, 500, 1000, 2000, 2000)
-    UPGRADE_COST_LIST_TWO = (1000, 2500, 5000, 10000, 10000)
-    UPGRADE_COST_LIST_THREE = (5000, 10000, 25000, 50000, 50000)
+    UPGRADE_COST_LIST = (250, 500, 1000, 1750, 2500)
+    UPGRADE_COST_LIST_TWO = (5000, 10000, 25000, 50000, 100000)
+    UPGRADE_COST_LIST_THREE = (100000, 250000, 500000, 750000, 1000000)
 
     @vbu.command()
     @vbu.bot_has_permissions(send_messages=True, embed_links=True)
@@ -163,7 +163,11 @@ class Upgrades(vbu.Cog):
 
         # And send our message
         embed = vbu.Embed()
-        for message_data in message:
+        for time, message_data in enumerate(message):
+            if time == 1:
+                embed.add_field(name="The Way of the Fish", value="These upgrades have to do with fishing", inline=False)
+            elif time == 8:
+                embed.add_field(name="The Way of the Tank", value="These upgrades have to do with owning fish in aquariums", inline=False)
             embed.add_field(name=message_data[1], value=message_data[0], inline=False)
         await ctx.send(embed=embed)
 
