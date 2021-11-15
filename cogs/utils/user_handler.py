@@ -28,7 +28,7 @@ async def ask_to_sell_fish(bot, ctx, new_fish: dict, embed, file= None):
 
     async with bot.database() as db:
         fish_rows = await db("""SELECT * FROM user_fish_inventory WHERE user_id=$1""", ctx.author.id)
-        upgrades = await db("""SELECT rod_upgrade, bait_upgrade, weight_upgrade, line_upgrade, better_line_upgrade, better_bait_upgrade, lure_upgrade FROM user_upgrades WHERE user_id = $1""", ctx.author.id)
+        upgrades = await db("""SELECT rod_upgrade, weight_upgrade FROM user_upgrades WHERE user_id = $1""", ctx.author.id)
         if not upgrades:
             await db("""INSERT INTO user_upgrades (user_id) VALUES ($1)""", ctx.author.id)
             upgrades = await db("""SELECT rod_upgrade, weight_upgrade FROM user_upgrades WHERE user_id = $1""", ctx.author.id)
@@ -38,7 +38,7 @@ async def ask_to_sell_fish(bot, ctx, new_fish: dict, embed, file= None):
     def button_check(payload):
         if payload.message.id != message.id:
             return False
-        bot.loop.create_task(payload.defer_update())
+        bot.loop.create_task(payload.response.defer_update())
         return payload.user.id == ctx.author.id
             # Keep going...
 

@@ -8,7 +8,7 @@ The following utils are for upgrades used in various commands throughout the bot
 
 
 # Rod upgrade that increases the multiplier of a fish when it is sold
-ROD_UPGRADES = {0: 1, 1: 1.1, 2: 1.2, 3: 1.3, 4: 1.4, 5: 1.5}
+ROD_UPGRADES = {0: 1, 1: 1.1, 2: 1.2, 3: 1.4, 4: 1.7, 5: 2.0}
 
 # Bait upgrade that increases your chances of catching rarer fish
 BAIT_UPGRADE = {
@@ -132,16 +132,17 @@ TOYS_UPGRADE = {0: (2, 40), 1: (5, 50), 2: (10, 100), 3: (25, 125), 4: (35, 150)
 AMAZEMENT_UPGRADE = {0: 1600, 1: 1500, 2: 1300, 3: 1000, 4: 600, 5: 100}
 
 # Mutation upgrade that increases the chance of a fish to mutate to golden or inverted after being *****TBD
-AMAZEMENT_UPGRADE = {0: 1600, 1: 1500, 2: 1300, 3: 1000, 4: 600, 5: 100}
+MUTATION_UPGRADE = {0: 1600, 1: 1500, 2: 1300, 3: 1000, 4: 600, 5: 100}
 
 # Big servings upgrade that increases the chance of fish food not being consumed when a fish is fed
 BIG_SERVINGS_UPGRADE = {0: 500, 1: 350, 2: 250, 3: 100, 4: 50, 5: 10}
 
+# Hygienic upgrade increases the time between cleans and the multiplier with that time
+HYGIENIC_UPGRADE = {0: (1, 60), 1: (4, 240), 2: (8, 480), 3: (12, 720), 4: (16, 960), 5: (24, 1440)}
+
 # Feeding upgrade that increases the time before a fish dies from not being fed
 FEEDING_UPGRADES = {0: (3, 0), 1: (3, 6), 2: (3, 12), 3: (3, 18), 4: (3, 24), 5: (4, 6)}
 
-# Hygienic upgrade increases the time between cleans and the multiplier with that time
-HYGIENIC_UPGRADE = {0: (1, 60), 1: (4, 240), 2: (8, 480), 3: (12, 720), 4: (16, 960), 5: (24, 1440)}
 
 # This returns the results of the lure upgrade in [(list of types), (list of chances)]
 def special_percentage_finder(upgrade_level):

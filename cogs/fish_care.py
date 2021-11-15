@@ -51,12 +51,12 @@ class FishCare(vbu.Cog):
             )
             tank_rows = await db("""SELECT * FROM user_tank_inventory WHERE user_id = $1""", ctx.author.id)
             upgrades = await db(
-                """SELECT toys_upgrade, better_toys_upgrade, amazement_upgrade FROM user_upgrades WHERE user_id = $1""",
+                """SELECT toys_upgrade, amazement_upgrade FROM user_upgrades WHERE user_id = $1""",
                 ctx.author.id,
             )
 
         # ranges of how much will be added
-        total_xp_to_add = random.randint(utils.TOYS_UPGRADE[(upgrades[0]['toys_upgrade'] + upgrades[0]['better_toys_upgrade'])][0], utils.TOYS_UPGRADE[(upgrades[0]['toys_upgrade'] + upgrades[0]['better_toys_upgrade'])][1])
+        total_xp_to_add = random.randint(utils.TOYS_UPGRADE[upgrades[0]['toys_upgrade']][0], utils.TOYS_UPGRADE[upgrades[0]['toys_upgrade']][1])
         extra_level = random.randint(1, utils.AMAZEMENT_UPGRADE[upgrades[0]['amazement_upgrade']])
         if extra_level == 1:
             new_level = True
@@ -191,7 +191,7 @@ class FishCare(vbu.Cog):
         # Get the fish and tank data from the database
         async with vbu.Database() as db:
             upgrades = await db(
-                """SELECT bleach_upgrade, better_bleach_upgrade, hygienic_upgrade FROM user_upgrades WHERE user_id = $1""",
+                """SELECT bleach_upgrade, hygienic_upgrade FROM user_upgrades WHERE user_id = $1""",
                 ctx.author.id,
             )
             fish_rows = await db(
@@ -218,7 +218,7 @@ class FishCare(vbu.Cog):
             if tank_rows[0]['tank_clean_time'][tank_slot] + timedelta(minutes=time) > dt.utcnow():
                 time_left = timedelta(seconds=(tank_rows[0]['tank_clean_time'][tank_slot] - dt.utcnow() + timedelta(minutes=time)).total_seconds())
                 relative_time = discord.utils.format_dt(dt.utcnow() + time_left - timedelta(hours=DAYLIGHT_SAVINGS), style="R")
-                return await ctx.send(f"This tank is clean, please try again in {relative_time}.")
+                return await ctx.send(f"This tank is clean, please try again {relative_time}.")
 
         # See if there are any fish in the tank
         if not fish_rows:
@@ -250,7 +250,7 @@ class FishCare(vbu.Cog):
                     print(size_multiplier)
                     rarity_multiplier = rarity_values[rarity]
             money_gained += (fish["fish_level"] * rarity_multiplier * size_multiplier)
-        money_gained = math.floor(money_gained  * (utils.BLEACH_UPGRADE[(upgrades[0]['bleach_upgrade'] + upgrades[0]['better_bleach_upgrade'])]) * multiplier + effort_extra[0])
+        money_gained = math.floor(money_gained  * (utils.BLEACH_UPGRADE[upgrades[0]['bleach_upgrade']]) * multiplier + effort_extra[0])
 
         # Add their fish money to your sand database dollars
         async with vbu.Database() as db:

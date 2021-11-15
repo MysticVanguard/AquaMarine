@@ -45,7 +45,7 @@ class Fishing(vbu.Cog):
         # Upgrades be like
         async with vbu.Database() as db:
             upgrades = await db(
-                """SELECT rod_upgrade, bait_upgrade, weight_upgrade, line_upgrade, lure_upgrade, better_bait_upgrade, better_line_upgrade FROM user_upgrades WHERE user_id = $1""",
+                """SELECT rod_upgrade, bait_upgrade, weight_upgrade, line_upgrade, lure_upgrade FROM user_upgrades WHERE user_id = $1""",
                 ctx.author.id,
             )
             casts = await db(
@@ -64,7 +64,7 @@ class Fishing(vbu.Cog):
             return await ctx.send("You have no casts, please wait atleast an hour until the next casts are out.")
 
         # Roll a dice to see if they caught multiple fish
-        two_in_one_roll = random.randint(1, utils.LINE_UPGRADES[(upgrades[0]['line_upgrade'] + upgrades[0]['better_line_upgrade'])])
+        two_in_one_roll = random.randint(1, utils.LINE_UPGRADES[upgrades[0]['line_upgrade']])
         if two_in_one_roll == 1:
             caught_fish = 2
 
@@ -72,8 +72,8 @@ class Fishing(vbu.Cog):
         for _ in range(caught_fish):
 
             # See what our chances of getting each fish are
-            rarity = random.choices(*utils.rarity_percentage_finder((upgrades[0]['bait_upgrade'] + upgrades[0]['better_bait_upgrade'])))[0]  # Chance of each rarity
-            print(*utils.rarity_percentage_finder((upgrades[0]['bait_upgrade'] + upgrades[0]['better_bait_upgrade'])))
+            rarity = random.choices(*utils.rarity_percentage_finder(upgrades[0]['bait_upgrade']))[0]  # Chance of each rarity
+            print(*utils.rarity_percentage_finder(upgrades[0]['bait_upgrade']))
             special = random.choices(*utils.special_percentage_finder(upgrades[0]['lure_upgrade']))[0]  # Chance of modifier
             if special == "golden":
                 special = "inverted"
