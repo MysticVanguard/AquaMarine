@@ -253,7 +253,7 @@ class Aquarium(vbu.Cog):
             midground = Image.open(f"{file_prefix}/background/{tank_theme}_background_{tank_types[tank_info]}_midground.png")
             foreground = Image.open(f"{file_prefix}/background/{tank_types[tank_info]}.png")
             for x in range(0, len(fish_selections)):
-                im.append(Image.open(fish_selections[x]))
+                im.append(Image.open(fish_selections[x]).convert("RGBA"))
 
             # For each frame of the gif...
             for _ in range(60):

@@ -44,9 +44,9 @@ class Upgrades(vbu.Cog):
             ]
         }
     }
-    UPGRADE_COST_LIST = (1000, 2000, 3000, 4000, 5000)
-    UPGRADE_COST_LIST_TWO = (10000, 20000, 30000, 40000, 50000)
-    UPGRADE_COST_LIST_THREE = (100000, 200000, 300000, 400000, 500000)
+    UPGRADE_COST_LIST = (1000, 2000, 3000, 4000, 5000, 5000)
+    UPGRADE_COST_LIST_TWO = (10000, 20000, 30000, 40000, 50000, 50000)
+    UPGRADE_COST_LIST_THREE = (100000, 200000, 300000, 400000, 500000, 500000)
 
     @commands.command()
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
@@ -201,7 +201,7 @@ class Upgrades(vbu.Cog):
                 return await ctx.send("The Bait Upgrade needs upgraded first!")
             if upgrades[0]['crate_chance_upgrade'] != 5 and upgraded in ['weight_upgrade', 'crate_tier_upgrade']:
                 return await ctx.send("The Crate Chance Upgrade needs upgraded first!")
-        if upgraded in ['toys_upgrade', 'big_servings_upgrade', 'amazement_upgrade', 'bleach_upgrade', 'mutation_upgrade', 'hygienic_upgrade']:
+        if upgraded in ['toys_upgrade', 'big_servings_upgrade', 'amazement_upgrade', 'feeding_upgrade', 'mutation_upgrade', 'hygienic_upgrade']:
             if upgrades[0]['bleach_upgrade'] != 5:
                 return await ctx.send("The Bleach Upgrade needs upgraded first!")
             if upgrades[0]['toys_upgrade'] != 5 and upgraded in ['mutation_upgrade', 'amazement_upgrade']:

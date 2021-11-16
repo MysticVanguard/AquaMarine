@@ -133,7 +133,7 @@ class FishCare(vbu.Cog):
         # Fetches needed rows and gets the users amount of food
         async with vbu.Database() as db:
             upgrades = await db(
-                """SELECT feeding_upgrade FROM user_upgrades WHERE user_id = $1""",
+                """SELECT feeding_upgrade, big_servings_upgrade FROM user_upgrades WHERE user_id = $1""",
                 ctx.author.id,
             )
             fish_rows = await db(
@@ -169,7 +169,13 @@ class FishCare(vbu.Cog):
                 """UPDATE user_fish_inventory SET death_time = $3, fish_feed_time = $4 WHERE user_id = $1 AND fish_name = $2""",
                 ctx.author.id, fish_fed, death_date, dt.utcnow(),
             )
-            await db("""UPDATE user_item_inventory SET flakes=flakes-1 WHERE user_id=$1""", ctx.author.id)
+
+            extra = ""
+            full = random.randint(1, utils.BIG_SERVINGS_UPGRADE[upgrades[0]['big_servings_upgrade']])
+            if full != 1:
+                await db("""UPDATE user_item_inventory SET flakes=flakes-1 WHERE user_id=$1""", ctx.author.id)
+            else:
+                extra = "\nThat fish wasn't as hungry and didn't consume food!"
 
             # Achievements
             await db(
@@ -179,7 +185,7 @@ class FishCare(vbu.Cog):
                 )
 
         # And done
-        return await ctx.send(f"**{fish_rows[0]['fish_name']}** has been fed! <:AquaBonk:877722771935883265>")
+        return await ctx.send(f"**{fish_rows[0]['fish_name']}** has been fed! <:AquaBonk:877722771935883265>{extra}")
 
     @commands.command()
     @commands.bot_has_permissions(send_messages=True)
@@ -191,7 +197,7 @@ class FishCare(vbu.Cog):
         # Get the fish and tank data from the database
         async with vbu.Database() as db:
             upgrades = await db(
-                """SELECT bleach_upgrade, hygienic_upgrade FROM user_upgrades WHERE user_id = $1""",
+                """SELECT bleach_upgrade, hygienic_upgrade, mutation_upgrade FROM user_upgrades WHERE user_id = $1""",
                 ctx.author.id,
             )
             fish_rows = await db(
@@ -242,7 +248,15 @@ class FishCare(vbu.Cog):
         }
         effort_extra = random.choices([0, 10, 20], [.6, .3, .1])
         size_multiplier = 1
+        extra = ""
         for fish in fish_rows:
+            mutate = random.randint(1, utils.MUTATION_UPGRADE[upgrades[0]['mutation_upgrade']])
+            if mutate == 1:
+                async with vbu.Database() as db:
+                    mutated = "inverted_"+fish["fish"]
+                    await db("""UPDATE user_fish_inventory SET fish = $1 where user_id = $2 AND fish = $3""", mutated, ctx.author.id, fish["fish"])
+                    nl = "\n"
+                    extra += f"{nl}{fish['fish']}looks kind of strange now..."
             rarity_multiplier = 0
             for rarity, fish_types in self.bot.fish.items():  # For each rarity level
                 if " ".join(fish["fish"].split("_")) in fish_types.keys():
@@ -272,7 +286,7 @@ class FishCare(vbu.Cog):
                 ctx.author.id, int(money_gained)
                 )
 
-        await ctx.send(f"You earned **{money_gained}** <:sand_dollar:877646167494762586> for cleaning that tank! <:AquaSmile:877939115994255383>")
+        await ctx.send(f"You earned **{money_gained}** <:sand_dollar:877646167494762586> for cleaning that tank! <:AquaSmile:877939115994255383>{extra}")
 
     @commands.command()
     @commands.bot_has_permissions(send_messages=True)

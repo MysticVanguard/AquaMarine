@@ -132,7 +132,7 @@ TOYS_UPGRADE = {0: (2, 40), 1: (5, 50), 2: (10, 100), 3: (25, 125), 4: (35, 150)
 AMAZEMENT_UPGRADE = {0: 1600, 1: 1500, 2: 1300, 3: 1000, 4: 600, 5: 100}
 
 # Mutation upgrade that increases the chance of a fish to mutate to golden or inverted after being *****TBD
-MUTATION_UPGRADE = {0: 1600, 1: 1500, 2: 1300, 3: 1000, 4: 600, 5: 100}
+MUTATION_UPGRADE = {0: 50000, 1: 40000, 2: 30000, 3: 20000, 4: 10000, 5: 5000}
 
 # Big servings upgrade that increases the chance of fish food not being consumed when a fish is fed
 BIG_SERVINGS_UPGRADE = {0: 500, 1: 350, 2: 250, 3: 100, 4: 50, 5: 10}
@@ -287,7 +287,8 @@ SMALL_TANK_NAMES = ["Small Tank", "Small", "St"]
 MEDIUM_TANK_NAMES = ["Medium Tank", "Medium", "Mt"]
 PLANT_LIFE_NAMES = ["Plant Life", "Plant", "Pl"]
 FISH_REVIVAL_NAMES = ["Fish Revival", "Revival", "Fr"]
-CASTS_NAMES = ["Fishing Casts", "Casts", "C"]
+CASTS_NAMES = ["Fishing Casts", "Casts", "Fc"]
+SAND_DOLLAR_NAMES = ["Sand Dollars", "Dollars", "Sd"]
 
 # Daylight savings variable because for some reason i need to add four and then an hour when its daylight savings,
 # will be changed to 4 when daylight savings is over

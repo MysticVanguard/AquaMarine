@@ -167,7 +167,7 @@ async def paginate(ctx, fields, user, custom_str=None):
             return False
         # The correct button
         if payload.component.custom_id in [left.custom_id, right.custom_id, stop.custom_id, numbers.custom_id]:
-            bot.loop.create_task(payload.defer_update())
+            bot.loop.create_task(payload.response.defer_update())
         # The correct user
         return payload.user.id == ctx.author.id
 

@@ -27,6 +27,7 @@ FISH_SHOP_EMBED.add_field(name="Tank Themes", value="These are themes you can bu
 FISH_SHOP_EMBED.add_field(name="Plant Life", value="This gives you the plant life theme for one of your tanks \n __250 <:doubloon:878297091057807400>__", inline=True)
 FISH_SHOP_EMBED.add_field(name="Misc", value="These are just some random things", inline=False)
 FISH_SHOP_EMBED.add_field(name="Fishing Casts", value="This will give you five casts \n __5 <:doubloon:878297091057807400>__", inline=True)
+FISH_SHOP_EMBED.add_field(name="Sand Dollars", value="This will give you 2,000 sand dollars \n __5 <:doubloon:878297091057807400>__", inline=True)
 
 
 class Shop(vbu.Cog):
@@ -50,7 +51,7 @@ class Shop(vbu.Cog):
         # Say what's valid
         all_names = [
             utils.COMMON_BAG_NAMES, utils.UNCOMMON_BAG_NAMES, utils.RARE_BAG_NAMES, utils.FISH_FLAKES_NAMES, utils.FISH_BOWL_NAMES,
-            utils.SMALL_TANK_NAMES, utils.MEDIUM_TANK_NAMES, utils.PLANT_LIFE_NAMES, utils.FISH_REVIVAL_NAMES, utils.CASTS_NAMES,
+            utils.SMALL_TANK_NAMES, utils.MEDIUM_TANK_NAMES, utils.PLANT_LIFE_NAMES, utils.FISH_REVIVAL_NAMES, utils.CASTS_NAMES, utils.SAND_DOLLAR_NAMES,
         ]
 
         # See if they gave a valid item
@@ -77,9 +78,10 @@ class Shop(vbu.Cog):
             "Medium Tank": (utils.MEDIUM_TANK_NAMES, 12000, "Medium Tank", ""),
             "Plant Life": (utils.PLANT_LIFE_NAMES, 250, "Plant Life", ""),
             "Casts": (utils.CASTS_NAMES, 5, "Casts", balance_insert_sql.format("casts")),
+            "Sand Dollars": (utils.SAND_DOLLAR_NAMES, 1, "Sand Dollars", balance_insert_sql.format("balance"))
         }
         item_name_singular = utils.FISH_BOWL_NAMES + utils.SMALL_TANK_NAMES + utils.MEDIUM_TANK_NAMES + utils.PLANT_LIFE_NAMES
-        Doubloon_things = utils.PLANT_LIFE_NAMES + utils.CASTS_NAMES
+        Doubloon_things = utils.PLANT_LIFE_NAMES + utils.CASTS_NAMES + utils.SAND_DOLLAR_NAMES
 
         # Work out which of the SQL statements to use
         for table, data in item_name_dict.items():
@@ -102,6 +104,8 @@ class Shop(vbu.Cog):
             full_cost = cost * amount
             if response == "Casts":
                 amount = amount * 5
+            elif response == "Sand Dollars":
+                amount = amount * 2000
             if not await utils.check_price(self.bot, ctx.author.id, full_cost, type_of_balance):
                 return await ctx.send(f"You don't have enough {emoji} for this!")
 
@@ -480,7 +484,7 @@ class Shop(vbu.Cog):
         def button_check(payload):
             if payload.message.id != gamble_message.id:
                 return False
-            self.bot.loop.create_task(payload.defer_update())
+            self.bot.loop.create_task(payload.response.defer_update())
             return payload.user.id == ctx.author.id
 
         # Keep going...
