@@ -64,7 +64,8 @@ class Fishing(vbu.Cog):
             return await ctx.send("You have no casts, please wait atleast an hour until the next casts are out.")
 
         # Roll a dice to see if they caught multiple fish
-        two_in_one_roll = random.randint(1, utils.LINE_UPGRADES[upgrades[0]['line_upgrade']])
+        two_in_one_roll = random.randint(
+            1, utils.LINE_UPGRADES[upgrades[0]['line_upgrade']])
         if two_in_one_roll == 1:
             caught_fish = 2
 
@@ -72,14 +73,18 @@ class Fishing(vbu.Cog):
         for _ in range(caught_fish):
 
             # See what our chances of getting each fish are
-            rarity = random.choices(*utils.rarity_percentage_finder(upgrades[0]['bait_upgrade']))[0]  # Chance of each rarity
+            # Chance of each rarity
+            rarity = random.choices(
+                *utils.rarity_percentage_finder(upgrades[0]['bait_upgrade']))[0]
             print(*utils.rarity_percentage_finder(upgrades[0]['bait_upgrade']))
-            special = random.choices(*utils.special_percentage_finder(upgrades[0]['lure_upgrade']))[0]  # Chance of modifier
+            special = random.choices(
+                *utils.special_percentage_finder(upgrades[0]['lure_upgrade']))[0]  # Chance of modifier
             if special == "golden":
                 special = "inverted"
 
             # See which fish they caught
-            new_fish = random.choice(list(self.bot.fish[rarity].values())).copy()
+            new_fish = random.choice(
+                list(self.bot.fish[rarity].values())).copy()
 
             # See if we want to make the fish a modifier
             special_functions = {
@@ -91,7 +96,8 @@ class Fishing(vbu.Cog):
 
             # Say how many of those fish they caught previously
             amount = 0
-            a_an = "an" if rarity[0].lower() in ("a", "e", "i", "o", "u") else "a"
+            a_an = "an" if rarity[0].lower() in (
+                "a", "e", "i", "o", "u") else "a"
             async with vbu.Database() as db:
                 user_inventory = await db("SELECT * FROM user_fish_inventory WHERE user_id=$1", ctx.author.id)
 
@@ -111,7 +117,8 @@ class Fishing(vbu.Cog):
 
             fish_file = discord.File(new_fish["image"], "new_fish.png")
             await ctx.send(f"Guess the name of this fish", file=fish_file)
-            check = lambda guess: guess.author == ctx.author and guess.channel == ctx.channel
+            def check(
+                guess): return guess.author == ctx.author and guess.channel == ctx.channel
             try:
                 message_given = await ctx.bot.wait_for("message", timeout=60.0, check=check)
                 message = message_given.content
@@ -132,14 +139,73 @@ class Fishing(vbu.Cog):
 
             # Tell the user about the fish they caught
             owned_unowned = "Owned" if amount > 0 else "Unowned"
-            embed = discord.Embed(title=f"<:AquaFish:877939115948134442> You caught {a_an} *{rarity}* {new_fish['size']} **{new_fish['name']}**!")
-            embed.add_field(name=owned_unowned, value=f"You have {amount} **{new_fish['name']}**", inline=False)
+            embed = discord.Embed(
+                title=f"<:AquaFish:877939115948134442> You caught {a_an} *{rarity}* {new_fish['size']} **{new_fish['name']}**!")
+            embed.add_field(
+                name=owned_unowned, value=f"You have {amount} **{new_fish['name']}**", inline=False)
             embed.set_image(url="attachment://new_fish.png")
             embed.color = utils.RARITY_CULERS[rarity]
 
             # Ask if they want to sell the fish they just caught
             print(utils.current_fishers)
-            await utils.ask_to_sell_fish(self.bot, ctx, new_fish, embed = embed)
+            await utils.ask_to_sell_fish(self.bot, ctx, new_fish, embed=embed)
+
+        # CRATE_CHANCE_UPGRADE = {0: 8760, 1: 6480, 2: 4320, 3: 2160, 4: 1440, 5: 720}
+
+        # CRATE_TIERS = {
+        #     "Wooden": (500, 1, (1.0, 0, 0, 0, 0, 0), 1, (1.0, 0, 0, 0), 1, (1.0, 0, 0, 0), 1),
+        #     "Bronze": (1000, 2, (.89, .1, .01, 0, 0, 0), 2, (.89, .1, .01, 0), 2, (.89, .1, .01, 0), 1),
+        #     "Steel": (2500, 5, (.74, .2, .05, .01, 0, 0), 4, (.74, .2, .05, .01), 4, (.74, .2, .05, .01), 1),
+        #     "Golden": (5000, 10, (.54, .3, .1, .05, .01, 0), 7, (.54, .3, .1, .05), 7, (.54, .3, .1, .05), 2),
+        #     "Diamond": (10000, 20, (.29, .4, .15, .1, .05, .01), 11, (.29, .4, .15, .1), 11, (.29, .4, .15, .1), 2),
+        #     "Enchanted": (50000, 100, (0, .5, .2, .15, .1, 0.05), 16, (0, .5, .2, .15), 16, (0, .5, .2, .15), 3),
+        # }
+        # CRATE_TIER_UPGRADE = {
+        #     0: (1.0, 0, 0, 0, 0, 0),
+        #     1: (.89, .1, .01, 0, 0, 0),
+        #     2: (.74, .2, .05, .01, 0, 0),
+        #     3: (.54, .3, .1, .05, .01, 0),
+        #     4: (.29, .4, .15, .1, .05, .01),
+        #     5: (0, .5, .2, .15, .1, 0.05)
+        # }
+
+        crate_catch = random.randint(
+            1, utils.CRATE_CHANCE_UPGRADE[upgrades['crate_chance_upgrade']])
+        if crate_catch == 1:
+            crate_loot = []
+            crate = random.choices(
+                ("Wooden", "Bronze", "Steel", "Golden", "Diamond", "Enchanted"), utils.CRATE_TIER_UPGRADE[upgrades['crate_tier_upgrade']])
+            crate_loot.append(("balance", random.randint(
+                0, utils.CRATE_TIERS[crate[0]][0]), "user_balance"))
+            crate_loot.append(("casts", random.randint(
+                0, utils.CRATE_TIERS[crate[0]][1]), "user_balance"))
+            crate_loot.append((random.choices(("none", "cfb", "ufb", "rfb", "ifb", "hlfb"),
+                                              utils.CRATE_TIERS[crate[0]][2])[0], random.randint(0, utils.CRATE_TIERS[crate[0]][3]), "user_inventory"))
+            crate_loot.append((random.choices(("none", "flakes", "pellets", "wafers"),
+                                              utils.CRATE_TIERS[crate[0]][4])[0], random.randint(0, utils.CRATE_TIERS[crate[0]][5]), "user_inventory"))
+            crate_loot.append((random.choices(("none", "fullness", "experience", "mutation"),
+                                              utils.CRATE_TIERS[crate[0]][6])[0], random.randint(0, utils.CRATE_TIERS[crate[0]][7]), "user_inventory"))
+
+            crate_message = ""
+            nl = "\n"
+            display = {"balance": "Sand Dollars", "casts": "Casts", "cfb": "Common Fish Bags",
+                       "ufb": "Uncommon Fish Bags", "rfb": "Rare Fish Bags", "ifb": "Inverted Fish Bags",
+                       "hlfb": "High Level Fish Bags", "flakes": "Fish Flakes", "pellets": "Fish Pellets",
+                       "wafers": "Fish Wafers", "experience": "Experience Potions", "mutation": "Mutation Potions",
+                       "fullness": "Fullness Potions"
+                       }
+            for data in crate_loot:
+                print(data)
+                type_of_loot, amount_of_loot, table_of_loot = data
+                if type_of_loot != "none" and amount_of_loot != 0:
+                    await db(
+                        """INSERT INTO {0} (user_id, {1}) VALUES ($1, $2)
+                            ON CONFLICT (user_id) DO UPDATE SET {1} = {0}.{1} + $2""".format(table_of_loot, type_of_loot),
+                        ctx.author.id, amount_of_loot
+                    )
+                    crate_message += f"{nl}{amount_of_loot}x {display[type_of_loot]} recieved!"
+
+            await ctx.send(f"You caught a {crate[0]} crate containing: {crate_message}")
 
         # And now they should be allowed to fish again
         utils.current_fishers.remove(ctx.author.id)
@@ -153,7 +219,8 @@ class Fishing(vbu.Cog):
             raise error
 
         time = timedelta(seconds=int(error.retry_after))
-        relative_time = discord.utils.format_dt(dt.utcnow() + time - timedelta(hours=DAYLIGHT_SAVINGS), style="R")
+        relative_time = discord.utils.format_dt(
+            dt.utcnow() + time - timedelta(hours=DAYLIGHT_SAVINGS), style="R")
         await ctx.send(f'The fish are scared, please try again {relative_time}.')
 
     @commands.command()
