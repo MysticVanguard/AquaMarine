@@ -83,12 +83,8 @@ class Upgrades(vbu.Cog):
                 # Get the cost of an upgrade
                 cost_string = f"{self.UPGRADE_COST_LIST[int(level)]:,} <:sand_dollar:877646167494762586>"
 
-
                 if tier == 1:
                     parent_one = upgrade
-
-
-
 
                 left_bar = "<:bar_L:886377903615528971>"
                 start = ""
@@ -152,10 +148,10 @@ class Upgrades(vbu.Cog):
 
                 # Generate the message to send
 
-
                 progress_bar = f"{left_bar}{''.join(emote_string_list)}<:bar_R:877646167113080842>"
                 nl = "\n"
-                message.append((f"{start}{progress_bar}", f"{start_two}**{name}: (Lvl. {level}.): {cost_string}**{nl}{start_two}*{description}*"))
+                message.append(
+                    (f"{start}{progress_bar}", f"{start_two}**{name}: (Lvl. {level}.): {cost_string}**{nl}{start_two}*{description}*"))
                 print(len(progress_bar))
 
                 if tier == 7:
@@ -167,10 +163,13 @@ class Upgrades(vbu.Cog):
         embed = vbu.Embed()
         for time, message_data in enumerate(message):
             if time == 0:
-                embed.add_field(name="The Way of the Fish", value="These upgrades have to do with fishing", inline=False)
+                embed.add_field(name="The Way of the Fish",
+                                value="These upgrades have to do with fishing", inline=False)
             elif time == 8:
-                embed.add_field(name="The Way of the Tank", value="These upgrades have to do with owning fish in aquariums", inline=False)
-            embed.add_field(name=message_data[1], value=message_data[0], inline=False)
+                embed.add_field(name="The Way of the Tank",
+                                value="These upgrades have to do with owning fish in aquariums", inline=False)
+            embed.add_field(
+                name=message_data[1], value=message_data[0], inline=False)
         await ctx.send(embed=embed)
 
     @commands.command()
@@ -227,7 +226,8 @@ class Upgrades(vbu.Cog):
         async with vbu.Database() as db:
             await db(
                 """UPDATE user_balance SET balance=balance-$1 WHERE user_id = $2""",
-                upgrade_cost_list_used[int(upgrades[0][upgraded])], ctx.author.id,
+                upgrade_cost_list_used[int(
+                    upgrades[0][upgraded])], ctx.author.id,
             )
             await db("""UPDATE user_upgrades SET {0}=user_upgrades.{0}+1 WHERE user_id = $1""".format(upgraded), ctx.author.id)
 

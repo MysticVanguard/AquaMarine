@@ -109,13 +109,16 @@ class Aquarium(vbu.Cog):
         async with vbu.Database() as db:
             await db(
                 """UPDATE user_tank_inventory SET fish_room[$2] = fish_room[$2] - $3 WHERE user_id=$1""",
-                ctx.author.id, tank_slot, size_values[fish_row[0]["fish_size"]],
+                ctx.author.id, tank_slot, size_values[fish_row[0]
+                                                      ["fish_size"]],
             )
             await db(
                 """UPDATE user_fish_inventory SET tank_fish = $3, death_time = $4 WHERE fish_name=$1 AND user_id=$2""",
-                fish_deposited, ctx.author.id, tank_name, (dt.utcnow() + timedelta(days=3)),
+                fish_deposited, ctx.author.id, tank_name, (dt.utcnow(
+                ) + timedelta(days=3)),
             )
-        relative_time = discord.utils.format_dt(dt.utcnow() + timedelta(days=3) - timedelta(hours=DAYLIGHT_SAVINGS), style="R")
+        relative_time = discord.utils.format_dt(
+            dt.utcnow() + timedelta(days=3) - timedelta(hours=DAYLIGHT_SAVINGS), style="R")
         return await ctx.send(f"Fish has been deposited and will die {relative_time}!")
 
     @vbu.command(aliases=["rem"])
@@ -138,15 +141,16 @@ class Aquarium(vbu.Cog):
             return await ctx.send(
                 f"You have no fish named **{fish_removed}** in that tank!",
                 allowed_mentions=discord.AllowedMentions.none(),
-                )
+            )
         if not tank_row or tank_row[0]['tank'] == ['False', 'False', 'False', 'False', 'False', 'False', 'False', 'False', 'False', 'False']:
             return await ctx.send("You have no tanks!")
         if fish_row[0]['fish_remove_time']:
             if fish_row[0]['fish_remove_time'] + timedelta(days=5) > dt.utcnow():
-                time_left = timedelta(seconds=(fish_row[0]['fish_remove_time'] - dt.utcnow()).total_seconds())
-                relative_time = discord.utils.format_dt(dt.utcnow() + time_left - timedelta(hours=DAYLIGHT_SAVINGS), style="R")
+                time_left = timedelta(
+                    seconds=(fish_row[0]['fish_remove_time'] - dt.utcnow()).total_seconds())
+                relative_time = discord.utils.format_dt(
+                    dt.utcnow() + time_left - timedelta(hours=DAYLIGHT_SAVINGS), style="R")
                 return await ctx.send(f"This fish is resting, please try again {relative_time}.")
-
 
         # finds the tank slot the tank in question is at
         for tank_slot_in in tank_row[0]['tank_name']:
@@ -178,9 +182,12 @@ class Aquarium(vbu.Cog):
 
             # variables
             move_x = []
-            min_max_y = {"Fish Bowl": (20, 50), "Small Tank": (15, 200), "Medium Tank": (20, 200)}
-            min_max_x = {"Fish Bowl": (-180, 150), "Small Tank": (-180, 360), "Medium Tank": (-800, 720)}
-            fish_size_speed = {'Fish Bowl': 17, 'Small Tank': 18, 'Medium Tank': 25}
+            min_max_y = {"Fish Bowl": (20, 50), "Small Tank": (
+                15, 200), "Medium Tank": (20, 200)}
+            min_max_x = {
+                "Fish Bowl": (-180, 150), "Small Tank": (-180, 360), "Medium Tank": (-800, 720)}
+            fish_size_speed = {'Fish Bowl': 17,
+                               'Small Tank': 18, 'Medium Tank': 25}
             im = []
             fishes = {}
             fish_y_value = []
@@ -189,7 +196,8 @@ class Aquarium(vbu.Cog):
             golden_inverted_normal = 'normal'
             fish_selections = []
             gif_name = random.randint(1, 1000)
-            tank_types = {"Fish Bowl": "fishbowl", "Small Tank": "Small_Tank_2D", "Medium Tank": "Medium_Tank_2D"}
+            tank_types = {"Fish Bowl": "fishbowl",
+                          "Small Tank": "Small_Tank_2D", "Medium Tank": "Medium_Tank_2D"}
             tank_slot = 0
 
             # gets database info for tank
@@ -211,12 +219,13 @@ class Aquarium(vbu.Cog):
                 return await ctx.send(
                     f"You have no tank named **{tank_name}**!",
                     allowed_mentions=discord.AllowedMentions.none(),
-                    )
+                )
             tank_info = tank_row[0]['tank_type'][tank_slot]
 
             # finds what type of fish it is, then adds the paths to a list, as well as finding the fish's random starting position
             for selected_fish_types in selected_fish:
-                fishes[selected_fish_types['fish']] = [selected_fish_types['fish_alive']]
+                fishes[selected_fish_types['fish']] = [
+                    selected_fish_types['fish_alive']]
             for name, info in fishes.items():
 
                 if "golden" in name:
@@ -230,18 +239,19 @@ class Aquarium(vbu.Cog):
                 else:
                     fishes[name].append(name)
 
-
                 for _, fish_types in self.bot.fish.items():
                     for fish_data in fish_types.values():
                         if info[1] == fish_data['raw_name']:
-                            move_x.append(random.randint(min_max_x[tank_info][0], min_max_x[tank_info][1]))
-                            fish_y_value.append(random.randint(min_max_y[tank_info][0], min_max_y[tank_info][1]))
-                            fish_selections.append(f"C:/Users/JT/Pictures/Aqua/assets/images/{golden_inverted_normal}_fish_size{fish_data['image'][44:]}")
+                            move_x.append(random.randint(
+                                min_max_x[tank_info][0], min_max_x[tank_info][1]))
+                            fish_y_value.append(random.randint(
+                                min_max_y[tank_info][0], min_max_y[tank_info][1]))
+                            fish_selections.append(
+                                f"C:/Users/JT/Pictures/Aqua/assets/images/{golden_inverted_normal}_fish_size{fish_data['image'][44:]}")
                             if info[0] is True:
                                 dead_alive.append(True)
                             else:
                                 dead_alive.append(False)
-
 
             # gif variables
             file_prefix = "C:/Users/JT/Pictures/Aqua/assets/images"
@@ -249,9 +259,12 @@ class Aquarium(vbu.Cog):
 
             # Open our constant images
             tank_theme = tank_row[0]['tank_theme'][tank_slot]
-            background = Image.open(f"{file_prefix}/background/{tank_theme}_background_{tank_types[tank_info]}.png")
-            midground = Image.open(f"{file_prefix}/background/{tank_theme}_background_{tank_types[tank_info]}_midground.png")
-            foreground = Image.open(f"{file_prefix}/background/{tank_types[tank_info]}.png")
+            background = Image.open(
+                f"{file_prefix}/background/{tank_theme}_background_{tank_types[tank_info]}.png")
+            midground = Image.open(
+                f"{file_prefix}/background/{tank_theme}_background_{tank_types[tank_info]}_midground.png")
+            foreground = Image.open(
+                f"{file_prefix}/background/{tank_types[tank_info]}.png")
             for x in range(0, len(fish_selections)):
                 im.append(Image.open(fish_selections[x]).convert("RGBA"))
 
@@ -264,9 +277,11 @@ class Aquarium(vbu.Cog):
                 # adds multiple fish and a midground if its a fishbowl
                 for x in range(0, len(im)):
                     if dead_alive[x] is False:
-                        this_background.paste(im[x].rotate(180), (move_x[x], fish_y_value[x]), im[x].rotate(180))
+                        this_background.paste(im[x].rotate(
+                            180), (move_x[x], fish_y_value[x]), im[x].rotate(180))
                     else:
-                        this_background.paste(im[x], (move_x[x], fish_y_value[x]), im[x])
+                        this_background.paste(
+                            im[x], (move_x[x], fish_y_value[x]), im[x])
                         move_x[x] += fish_size_speed[tank_info]
                         if move_x[x] > min_max_x[tank_info][1]:
                             move_x[x] = min_max_x[tank_info][0]

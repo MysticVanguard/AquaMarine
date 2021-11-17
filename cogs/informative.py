@@ -10,7 +10,8 @@ from cogs import utils
 from cogs.utils.fish_handler import DAYLIGHT_SAVINGS
 
 
-CREDITS_EMBED = discord.Embed(title="Credits to all the people who have helped make this bot what it is!")
+CREDITS_EMBED = discord.Embed(
+    title="Credits to all the people who have helped make this bot what it is!")
 CREDITS_EMBED.add_field(
     name="The lovely coders who helped me with creating the bot, and who have taught me so much!",
     value="""
@@ -36,7 +37,6 @@ CREDITS_EMBED.add_field(
 )
 
 
-
 class Informative(vbu.Cog):
 
     @commands.command()
@@ -57,7 +57,8 @@ class Informative(vbu.Cog):
         # Get the user's fish
         for fish in fish_row:
             if fish['tank_fish'] != '':
-                relative_time = discord.utils.format_dt(fish['death_time'] - timedelta(hours=DAYLIGHT_SAVINGS), style="R")
+                relative_time = discord.utils.format_dt(
+                    fish['death_time'] - timedelta(hours=DAYLIGHT_SAVINGS), style="R")
                 fish_collections[fish['tank_fish']].append(
                     f"__**{fish['fish'].replace('_', ' ').title()}: \"{fish['fish_name']}\"**__\n"
                     f"**Alive:** {fish['fish_alive']}\n **Death Date:** {relative_time}"
@@ -69,7 +70,8 @@ class Informative(vbu.Cog):
         for tank_row in tank_rows:
             for count in range(len(tank_row['tank'])):
                 if tank_row['tank_name'][count] in fish_collections.keys():
-                    fish_message = [f"Type: {tank_row['tank_type'][count]}", f"**Fish:**", "\n".join(fish_collections[tank_row['tank_name'][count]])]
+                    fish_message = [f"Type: {tank_row['tank_type'][count]}", f"**Fish:**", "\n".join(
+                        fish_collections[tank_row['tank_name'][count]])]
                 else:
                     fish_message = ["No fish in tank."]
                 if tank_row['tank'][count] is True:
@@ -78,8 +80,7 @@ class Informative(vbu.Cog):
 
                     embed.add_field(
                         name=tank_row['tank_name'][count],
-                        value=
-                        "\n".join(fish_message)
+                        value="\n".join(fish_message)
 
                     )
 
@@ -147,26 +148,32 @@ class Informative(vbu.Cog):
                         fish_number[emoji] = user_fish.count(fish_owned)
 
             # Format a string for the embed
-            fish_info = [f"{fish_key}: x{fish_value}" for fish_key, fish_value in fish_number.items()]
+            fish_info = [f"{fish_key}: x{fish_value}" for fish_key,
+                         fish_value in fish_number.items()]
 
             # Work out how many fish from each rarity level the user has
             collection_data = []
             user_fish_types = set([i['fish'] for i in fish_row])
             for rarity, fish in self.bot.fish.items():
-                rarity_fish_count = len(fish)  # The number of fish in a given rarity
+                # The number of fish in a given rarity
+                rarity_fish_count = len(fish)
                 user_rarity_fish_count = 0  # The number in that rarity that the user has
                 for info in fish.values():
                     if info['raw_name'] in user_fish_types:
                         user_rarity_fish_count += 1
-                collection_data.append([rarity, rarity_fish_count, user_rarity_fish_count])
-                collection_info = [f"{x[0]}: {x[2]}/{x[1]}" for x in collection_data]
-                fields_dict['Collection']= ("\n".join(collection_info), False)
-                fields_dict['Highest Level Fish']= (f'{highest_level_fish_emoji} {highest_level_fish["fish_name"]}: Lvl. {highest_level_fish["fish_level"]} {highest_level_fish["fish_xp"]}/ {highest_level_fish["fish_xp_max"]}', False)
-                fields_dict['Owned Fish']= (' '.join(fish_info), True)
+                collection_data.append(
+                    [rarity, rarity_fish_count, user_rarity_fish_count])
+                collection_info = [
+                    f"{x[0]}: {x[2]}/{x[1]}" for x in collection_data]
+                fields_dict['Collection'] = ("\n".join(collection_info), False)
+                fields_dict['Highest Level Fish'] = (
+                    f'{highest_level_fish_emoji} {highest_level_fish["fish_name"]}: Lvl. {highest_level_fish["fish_level"]} {highest_level_fish["fish_xp"]}/ {highest_level_fish["fish_xp_max"]}', False)
+                fields_dict['Owned Fish'] = (' '.join(fish_info), True)
         if not balance:
             fields_dict['Balance'] = ("none", False)
         else:
-            fields_dict['Balance']= (f'<:sand_dollar:877646167494762586>: x{balance[0]["balance"]}\n<:doubloon:878297091057807400>: x{balance[0]["doubloon"]}', False)
+            fields_dict['Balance'] = (
+                f'<:sand_dollar:877646167494762586>: x{balance[0]["balance"]}\n<:doubloon:878297091057807400>: x{balance[0]["doubloon"]}', False)
         if not tank_row:
             fields_dict['# of Tanks'] = ("none", False)
         else:
@@ -174,7 +181,7 @@ class Informative(vbu.Cog):
             number_of_tanks = 0
             if tank_row:
                 number_of_tanks = tank_row[0]['tank'].count(True)
-            fields_dict['# of Tanks']= (number_of_tanks, False)
+            fields_dict['# of Tanks'] = (number_of_tanks, False)
         if not inventory_row:
             fields_dict['Items'] = ("none", True)
         else:
@@ -185,9 +192,10 @@ class Informative(vbu.Cog):
                     if key == "user_id":
                         continue
                     inventory_number[items[key]] = value
-            inventory_info = [f"{inv_key}: x{inv_value}" for inv_key, inv_value in inventory_number.items()]
-            fields_dict['Items']= (' '.join(inventory_info), True)
-        fields_dict['Achievements']= ("Soon To Be Added.", True)
+            inventory_info = [
+                f"{inv_key}: x{inv_value}" for inv_key, inv_value in inventory_number.items()]
+            fields_dict['Items'] = (' '.join(inventory_info), True)
+        fields_dict['Achievements'] = ("Soon To Be Added.", True)
 
         # Create and format the embed
         embed = vbu.Embed(title=f"{ctx.author.display_name}'s Profile")
@@ -208,7 +216,8 @@ class Informative(vbu.Cog):
             fields = []
             embed = discord.Embed(title="All Fish")
             for rarity, fish_types in self.bot.fish.items():
-                fish_string = [f"**{' '.join(fish_type.split('_')).title()}**" for fish_type, fish_info in fish_types.items()]
+                fish_string = [
+                    f"**{' '.join(fish_type.split('_')).title()}**" for fish_type, fish_info in fish_types.items()]
                 fields.append((rarity.title(), "\n".join(fish_string)))
             return await utils.paginate(ctx, fields, ctx.author, "**Bestiary**\n")
 
@@ -227,9 +236,12 @@ class Informative(vbu.Cog):
         # Make and send an embed
         embed = discord.Embed(title=selected_fish["name"])
         embed.set_image(url="attachment://new_fish.png")
-        embed.add_field(name='Rarity:', value=f"{selected_fish['rarity']}", inline=False)
-        embed.add_field(name='Base Sell Price:', value=f"{int(int(selected_fish['cost']) / 2)} <:sand_dollar:877646167494762586>", inline=False)
-        embed.add_field(name='Size:', value=f"{selected_fish['size']}", inline=False)
+        embed.add_field(
+            name='Rarity:', value=f"{selected_fish['rarity']}", inline=False)
+        embed.add_field(name='Base Sell Price:',
+                        value=f"{int(int(selected_fish['cost']) / 2)} <:sand_dollar:877646167494762586>", inline=False)
+        embed.add_field(
+            name='Size:', value=f"{selected_fish['size']}", inline=False)
         embed.color = {
             "common": 0xFFFFFE,  # White - FFFFFF doesn't work with Discord
             "uncommon": 0x75FE66,  # Green
@@ -259,7 +271,8 @@ class Informative(vbu.Cog):
                 return await ctx.send("You have no fish in your bucket!")
             return await ctx.send(f"**{user.display_name}** has no fish in their bucket!")
 
-        fish_list = [(i['fish_name'], i['fish'], i['fish_alive']) for i in fish_rows]  # List of tuples (Fish Name, Fish Type)
+        fish_list = [(i['fish_name'], i['fish'], i['fish_alive'])
+                     for i in fish_rows]  # List of tuples (Fish Name, Fish Type)
         fish_list = sorted(fish_list, key=lambda x: x[1])
 
         fields = []  # The "pages" that the user can scroll through are the different rarity levels
@@ -279,13 +292,17 @@ class Informative(vbu.Cog):
             for _, fish_detail in fish_types.items():  # For each fish in that level
                 raw_name = fish_detail["raw_name"]
                 for user_fish_name, user_fish, alive in fish_list:
-                    if raw_name == utils.get_normal_name(user_fish):  # If the fish in the user's list matches the name of a fish in the rarity catgeory
-                        sorted_fish[rarity].append((user_fish_name, user_fish, fish_detail['size'], alive))  # Append to the dictionary
+                    # If the fish in the user's list matches the name of a fish in the rarity catgeory
+                    if raw_name == utils.get_normal_name(user_fish):
+                        # Append to the dictionary
+                        sorted_fish[rarity].append(
+                            (user_fish_name, user_fish, fish_detail['size'], alive))
 
         # Get the display string for each field
         for rarity, fish_list in sorted_fish.items():
             if fish_list:
-                fish_string = [f"\"{fish_name}\": **{' '.join(fish_type.split('_')).title()}** (Size: {fish_size.title()}, Alive: {alive})" for fish_name, fish_type, fish_size, alive in fish_list]
+                fish_string = [
+                    f"\"{fish_name}\": **{' '.join(fish_type.split('_')).title()}** (Size: {fish_size.title()}, Alive: {alive})" for fish_name, fish_type, fish_size, alive in fish_list]
                 field = (rarity.title(), "\n".join(fish_string))
                 [fields.append(i) for i in utils.get_fixed_field(field)]
 
@@ -308,7 +325,6 @@ class Informative(vbu.Cog):
             'times_gambled': [5, 10, 50, 100, 500, 1000, 5000, 10000, 50000, 500000],
             'money_gained': [1000, 10000, 50000, 100000, 250000, 500000, 1000000, 1500000, 2000000, 5000000],
         }
-
 
         # Database variables
         async with vbu.Database() as db:
@@ -341,7 +357,8 @@ class Informative(vbu.Cog):
         are_there_any_claimable_achievements_check = False
 
         # Creating the embed
-        embed = discord.Embed(title=f"**{ctx.author.display_name}**'s achievements")
+        embed = discord.Embed(
+            title=f"**{ctx.author.display_name}**'s achievements")
 
         # Set Variables for milestones, default to nonclaimable, and default stars to nothing
         for achievement, user_achievement_value in user_achievement_data_dict.items():
@@ -352,13 +369,17 @@ class Informative(vbu.Cog):
             # Checks what type of star to add
             for milestone_value in milestones_dict_of_achievements[achievement]:
                 if user_achievement_milestone_data[0][f"{milestone}_done"] is True:
-                    list_of_stars_per_achievement.append("<:achievement_star:877646167087906816>")
+                    list_of_stars_per_achievement.append(
+                        "<:achievement_star:877646167087906816>")
                 elif milestone_value < user_achievement_milestone_data[0][milestone]:
-                    list_of_stars_per_achievement.append("<:achievement_star:877646167087906816>")
+                    list_of_stars_per_achievement.append(
+                        "<:achievement_star:877646167087906816>")
                 elif milestone_value <= user_achievement_value:
-                    list_of_stars_per_achievement.append("<:achievement_star_new:877737712046702592>")
+                    list_of_stars_per_achievement.append(
+                        "<:achievement_star_new:877737712046702592>")
                 else:
-                    list_of_stars_per_achievement.append("<:achievement_star_no:877646167222141008>")
+                    list_of_stars_per_achievement.append(
+                        "<:achievement_star_no:877646167222141008>")
 
             # Grammar stuff and the number of stars said
             next_unclaimable_star = 0
@@ -379,7 +400,8 @@ class Informative(vbu.Cog):
             if user_achievement_value >= user_achievement_milestone_data[0][milestone] and user_achievement_milestone_data[0][f'{milestone}_done'] is False:
                 if are_there_any_claimable_achievements_check is False:
                     are_there_any_claimable_achievements_check = True
-                achievements_that_are_claimable[achievement] = milestones_dict_of_achievements[achievement].index(user_achievement_milestone_data[0][milestone])
+                achievements_that_are_claimable[achievement] = milestones_dict_of_achievements[achievement].index(
+                    user_achievement_milestone_data[0][milestone])
                 is_achievement_claimable = "claimable"
             if user_achievement_milestone_data[0][f'{milestone}_done'] is True:
                 value_data = 'All achievements have been claimed!'
@@ -388,13 +410,15 @@ class Informative(vbu.Cog):
                 value_data = ''
                 value_data = f"{((user_achievement_value / user_achievement_milestone_data[0][milestone]) * 100):.0f}% of **{next_unclaimable_star}**{st_nd_rd_th_grammar} star"
                 name_data = f"{user_achievement_value:,}/{user_achievement_milestone_data[0][milestone]:,}"
-            embed.add_field(name=f"{achievement.replace('_', ' ').title()} {name_data}", value=f"{value_data}\n{''.join(list_of_stars_per_achievement)} \n**{is_achievement_claimable}**")
+            embed.add_field(name=f"{achievement.replace('_', ' ').title()} {name_data}",
+                            value=f"{value_data}\n{''.join(list_of_stars_per_achievement)} \n**{is_achievement_claimable}**")
 
         # Adds a button to the message if there are any claimable achievements
         if are_there_any_claimable_achievements_check is True:
             components = discord.ui.MessageComponents(
                 discord.ui.ActionRow(
-                    discord.ui.Button(emoji="1\N{COMBINING ENCLOSING KEYCAP}", custom_id="claim_all"),
+                    discord.ui.Button(
+                        emoji="1\N{COMBINING ENCLOSING KEYCAP}", custom_id="claim_all"),
                 ),
             )
             claim_message = await ctx.send(embed=embed, components=components)
@@ -409,7 +433,8 @@ class Informative(vbu.Cog):
             v = payload.user.id == ctx.author.id
             if v:
                 return True
-            self.bot.loop.create_task(payload.response.send_message("You can't respond to this button.", ephemeral=True))
+            self.bot.loop.create_task(payload.response.send_message(
+                "You can't respond to this button.", ephemeral=True))
             return False
 
         pressed = False
@@ -454,7 +479,6 @@ class Informative(vbu.Cog):
         if pressed is True:
             await ctx.send(f"Rewards claimed, you earned {amount_of_doubloons_earned} <:doubloon:878297091057807400>!")
 
-
     @commands.command(aliases=["creds"])
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def credits(self, ctx: commands.Context):
@@ -479,9 +503,11 @@ class Informative(vbu.Cog):
             for user_info in user_info_rows:
                 if user_info['user_id'] not in user_info_unsorted.keys():
                     user_info_unsorted[user_info['user_id']] = []
-                    user_info_unsorted[user_info['user_id']].append(user_info['fish'])
+                    user_info_unsorted[user_info['user_id']].append(
+                        user_info['fish'])
                 else:
-                    user_info_unsorted[user_info['user_id']].append(user_info['fish'])
+                    user_info_unsorted[user_info['user_id']].append(
+                        user_info['fish'])
             rarity_points = {
                 "common": 1,
                 "uncommon": 3,
@@ -499,11 +525,13 @@ class Informative(vbu.Cog):
                         if fish_type in fish_types:
                             user_points += rarity_points[rarity]
                 user_points_unsorted[user] = user_points
-            user_id_sorted = [(user, points) for user, points in sorted(user_points_unsorted.items(), key=lambda item: item[1], reverse=True)]
+            user_id_sorted = [(user, points) for user, points in sorted(
+                user_points_unsorted.items(), key=lambda item: item[1], reverse=True)]
             output: typing.List[str] = []
             for user_id, points in user_id_sorted:
                 output.append(f"<@{user_id}> ({points:,})")
-        menu = vbu.Paginator(output, per_page=10, formatter=vbu.Paginator.default_ranked_list_formatter)
+        menu = vbu.Paginator(
+            output, per_page=10, formatter=vbu.Paginator.default_ranked_list_formatter)
         return await menu.start(ctx)
 
 

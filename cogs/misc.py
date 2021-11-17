@@ -15,7 +15,8 @@ class Misc(vbu.Cog):
             return await ctx.send("Your fish is too loyal to stab you!")
         await ctx.send(
             f"Your fish stabs {user.mention} with a knife, nice!",
-            file=discord.File("C:/Users/JT/Pictures/Aqua/assets/images/background/stab.gif"),
+            file=discord.File(
+                "C:/Users/JT/Pictures/Aqua/assets/images/background/stab.gif"),
         )
 
     @commands.command()
@@ -26,7 +27,8 @@ class Misc(vbu.Cog):
         """
 
         user = ctx.author
-        channel: discord.TextChannel = self.bot.get_channel(877446487087415337)  # type: ignore
+        channel: discord.TextChannel = self.bot.get_channel(
+            877446487087415337)  # type: ignore
         await channel.send(
             f"From: {user.mention}\n**{command}**: {info}",
             allowed_mentions=discord.AllowedMentions.none(),
@@ -41,6 +43,7 @@ class Misc(vbu.Cog):
         """
 
         await ctx.send("https://discord.gg/FUyr8QmrD8")
+
 
 def setup(bot):
     bot.add_cog(Misc(bot))

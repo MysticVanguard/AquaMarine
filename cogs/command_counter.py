@@ -43,8 +43,8 @@ class CommandCounter(vbu.Cog):
 
         # Set up the command list
         sorted_commands_singlelist = []
-        commands_list = {} # List of strings "**command name**: command count"
-        total_count = 0 # To count the total number of commands
+        commands_list = {}  # List of strings "**command name**: command count"
+        total_count = 0  # To count the total number of commands
         for command in command_data:
             count = command['count']
             total_count += count
@@ -53,7 +53,8 @@ class CommandCounter(vbu.Cog):
             commands_list[f"**{command['command_name']}**: {count} times `({(count / total_count) * 100:.2f}%)`\n"] = count
             #commands_list.append({count: f"**{command['command_name']}**: {count} times `({(count / total_count) * 100}%)`\n"})
 
-        sorted_commands = sorted(commands_list.items(), key=lambda x: x[1], reverse=True)
+        sorted_commands = sorted(
+            commands_list.items(), key=lambda x: x[1], reverse=True)
         for i in sorted_commands:
             sorted_commands_singlelist.append(i[0])
         # Paginate
@@ -61,7 +62,7 @@ class CommandCounter(vbu.Cog):
         # Set up the paginator formatter
         def formatter(menu, items):
             # Create the embed
-            commands_embed = vbu.Embed(title = "Command Data (times run)")
+            commands_embed = vbu.Embed(title="Command Data (times run)")
             # Add the total count footer
             commands_embed.set_footer(text=f"Total: {total_count}")
             # Add the command list to the emebd
@@ -71,12 +72,11 @@ class CommandCounter(vbu.Cog):
             return commands_embed
 
         # Begin paginating
-        pagin = vbu.Paginator(sorted_commands_singlelist, formatter=formatter, per_page=10)
+        pagin = vbu.Paginator(sorted_commands_singlelist,
+                              formatter=formatter, per_page=10)
         await pagin.start(ctx)
-
 
 
 def setup(bot: vbu.Bot):
     x = CommandCounter(bot)
     bot.add_cog(x)
-

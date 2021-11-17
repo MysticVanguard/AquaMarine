@@ -29,7 +29,6 @@ class Fishing(vbu.Cog):
         await self.bot.wait_until_ready()
 
     @commands.command()
-    @commands.cooldown(1, 10 * 60, commands.BucketType.user)
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def fish(self, ctx: commands.Context):
         """
@@ -45,7 +44,7 @@ class Fishing(vbu.Cog):
         # Upgrades be like
         async with vbu.Database() as db:
             upgrades = await db(
-                """SELECT rod_upgrade, bait_upgrade, weight_upgrade, line_upgrade, lure_upgrade FROM user_upgrades WHERE user_id = $1""",
+                """SELECT rod_upgrade, bait_upgrade, weight_upgrade, line_upgrade, lure_upgrade, crate_chance_upgrade, crate_tier_upgrade FROM user_upgrades WHERE user_id = $1""",
                 ctx.author.id,
             )
             casts = await db(
@@ -116,7 +115,7 @@ class Fishing(vbu.Cog):
                     amount += 1
 
             fish_file = discord.File(new_fish["image"], "new_fish.png")
-            await ctx.send(f"Guess the name of this fish", file=fish_file)
+            await ctx.send(f"Guess the name of this fish <@{ctx.author.id}>", file=fish_file)
             def check(
                 guess): return guess.author == ctx.author and guess.channel == ctx.channel
             try:
@@ -124,7 +123,7 @@ class Fishing(vbu.Cog):
                 message = message_given.content
                 if message.title() == new_fish['name']:
                     bonus = 10 + math.floor(int(new_fish['cost']) / 20)
-                    await ctx.send(f"You guessed correctly and recieved {bonus} bonus sand dollars <:sand_dollar:877646167494762586>!")
+                    await ctx.send(f"<@{ctx.author.id}> guessed correctly and recieved {bonus} bonus sand dollars <:sand_dollar:877646167494762586>!")
                     async with vbu.Database() as db:
                         await db(
                             """INSERT INTO user_balance (user_id, balance) VALUES ($1, $2)
@@ -132,7 +131,7 @@ class Fishing(vbu.Cog):
                             ctx.author.id, bonus
                         )
                 else:
-                    await ctx.send(f"Incorrect, no bonus given.")
+                    await ctx.send(f"Incorrect <@{ctx.author.id}>, no bonus given.")
             except asyncio.TimeoutError:
                 await ctx.send("Timed out asking for guess.")
                 return False
@@ -140,7 +139,7 @@ class Fishing(vbu.Cog):
             # Tell the user about the fish they caught
             owned_unowned = "Owned" if amount > 0 else "Unowned"
             embed = discord.Embed(
-                title=f"<:AquaFish:877939115948134442> You caught {a_an} *{rarity}* {new_fish['size']} **{new_fish['name']}**!")
+                title=f"<:AquaFish:877939115948134442> {ctx.author.display_name} caught {a_an} *{rarity}* {new_fish['size']} **{new_fish['name']}**!")
             embed.add_field(
                 name=owned_unowned, value=f"You have {amount} **{new_fish['name']}**", inline=False)
             embed.set_image(url="attachment://new_fish.png")
@@ -150,31 +149,12 @@ class Fishing(vbu.Cog):
             print(utils.current_fishers)
             await utils.ask_to_sell_fish(self.bot, ctx, new_fish, embed=embed)
 
-        # CRATE_CHANCE_UPGRADE = {0: 8760, 1: 6480, 2: 4320, 3: 2160, 4: 1440, 5: 720}
-
-        # CRATE_TIERS = {
-        #     "Wooden": (500, 1, (1.0, 0, 0, 0, 0, 0), 1, (1.0, 0, 0, 0), 1, (1.0, 0, 0, 0), 1),
-        #     "Bronze": (1000, 2, (.89, .1, .01, 0, 0, 0), 2, (.89, .1, .01, 0), 2, (.89, .1, .01, 0), 1),
-        #     "Steel": (2500, 5, (.74, .2, .05, .01, 0, 0), 4, (.74, .2, .05, .01), 4, (.74, .2, .05, .01), 1),
-        #     "Golden": (5000, 10, (.54, .3, .1, .05, .01, 0), 7, (.54, .3, .1, .05), 7, (.54, .3, .1, .05), 2),
-        #     "Diamond": (10000, 20, (.29, .4, .15, .1, .05, .01), 11, (.29, .4, .15, .1), 11, (.29, .4, .15, .1), 2),
-        #     "Enchanted": (50000, 100, (0, .5, .2, .15, .1, 0.05), 16, (0, .5, .2, .15), 16, (0, .5, .2, .15), 3),
-        # }
-        # CRATE_TIER_UPGRADE = {
-        #     0: (1.0, 0, 0, 0, 0, 0),
-        #     1: (.89, .1, .01, 0, 0, 0),
-        #     2: (.74, .2, .05, .01, 0, 0),
-        #     3: (.54, .3, .1, .05, .01, 0),
-        #     4: (.29, .4, .15, .1, .05, .01),
-        #     5: (0, .5, .2, .15, .1, 0.05)
-        # }
-
         crate_catch = random.randint(
-            1, utils.CRATE_CHANCE_UPGRADE[upgrades['crate_chance_upgrade']])
+            1, utils.CRATE_CHANCE_UPGRADE[upgrades[0]['crate_chance_upgrade']])
         if crate_catch == 1:
             crate_loot = []
             crate = random.choices(
-                ("Wooden", "Bronze", "Steel", "Golden", "Diamond", "Enchanted"), utils.CRATE_TIER_UPGRADE[upgrades['crate_tier_upgrade']])
+                ("Wooden", "Bronze", "Steel", "Golden", "Diamond", "Enchanted"), utils.CRATE_TIER_UPGRADE[upgrades[0]['crate_tier_upgrade']])
             crate_loot.append(("balance", random.randint(
                 0, utils.CRATE_TIERS[crate[0]][0]), "user_balance"))
             crate_loot.append(("casts", random.randint(
@@ -194,34 +174,23 @@ class Fishing(vbu.Cog):
                        "wafers": "Fish Wafers", "experience": "Experience Potions", "mutation": "Mutation Potions",
                        "fullness": "Fullness Potions"
                        }
-            for data in crate_loot:
-                print(data)
-                type_of_loot, amount_of_loot, table_of_loot = data
-                if type_of_loot != "none" and amount_of_loot != 0:
-                    await db(
-                        """INSERT INTO {0} (user_id, {1}) VALUES ($1, $2)
-                            ON CONFLICT (user_id) DO UPDATE SET {1} = {0}.{1} + $2""".format(table_of_loot, type_of_loot),
-                        ctx.author.id, amount_of_loot
-                    )
-                    crate_message += f"{nl}{amount_of_loot}x {display[type_of_loot]} recieved!"
+            async with vbu.Database() as db:
+                for data in crate_loot:
+                    print(data)
+                    type_of_loot, amount_of_loot, table_of_loot = data
+                    if type_of_loot != "none" and amount_of_loot != 0:
+                        await db(
+                            """INSERT INTO {0} (user_id, {1}) VALUES ($1, $2)
+                                    ON CONFLICT (user_id) DO UPDATE SET {1} = {0}.{1} + $2""".format(table_of_loot, type_of_loot),
+                            ctx.author.id, amount_of_loot
+                        )
+                        crate_message += f"{nl}{amount_of_loot}x {display[type_of_loot]} recieved!"
 
-            await ctx.send(f"You caught a {crate[0]} crate containing: {crate_message}")
+                await ctx.send(f"{ctx.author.display_name} caught a {crate[0]} crate containing: {crate_message}")
 
         # And now they should be allowed to fish again
         utils.current_fishers.remove(ctx.author.id)
         print(utils.current_fishers)
-
-    @fish.error
-    async def fish_error(self, ctx: commands.Context, error: commands.CommandError):
-
-        # Only handle cooldown errors
-        if not isinstance(error, commands.CommandOnCooldown):
-            raise error
-
-        time = timedelta(seconds=int(error.retry_after))
-        relative_time = discord.utils.format_dt(
-            dt.utcnow() + time - timedelta(hours=DAYLIGHT_SAVINGS), style="R")
-        await ctx.send(f'The fish are scared, please try again {relative_time}.')
 
     @commands.command()
     @commands.bot_has_permissions(send_messages=True, embed_links=True)

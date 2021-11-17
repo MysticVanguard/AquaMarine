@@ -52,13 +52,16 @@ async def xp_finder_adder(user: typing.Union[discord.User, discord.Member], play
             current_xp = current_xp - xp_needed
 
             # Calculate the next level using the fish's current level (and the added level if that was hit)
-            xp_needed = math.floor(25 * (inventory_rows[0]['fish_level'] + added_level) ** 1.5)
+            xp_needed = math.floor(
+                25 * (inventory_rows[0]['fish_level'] + added_level) ** 1.5)
 
         # Once the fish is done leveling set the current xp and the xp needed to their appropriate values
         await db("""UPDATE user_fish_inventory SET fish_xp = $3 WHERE user_id = $1 AND fish_name = $2""", user.id, played_with_fish, current_xp)
         await db("""UPDATE user_fish_inventory SET fish_xp_max = $1 WHERE user_id = $2 AND fish_name = $3""", xp_needed, user.id, played_with_fish)
 
 # This is used to fix fields that are too long (i.e. If someone has too many of one rarity in their fish bucket)
+
+
 def get_fixed_field(field):
     """
     Return a list of tuples for the rarity-level in the pagination to fix fields that are too large
@@ -110,6 +113,8 @@ def get_fixed_field(field):
     return fixed_field
 
 # Puts together an embed based on the field given
+
+
 def create_bucket_embed(user, field: typing.Tuple[str, str], custom_title: str = None):
     """
     Creates the embed for the pagination page for the fishbucket
@@ -128,6 +133,8 @@ def create_bucket_embed(user, field: typing.Tuple[str, str], custom_title: str =
     return embed
 
 # This takes in the ctx, all of the fields for the embed, the user, and the custom title
+
+
 async def paginate(ctx, fields, user, custom_str=None):
 
     # intiiates bot as ctx.bot
@@ -140,10 +147,14 @@ async def paginate(ctx, fields, user, custom_str=None):
     embed = create_bucket_embed(user, curr_field, custom_str)
 
     # Set up the buttons for pagination
-    left = discord.ui.Button(custom_id="left", emoji="◀️", style=discord.ui.ButtonStyle.primary)
-    right = discord.ui.Button(custom_id="right", emoji="▶️", style=discord.ui.ButtonStyle.primary)
-    stop = discord.ui.Button(custom_id="stop", emoji="⏹️", style=discord.ui.ButtonStyle.danger)
-    numbers = discord.ui.Button(custom_id="numbers", emoji="🔢", style=discord.ui.ButtonStyle.primary)
+    left = discord.ui.Button(custom_id="left", emoji="◀️",
+                             style=discord.ui.ButtonStyle.primary)
+    right = discord.ui.Button(
+        custom_id="right", emoji="▶️", style=discord.ui.ButtonStyle.primary)
+    stop = discord.ui.Button(custom_id="stop", emoji="⏹️",
+                             style=discord.ui.ButtonStyle.danger)
+    numbers = discord.ui.Button(
+        custom_id="numbers", emoji="🔢", style=discord.ui.ButtonStyle.primary)
 
     # Set up the valid buttons to be the first 3 always
     valid_buttons = [left, right, stop]
@@ -239,4 +250,3 @@ async def paginate(ctx, fields, user, custom_str=None):
             await number_message.delete()
             # Delete the message of the user responding
             await user_message.delete()
-

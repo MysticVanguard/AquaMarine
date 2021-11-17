@@ -9,7 +9,8 @@ from cogs import utils
 
 current_fishers = []
 
-async def ask_to_sell_fish(bot, ctx, new_fish: dict, embed, file= None):
+
+async def ask_to_sell_fish(bot, ctx, new_fish: dict, embed, file=None):
     """
     Ask the user if they want to sell a fish they've been given.
     """
@@ -17,8 +18,10 @@ async def ask_to_sell_fish(bot, ctx, new_fish: dict, embed, file= None):
     # Add the buttons to the message
     components = discord.ui.MessageComponents(
         discord.ui.ActionRow(
-            discord.ui.Button(custom_id="keep", emoji="<:keep:844594468580491264>"),
-            discord.ui.Button(custom_id="sell", emoji="<:sell:844594478392147968>"),
+            discord.ui.Button(custom_id="keep",
+                              emoji="<:keep:844594468580491264>"),
+            discord.ui.Button(custom_id="sell",
+                              emoji="<:sell:844594478392147968>"),
         ),
     )
     try:
@@ -33,17 +36,18 @@ async def ask_to_sell_fish(bot, ctx, new_fish: dict, embed, file= None):
             await db("""INSERT INTO user_upgrades (user_id) VALUES ($1)""", ctx.author.id)
             upgrades = await db("""SELECT rod_upgrade, weight_upgrade FROM user_upgrades WHERE user_id = $1""", ctx.author.id)
 
-
     # See what reaction the user is adding to the message
+
     def button_check(payload):
         if payload.message.id != message.id:
             return False
         bot.loop.create_task(payload.response.defer_update())
         return payload.user.id == ctx.author.id
-            # Keep going...
+        # Keep going...
 
     # Level variables
-    level = random.randint(utils.WEIGHT_UPGRADES[upgrades[0]['weight_upgrade']][0], utils.WEIGHT_UPGRADES[upgrades[0]['weight_upgrade']][1])
+    level = random.randint(utils.WEIGHT_UPGRADES[upgrades[0]['weight_upgrade']]
+                           [0], utils.WEIGHT_UPGRADES[upgrades[0]['weight_upgrade']][1])
 
     while True:
 
@@ -58,7 +62,8 @@ async def ask_to_sell_fish(bot, ctx, new_fish: dict, embed, file= None):
             print("sell confirm")
 
             level_multiplier = level / 20
-            money_earned = math.ceil((int(new_fish['cost']) / 2) * utils.ROD_UPGRADES[upgrades[0]['rod_upgrade']] * (1 +level_multiplier))
+            money_earned = math.ceil(
+                (int(new_fish['cost']) / 2) * utils.ROD_UPGRADES[upgrades[0]['rod_upgrade']] * (1 + level_multiplier))
 
             async with bot.database() as db:
                 await db(
@@ -103,12 +108,16 @@ async def ask_to_sell_fish(bot, ctx, new_fish: dict, embed, file= None):
                 for _, fish_detail in fish_types.items():  # For each fish in that level
                     raw_name = fish_detail["raw_name"]
                     for user_fish_name, user_fish in fish_list:
-                        if raw_name == utils.get_normal_name(user_fish):  # If the fish in the user's list matches the name of a fish in the rarity catgeory
-                            sorted_fish[rarity].append((user_fish_name, user_fish))  # Append to the dictionary
+                        # If the fish in the user's list matches the name of a fish in the rarity catgeory
+                        if raw_name == utils.get_normal_name(user_fish):
+                            # Append to the dictionary
+                            sorted_fish[rarity].append(
+                                (user_fish_name, user_fish))
 
             # They want to keep - ask what they want to name the fish
             await message.channel.send("What do you want to name your new fish? (32 character limit and cannot be named the same as another fish you own)")
-            check = lambda m: m.author == ctx.author and m.channel == message.channel and len(m.content) > 1 and len(m.content) <= 32 and m.content not in fish_names
+            def check(m): return m.author == ctx.author and m.channel == message.channel and len(
+                m.content) > 1 and len(m.content) <= 32 and m.content not in fish_names
             try:
                 name_message = await bot.wait_for("message", timeout=60.0, check=check)
                 name = name_message.content
@@ -128,7 +137,8 @@ async def ask_to_sell_fish(bot, ctx, new_fish: dict, embed, file= None):
             # See if they want to sell the fish
             print("sell confirm")
             level_multiplier = level / 20
-            money_earned = math.ceil((int(new_fish['cost']) / 2) * utils.ROD_UPGRADES[upgrades[0]['rod_upgrade']] * (1 +level_multiplier))
+            money_earned = math.ceil(
+                (int(new_fish['cost']) / 2) * utils.ROD_UPGRADES[upgrades[0]['rod_upgrade']] * (1 + level_multiplier))
             async with bot.database() as db:
                 await db(
                     """INSERT INTO user_balance (user_id, balance) VALUES ($1, $2)
@@ -140,7 +150,7 @@ async def ask_to_sell_fish(bot, ctx, new_fish: dict, embed, file= None):
                     """INSERT INTO user_achievements (user_id, money_gained) VALUES ($1, $2)
                     ON CONFLICT (user_id) DO UPDATE SET money_gained = user_achievements.money_gained + $2""",
                     ctx.author.id, money_earned
-                    )
+                )
             await message.channel.send(f"Sold your **{new_fish['name']}** for **{money_earned}** <:sand_dollar:877646167494762586>!")
             # Disable the given button
             await message.edit(components=components.disable_components())
@@ -196,7 +206,8 @@ async def buying_singular(bot, user: discord.user, ctx, item: str):
         nonavailable_tank_types.append(type)
     for tank_named in tank_row[0]['tank_name']:
         tank_slot += 1
-        theme_slots_dict[tank_row[0]['tank_name'][tank_slot - 1]] = (tank_slot - 1)
+        theme_slots_dict[tank_row[0]['tank_name']
+                         [tank_slot - 1]] = (tank_slot - 1)
         if tank_row[0]['tank_type'][tank_slot - 1] == "":
             tank_names.append("none")
         if tank_row[0]['tank_theme'][tank_slot - 1] != item.replace(" ", "_"):
@@ -213,7 +224,7 @@ async def buying_singular(bot, user: discord.user, ctx, item: str):
 
         # Asks the user what slot to put the tank in and checks that its a slot
         await ctx.send(f"What tank slot would you like to put this tank in? (Available slots: {', '.join(available_slots)}, Taken spots to be updated: {', '.join(nonavailable_slots)})")
-        check = lambda slot: slot.author == ctx.author and slot.channel == ctx.channel and slot.content in available_slots or slot.content in nonavailable_slots
+        def check(slot): return slot.author == ctx.author and slot.channel == ctx.channel and slot.content in available_slots or slot.content in nonavailable_slots
         try:
             message_given = await ctx.bot.wait_for("message", timeout=60.0, check=check)
             message = message_given.content
@@ -227,7 +238,8 @@ async def buying_singular(bot, user: discord.user, ctx, item: str):
 
             # Asks what to name the new tank and makes sure it matches the check
             await ctx.send("What would you like to name this tank? (must be a different name from your other tanks, less than 32 characters, and cannot be \"none\")")
-            check = lambda namem: namem.author == ctx.author and namem.channel == ctx.channel and len(namem.content) > 1 and len(namem.content) <= 32 and namem.content not in tank_names and namem.content != "none"
+            def check(namem): return namem.author == ctx.author and namem.channel == ctx.channel and len(
+                namem.content) > 1 and len(namem.content) <= 32 and namem.content not in tank_names and namem.content != "none"
             try:
                 name_given = await ctx.bot.wait_for("message", timeout=60.0, check=check)
                 name = name_given.content
@@ -251,7 +263,7 @@ async def buying_singular(bot, user: discord.user, ctx, item: str):
 
         # Asks for the name of the tank the user is putting the theme on and makes sure it is correct
         await ctx.send(f"What tank name would you like to put this theme on? (Available names: {', '.join(tank_names)})")
-        check = lambda themem: themem.author == ctx.author and themem.channel == ctx.channel and themem.content in tank_names and themem.content != "none"
+        def check(themem): return themem.author == ctx.author and themem.channel == ctx.channel and themem.content in tank_names and themem.content != "none"
         try:
             theme_message_given = await ctx.bot.wait_for("message", timeout=60.0, check=check)
             theme_message = theme_message_given.content
