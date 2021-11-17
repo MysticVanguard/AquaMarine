@@ -12,18 +12,23 @@ from cogs.utils.fish_handler import DAYLIGHT_SAVINGS
 
 class FishCare(vbu.Cog):
 
+    # Set the cooldown for feeding to 6 hours
     FISH_FEED_COOLDOWN = timedelta(hours=6)
 
+    # Starts the death loop
     def __init__(self, bot: vbu.Bot):
         super().__init__(bot)
         self.fish_food_death_loop.start()
 
+    # Cancels the death loop when the bot is off
     def cog_unload(self):
         self.fish_food_death_loop.cancel()
 
+    # every minute...
     @tasks.loop(minutes=1)
     async def fish_food_death_loop(self):
 
+        # Get all the fish that are in a tank and if they have a time of death, check to see if its past that time, then kill them if need be
         async with vbu.Database() as db:
             fish_rows = await db("""SELECT * FROM user_fish_inventory WHERE tank_fish != ''""")
             for fish_row in fish_rows:
@@ -31,53 +36,104 @@ class FishCare(vbu.Cog):
                     if dt.utcnow() > fish_row['death_time']:
                         await db("""UPDATE user_fish_inventory SET fish_alive=FALSE WHERE fish_name = $1""", fish_row['fish_name'])
 
+    # Make sure it starts when the bot starts
     @fish_food_death_loop.before_loop
     async def before_fish_food_death_loop(self):
         await self.bot.wait_until_ready()
 
     @commands.command()
     @commands.bot_has_permissions(send_messages=True)
-    async def entertain(self, ctx: commands.Context, tank_entertained: str):
+    async def entertain(self, ctx: commands.Context, tank_entertained: str = None):
         """
         This command entertains all the fish in a tank, giving them all xp.
         """
 
         await ctx.trigger_typing()
+        if not tank_entertained:
 
-        # fetches needed rows
+            # fetches needed rows
+            async with vbu.Database() as db:
+                tank_rows = await db("""SELECT * FROM user_tank_inventory WHERE user_id = $1""", ctx.author.id)
+                upgrades = await db(
+                    """SELECT toys_upgrade, amazement_upgrade FROM user_upgrades WHERE user_id = $1""",
+                    ctx.author.id,
+                )
+
+            # Initiates the option list
+            test_options = []
+
+            # For each name that isnt "" add it as an option for the select menu
+            for tank_name in tank_rows[0]['tank_name']:
+                if tank_name != "":
+                    test_options.append(discord.ui.SelectOption(
+                        label=tank_name, value=tank_name))
+
+            # Set the select menu with the tank options
+            components = discord.ui.MessageComponents(
+                discord.ui.ActionRow(
+                    discord.ui.SelectMenu(custom_id="entertain",
+                                          options=test_options,
+                                          placeholder="Select an option",
+                                          )
+                )
+            )
+
+            # Ask them what tank they want to entertain with component
+            message = await ctx.send("What tank would you like to entertain?", components=components)
+
+            # If it's the correct message and author return true
+            def check(payload):
+                if payload.message.id != message.id:
+                    return False
+
+                # If its the wrong author send an ephemeral message
+                if payload.user.id != ctx.author.id:
+                    self.bot.loop.create_task(payload.response.send_message(
+                        "You can't respond to this message!", ephemeral=True))
+                    return False
+                return True
+
+            # If it works don't fail, and if it times out say that
+            try:
+                payload = await self.bot.wait_for("component_interaction", check=check, timeout=60)
+                await payload.response.defer_update()
+            except asyncio.TimeoutError:
+                return await ctx.send(f"Timed out asking for tank to entertain <@{ctx.author.id}>")
+
+            # Set the tank entertained to what they chose
+            tank_entertained = str(payload.values[0])
+
+        # Get the fish in the chosen tank
         async with vbu.Database() as db:
             fish_rows = await db(
                 """SELECT * FROM user_fish_inventory WHERE user_id = $1 AND tank_fish = $2 AND fish_alive = TRUE""",
                 ctx.author.id, tank_entertained,
             )
-            tank_rows = await db("""SELECT * FROM user_tank_inventory WHERE user_id = $1""", ctx.author.id)
-            upgrades = await db(
-                """SELECT toys_upgrade, amazement_upgrade FROM user_upgrades WHERE user_id = $1""",
-                ctx.author.id,
-            )
 
-        # ranges of how much will be added
+        # Finds how much xp will be added, and if an extra level will be added
         total_xp_to_add = random.randint(
             utils.TOYS_UPGRADE[upgrades[0]['toys_upgrade']][0], utils.TOYS_UPGRADE[upgrades[0]['toys_upgrade']][1])
         extra_level = random.randint(
             1, utils.AMAZEMENT_UPGRADE[upgrades[0]['amazement_upgrade']])
+
+        # set a new level check to true if theres an extra level
         if extra_level == 1:
             new_level = True
         else:
             new_level = False
 
+        # Checks to see if there is no tank
+        if tank_entertained not in tank_rows[0]['tank_name'] or not tank_rows:
+            return await ctx.send("There is no tank with that name")
+
         # Work out which slot the tank is in
         tank_slot = 0
-        if not tank_rows:
-            return await ctx.send("There is no tank with that name")
-        if tank_entertained not in tank_rows[0]['tank_name']:
-            return await ctx.send("There is no tank with that name")
         for tank_slots, tank_slot_in in enumerate(tank_rows[0]['tank_name']):
             if tank_slot_in == tank_entertained:
                 tank_slot = tank_slots
                 break
 
-        # See if they're able to entertain their tank
+        # See if they're able to entertain their tank due to the cooldown
         if tank_rows[0]['tank_entertain_time'][tank_slot]:
             if tank_rows[0]['tank_entertain_time'][tank_slot] + timedelta(minutes=5) > dt.utcnow():
                 time_left = timedelta(seconds=(
@@ -93,23 +149,28 @@ class FishCare(vbu.Cog):
         # Typing Indicator
         async with ctx.typing():
 
-            # calls the xp finder adder to the fish
+            # For each fish add them to a list of fish names
             fish = []
-            print(range(len(fish_rows)))
             for single_fish in range(len(fish_rows)):
                 fish.append(fish_rows[single_fish]['fish_name'])
 
-            # gets the new data and uses it in sent message
+            # Find the xp per fish and initiate the new data, and new line
             xp_per_fish = math.floor(total_xp_to_add / len(fish))
             new_fish_data = []
             n = "\n"
+
+            # database...
             async with vbu.Database() as db:
+
+                # Set the new time for when the tank was entertained
                 await db("""UPDATE user_tank_inventory SET tank_entertain_time[$2] = $3 WHERE user_id = $1""", ctx.author.id, int(tank_slot + 1), dt.utcnow())
+
+                # For each fish in the tank add their xp, gets the new fish's data
                 for fish_name in fish:
                     await utils.xp_finder_adder(ctx.author, fish_name, xp_per_fish, new_level)
                     new_fish_rows = await db(
-                        """UPDATE user_fish_inventory SET fish_entertain_time = $3 WHERE user_id = $1 AND fish_name = $2 RETURNING *""",
-                        ctx.author.id, fish_name, dt.utcnow(),
+                        """SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2""",
+                        ctx.author.id, fish_name,
                     )
                     new_fish_data.append([new_fish_rows[0]['fish_name'], new_fish_rows[0]['fish_level'],
                                          new_fish_rows[0]['fish_xp'], new_fish_rows[0]['fish_xp_max']])
@@ -121,137 +182,15 @@ class FishCare(vbu.Cog):
                     ctx.author.id
                 )
 
+        # The start of the display
         display_block = f"All fish have gained {xp_per_fish:,} XP{n}"
+
+        # Add a string for each fish adding their new level and data
         for data in new_fish_data:
             display_block = display_block + \
                 f"{data[0]} is now level {data[1]}, {data[2]}/{data[3]}{n}"
-        return await ctx.send(display_block)
 
-    @commands.command()
-    @commands.bot_has_permissions(send_messages=True)
-    async def testentertain(self, ctx: commands.Context):
-        """
-        This command entertains all the fish in a tank, giving them all xp.
-        """
-
-        await ctx.trigger_typing()
-
-        # fetches needed rows
-        async with vbu.Database() as db:
-            tank_rows = await db("""SELECT * FROM user_tank_inventory WHERE user_id = $1""", ctx.author.id)
-            upgrades = await db(
-                """SELECT toys_upgrade, amazement_upgrade FROM user_upgrades WHERE user_id = $1""",
-                ctx.author.id,
-            )
-
-        test_options = []
-        print(tank_rows[0]['tank_name'])
-        for tank_name in tank_rows[0]['tank_name']:
-            if tank_name != "":
-                test_options.append(discord.ui.SelectOption(
-                    label=tank_name, value=tank_name))
-        components = discord.ui.MessageComponents(
-            discord.ui.ActionRow(
-                discord.ui.SelectMenu(custom_id="keep",
-                                      options=test_options,
-                                      placeholder="Select an option",
-                                      )
-            )
-        )
-
-        message = await ctx.send("What tank would you like to entertain?", components=components)
-
-        def check(payload):
-            if payload.message.id != message.id:
-                return False
-            if payload.user.id != ctx.author.id:
-                self.bot.loop.create_task(payload.response.send_message(
-                    "You can't respond to this message!", ephemeral=True))
-                return False
-            return True
-        try:
-            payload = await self.bot.wait_for("component_interaction", check=check, timeout=60)
-            await payload.response.defer_update()
-        except asyncio.TimeoutError:
-            return await ctx.send("Timed out asking for tank to entertain")
-
-        tank_entertained = str(payload.values[0])
-
-        async with vbu.Database() as db:
-            fish_rows = await db(
-                """SELECT * FROM user_fish_inventory WHERE user_id = $1 AND tank_fish = $2 AND fish_alive = TRUE""",
-                ctx.author.id, tank_entertained,
-            )
-
-        # ranges of how much will be added
-        total_xp_to_add = random.randint(
-            utils.TOYS_UPGRADE[upgrades[0]['toys_upgrade']][0], utils.TOYS_UPGRADE[upgrades[0]['toys_upgrade']][1])
-        extra_level = random.randint(
-            1, utils.AMAZEMENT_UPGRADE[upgrades[0]['amazement_upgrade']])
-        if extra_level == 1:
-            new_level = True
-        else:
-            new_level = False
-
-        # Work out which slot the tank is in
-        tank_slot = 0
-        if not tank_rows:
-            return await ctx.send("There is no tank with that name")
-        if tank_entertained not in tank_rows[0]['tank_name']:
-            return await ctx.send("There is no tank with that name")
-        for tank_slots, tank_slot_in in enumerate(tank_rows[0]['tank_name']):
-            if tank_slot_in == tank_entertained:
-                tank_slot = tank_slots
-                break
-
-        # See if they're able to entertain their tank
-        if tank_rows[0]['tank_entertain_time'][tank_slot]:
-            if tank_rows[0]['tank_entertain_time'][tank_slot] + timedelta(minutes=5) > dt.utcnow():
-                time_left = timedelta(seconds=(
-                    tank_rows[0]['tank_entertain_time'][tank_slot] - dt.utcnow() + timedelta(minutes=5)).total_seconds())
-                relative_time = discord.utils.format_dt(
-                    dt.utcnow() + time_left - timedelta(hours=DAYLIGHT_SAVINGS), style="R")
-                return await ctx.send(f"This tank is entertained, please try again in {relative_time}.")
-
-        # See if there are any fish in the tank
-        if not fish_rows:
-            return await ctx.send("You have no alive fish in this tank!")
-
-        # Typing Indicator
-        async with ctx.typing():
-
-            # calls the xp finder adder to the fish
-            fish = []
-            print(range(len(fish_rows)))
-            for single_fish in range(len(fish_rows)):
-                fish.append(fish_rows[single_fish]['fish_name'])
-
-            # gets the new data and uses it in sent message
-            xp_per_fish = math.floor(total_xp_to_add / len(fish))
-            new_fish_data = []
-            n = "\n"
-            async with vbu.Database() as db:
-                await db("""UPDATE user_tank_inventory SET tank_entertain_time[$2] = $3 WHERE user_id = $1""", ctx.author.id, int(tank_slot + 1), dt.utcnow())
-                for fish_name in fish:
-                    await utils.xp_finder_adder(ctx.author, fish_name, xp_per_fish, new_level)
-                    new_fish_rows = await db(
-                        """UPDATE user_fish_inventory SET fish_entertain_time = $3 WHERE user_id = $1 AND fish_name = $2 RETURNING *""",
-                        ctx.author.id, fish_name, dt.utcnow(),
-                    )
-                    new_fish_data.append([new_fish_rows[0]['fish_name'], new_fish_rows[0]['fish_level'],
-                                         new_fish_rows[0]['fish_xp'], new_fish_rows[0]['fish_xp_max']])
-
-                # Achievement added
-                await db(
-                    """INSERT INTO user_achievements (user_id, times_entertained) VALUES ($1, 1)
-                    ON CONFLICT (user_id) DO UPDATE SET times_entertained = user_achievements.times_entertained + 1""",
-                    ctx.author.id
-                )
-
-        display_block = f"All fish have gained {xp_per_fish:,} XP{n}"
-        for data in new_fish_data:
-            display_block = display_block + \
-                f"{data[0]} is now level {data[1]}, {data[2]}/{data[3]}{n}"
+        # Send the display string
         return await ctx.send(display_block)
 
     @commands.command()
@@ -277,10 +216,8 @@ class FishCare(vbu.Cog):
             item_rows = await db("""SELECT * FROM user_item_inventory WHERE user_id = $1""", ctx.author.id)
 
         # See if the user has fish flakes
-        if not item_rows:
-            return await ctx.send("You have no fish flakes!")
         user_food_count = item_rows[0]['flakes']
-        if not user_food_count:
+        if not item_rows or not user_food_count:
             return await ctx.send("You have no fish flakes!")
 
         # See if the user has a fish with that name
@@ -289,22 +226,29 @@ class FishCare(vbu.Cog):
 
         # Make sure the fish is able to be fed
         if fish_rows[0]['fish_feed_time']:
-            if (fish_feed_timeout := fish_rows[0]['fish_feed_time'] + self.FISH_FEED_COOLDOWN) > dt.utcnow():
+            if (fish_feed_timeout:= fish_rows[0]['fish_feed_time'] + self.FISH_FEED_COOLDOWN) > dt.utcnow():
                 relative_time = discord.utils.format_dt(
                     fish_feed_timeout - timedelta(hours=DAYLIGHT_SAVINGS), style="R")
                 return await ctx.send(f"This fish is full, please try again {relative_time}.")
+
+        # Make sure the fish is alive
         if fish_rows[0]['fish_alive'] is False:
             return await ctx.send("That fish is dead!")
 
-        # Update the user's inv and the fish's death date
+        # How many days and hours till the next feed based on upgrades
         day, hour = utils.FEEDING_UPGRADES[upgrades[0]['feeding_upgrade']]
+
+        # Set the time to be now + the new death date
         death_date = dt.utcnow() + timedelta(days=day, hours=hour)
+
+        # Update the fish's death date
         async with vbu.Database() as db:
             await db(
                 """UPDATE user_fish_inventory SET death_time = $3, fish_feed_time = $4 WHERE user_id = $1 AND fish_name = $2""",
                 ctx.author.id, fish_fed, death_date, dt.utcnow(),
             )
 
+            # If the fish is full it doesn't take up fish food (calculated with upgrades)
             extra = ""
             full = random.randint(
                 1, utils.BIG_SERVINGS_UPGRADE[upgrades[0]['big_servings_upgrade']])
@@ -325,12 +269,12 @@ class FishCare(vbu.Cog):
 
     @commands.command()
     @commands.bot_has_permissions(send_messages=True)
-    async def clean(self, ctx: commands.Context, tank_cleaned: str):
+    async def clean(self, ctx: commands.Context, tank_cleaned: str = None):
         """
         This command cleans a tank, earning the user sand dollars.
         """
 
-        # Get the fish and tank data from the database
+        # Get the fish, upgrades, and tank data from the database
         async with vbu.Database() as db:
             upgrades = await db(
                 """SELECT bleach_upgrade, hygienic_upgrade, mutation_upgrade FROM user_upgrades WHERE user_id = $1""",
@@ -342,20 +286,70 @@ class FishCare(vbu.Cog):
             )
             tank_rows = await db("""SELECT * FROM user_tank_inventory WHERE user_id = $1""", ctx.author.id)
 
-        # Work out which slot the tank is in
-        tank_slot = 0
+        if not tank_cleaned:
+
+            # Initiates the option list
+            test_options = []
+
+            # For each name that isnt "" add it as an option for the select menu
+            for tank_name in tank_rows[0]['tank_name']:
+                if tank_name != "":
+                    test_options.append(discord.ui.SelectOption(
+                        label=tank_name, value=tank_name))
+
+            # Set the select menu with the tank options
+            components = discord.ui.MessageComponents(
+                discord.ui.ActionRow(
+                    discord.ui.SelectMenu(custom_id="clean",
+                                          options=test_options,
+                                          placeholder="Select an option",
+                                          )
+                )
+            )
+
+            # Ask them what tank they want to entertain with component
+            message = await ctx.send("What tank would you like to entertain?", components=components)
+
+            # If it's the correct message and author return true
+            def check(payload):
+                if payload.message.id != message.id:
+                    return False
+
+                # If its the wrong author send an ephemeral message
+                if payload.user.id != ctx.author.id:
+                    self.bot.loop.create_task(payload.response.send_message(
+                        "You can't respond to this message!", ephemeral=True))
+                    return False
+                return True
+
+            # If it works don't fail, and if it times out say that
+            try:
+                payload = await self.bot.wait_for("component_interaction", check=check, timeout=60)
+                await payload.response.defer_update()
+            except asyncio.TimeoutError:
+                return await ctx.send(f"Timed out asking for tank to entertain <@{ctx.author.id}>")
+
+            # Set the tank entertained to what they chose
+            tank_entertained = str(payload.values[0])
+
+        # Find if the tank exists
         if not tank_rows:
             return await ctx.send("There is no tank with that name")
         if tank_cleaned not in tank_rows[0]['tank_name']:
             return await ctx.send("There is no tank with that name")
+
+         # Work out which slot the tank is in
+        tank_slot = 0
         for tank_slots, tank_slot_in in enumerate(tank_rows[0]['tank_name']):
             if tank_slot_in == tank_cleaned:
                 tank_slot = tank_slots
                 break
 
-        # See if they're able to clean their tank
+        # Get the time before cleaning and the multiplier from upgrades
         multiplier, time = utils.HYGIENIC_UPGRADE[upgrades[0]
                                                   ['hygienic_upgrade']]
+
+        # If its been enough time they can clean, else give an error
         if tank_rows[0]['tank_clean_time'][tank_slot]:
             if tank_rows[0]['tank_clean_time'][tank_slot] + timedelta(minutes=time) > dt.utcnow():
                 time_left = timedelta(seconds=(
@@ -368,9 +362,8 @@ class FishCare(vbu.Cog):
         if not fish_rows:
             return await ctx.send("You have no alive fish in this tank!")
 
-        # Work out how much money they gain
+        # Initiate money gained, the rarity multiplier, and the size multiplier dictionaries
         money_gained = 0
-
         rarity_values = {
             "common": 1.0,
             "uncommon": 1.2,
@@ -384,10 +377,19 @@ class FishCare(vbu.Cog):
             "medium": 3,
             "large": 15
         }
+
+        # Randomly pick the effort extra
         effort_extra = random.choices([0, 10, 20], [.6, .3, .1])
+
+        # Initiate the size, extra, and rarity variables
         size_multiplier = 1
         extra = ""
+        rarity_multiplier = 0
+
+        # For each fish in the tank...
         for fish in fish_rows:
+
+            # See if they mutate with the mutate upgrade
             mutate = random.randint(
                 1, utils.MUTATION_UPGRADE[upgrades[0]['mutation_upgrade']])
             if mutate == 1:
@@ -396,19 +398,27 @@ class FishCare(vbu.Cog):
                     await db("""UPDATE user_fish_inventory SET fish = $1 where user_id = $2 AND fish = $3""", mutated, ctx.author.id, fish["fish"])
                     nl = "\n"
                     extra += f"{nl}{fish['fish']}looks kind of strange now..."
-            rarity_multiplier = 0
-            for rarity, fish_types in self.bot.fish.items():  # For each rarity level
+
+            # For each rarity of fish in the bot if the current fish is in it...
+            for rarity, fish_types in self.bot.fish.items():
                 if " ".join(fish["fish"].split("_")) in fish_types.keys():
+
+                    # Grab the size of the fish
                     size_multiplier = size_values[fish_types[" ".join(
                         fish["fish"].split("_"))]['size']]
-                    print(size_multiplier)
+
+                    # Grab the rarity of the fish
                     rarity_multiplier = rarity_values[rarity]
+
+            # The money added for each fish is the level * the rarity * the size
             money_gained += (fish["fish_level"] *
                              rarity_multiplier * size_multiplier)
+
+        # After all the fish the new money is the total * upgrade multipliers + the effort rounded down
         money_gained = math.floor(
             money_gained * (utils.BLEACH_UPGRADE[upgrades[0]['bleach_upgrade']]) * multiplier + effort_extra[0])
 
-        # Add their fish money to your sand database dollars
+        # Add the money gained to the database, and add the achievements
         async with vbu.Database() as db:
             await db("""UPDATE user_tank_inventory SET tank_clean_time[$2] = $3 WHERE user_id = $1""", ctx.author.id, int(tank_slot + 1), dt.utcnow())
             await db(
@@ -428,6 +438,7 @@ class FishCare(vbu.Cog):
                 ctx.author.id, int(money_gained)
             )
 
+        # And were done, send it worked
         await ctx.send(f"You earned **{money_gained}** <:sand_dollar:877646167494762586> for cleaning that tank! <:AquaSmile:877939115994255383>{extra}")
 
     @commands.command()
