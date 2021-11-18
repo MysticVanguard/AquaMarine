@@ -2,6 +2,10 @@ from os import walk
 import re
 import typing
 
+import asyncio
+import discord
+from discord.ext import vbu
+
 '''
 The following utils are for upgrades used in various commands throughout the bot, and are based on the level of the upgrade
 '''
@@ -431,3 +435,51 @@ def get_normal_name(fish_name):
     if match:
         return match.group("fish_name")
     return fish_name
+
+
+# This will create a select menu from the given list, have the user select one, and return the selection
+async def create_select_menu(bot, ctx, option_list, type_noun, type_verb):
+
+    # Initiates the option list
+    test_options = []
+
+    # For each name that isnt "" add it as an option for the select menu
+    for option in option_list:
+        if option != "":
+            test_options.append(discord.ui.SelectOption(
+                label=option, value=option))
+
+    # Set the select menu with the options
+    components = discord.ui.MessageComponents(
+        discord.ui.ActionRow(
+            discord.ui.SelectMenu(custom_id=type_verb,
+                                  options=test_options,
+                                  placeholder="Select an option",
+                                  )
+        )
+    )
+
+    # Ask them what they want to do with component
+    message = await ctx.send(f"What {type_noun} would you like to {type_verb}?", components=components)
+
+    # If it's the correct message and author return true
+    def check(payload):
+        if payload.message.id != message.id:
+            return False
+
+        # If its the wrong author send an ephemeral message
+        if payload.user.id != ctx.author.id:
+            bot.loop.create_task(payload.response.send_message(
+                "You can't respond to this message!", ephemeral=True))
+            return False
+        return True
+
+    # If it works don't fail, and if it times out say that
+    try:
+        payload = await bot.wait_for("component_interaction", check=check, timeout=60)
+        await payload.response.defer_update()
+    except asyncio.TimeoutError:
+        return await ctx.send(f"Timed out asking for {type_noun} to {type_verb} <@{ctx.author.id}>")
+
+    # Return what they chose
+    return str(payload.values[0])
