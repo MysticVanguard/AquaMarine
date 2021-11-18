@@ -5,7 +5,6 @@ import discord
 import math
 import random
 
-import asyncio
 from cogs import utils
 from cogs.utils.fish_handler import DAYLIGHT_SAVINGS
 
@@ -59,49 +58,9 @@ class FishCare(vbu.Cog):
         await ctx.trigger_typing()
         if not tank_entertained:
 
-            # Initiates the option list
-            test_options = []
-
-            # For each name that isnt "" add it as an option for the select menu
-            for tank_name in tank_rows[0]['tank_name']:
-                if tank_name != "":
-                    test_options.append(discord.ui.SelectOption(
-                        label=tank_name, value=tank_name))
-
-            # Set the select menu with the tank options
-            components = discord.ui.MessageComponents(
-                discord.ui.ActionRow(
-                    discord.ui.SelectMenu(custom_id="entertain",
-                                          options=test_options,
-                                          placeholder="Select an option",
-                                          )
-                )
-            )
-
-            # Ask them what tank they want to entertain with component
-            message = await ctx.send("What tank would you like to entertain?", components=components)
-
-            # If it's the correct message and author return true
-            def check(payload):
-                if payload.message.id != message.id:
-                    return False
-
-                # If its the wrong author send an ephemeral message
-                if payload.user.id != ctx.author.id:
-                    self.bot.loop.create_task(payload.response.send_message(
-                        "You can't respond to this message!", ephemeral=True))
-                    return False
-                return True
-
-            # If it works don't fail, and if it times out say that
-            try:
-                payload = await self.bot.wait_for("component_interaction", check=check, timeout=60)
-                await payload.response.defer_update()
-            except asyncio.TimeoutError:
-                return await ctx.send(f"Timed out asking for tank to entertain <@{ctx.author.id}>")
-
-            # Set the tank entertained to what they chose
-            tank_entertained = str(payload.values[0])
+            # Create a select menu with the tanks as options
+            tank_entertained = utils.create_select_menu(
+                self.bot, ctx, tank_rows[0]['tank_name'], "tank", "entertain")
 
         # Get the fish in the chosen tank
         async with vbu.Database() as db:
@@ -214,54 +173,33 @@ class FishCare(vbu.Cog):
                 """SELECT * FROM user_fish_inventory WHERE user_id = $1 AND tank_fish != ''""",
                 ctx.author.id,
             )
+            tank_rows = await db("""SELECT * FROM user_tank_inventory WHERE user_id = $1""", ctx.author.id)
             item_rows = await db("""SELECT * FROM user_item_inventory WHERE user_id = $1""", ctx.author.id)
 
         await ctx.trigger_typing()
 
         if not fish_fed:
 
-            # Initiates the option list
-            test_options = []
+            # If they own more than 25 fish...
+            if len(fish_rows) > 25:
 
-            # For each name that isnt "" add it as an option for the select menu
+                # Creates a select menu of all the tanks and returns the users choice
+                tank_chosen = utils.create_select_menu(
+                    self.bot, ctx, tank_rows[0]['tank_name'], "tank", "choose")
+
+                # Set the new fish_rows of only fish in that tank
+                async with vbu.Database() as db:
+                    fish_rows = await db(
+                        """SELECT * FROM user_fish_inventory WHERE user_id = $1 AND tank_fish = $2""",
+                        ctx.author.id, tank_chosen
+                    )
+
+            fish_in_tank = []
             for fish in fish_rows:
-                test_options.append(discord.ui.SelectOption(
-                    label=fish['fish_name'], value=fish['fish_name']))
+                fish_in_tank.append(fish["fish_name"])
 
-            # Set the select menu with the tank options
-            components = discord.ui.MessageComponents(
-                discord.ui.ActionRow(
-                    discord.ui.SelectMenu(custom_id="feed",
-                                          options=test_options,
-                                          placeholder="Select an option",
-                                          )
-                )
-            )
-
-            # Ask them what tank they want to entertain with component
-            message = await ctx.send("What fish would you like to feed?", components=components)
-
-            # If it's the correct message and author return true
-            def check(payload):
-                if payload.message.id != message.id:
-                    return False
-
-                # If its the wrong author send an ephemeral message
-                if payload.user.id != ctx.author.id:
-                    self.bot.loop.create_task(payload.response.send_message(
-                        "You can't respond to this message!", ephemeral=True))
-                    return False
-                return True
-
-            # If it works don't fail, and if it times out say that
-            try:
-                payload = await self.bot.wait_for("component_interaction", check=check, timeout=60)
-                await payload.response.defer_update()
-            except asyncio.TimeoutError:
-                return await ctx.send(f"Timed out asking for fish to feed <@{ctx.author.id}>")
-
-            # Set the tank entertained to what they chose
-            fish_fed = str(payload.values[0])
+            fish_fed = utils.create_select_menu(
+                self.bot, ctx, fish_in_tank, "fish", "feed")
 
         async with vbu.Database() as db:
             fish_row = await db(
@@ -280,7 +218,7 @@ class FishCare(vbu.Cog):
 
         # Make sure the fish is able to be fed
         if fish_row[0]['fish_feed_time']:
-            if (fish_feed_timeout := fish_row[0]['fish_feed_time'] + self.FISH_FEED_COOLDOWN) > dt.utcnow():
+            if (fish_feed_timeout:= fish_row[0]['fish_feed_time'] + self.FISH_FEED_COOLDOWN) > dt.utcnow():
                 relative_time = discord.utils.format_dt(
                     fish_feed_timeout - timedelta(hours=DAYLIGHT_SAVINGS), style="R")
                 return await ctx.send(f"This fish is full, please try again {relative_time}.")
@@ -293,7 +231,8 @@ class FishCare(vbu.Cog):
         day, hour = utils.FEEDING_UPGRADES[upgrades[0]['feeding_upgrade']]
 
         # Set the time to be now + the new death date
-        death_date = dt.utcnow() + timedelta(days=day, hours=hour)
+        death_date = fish_row[0]['death_time'] + \
+            timedelta(days=day, hours=hour)
 
         # Update the fish's death date
         async with vbu.Database() as db:
@@ -338,49 +277,9 @@ class FishCare(vbu.Cog):
 
         if not tank_cleaned:
 
-            # Initiates the option list
-            test_options = []
-
-            # For each name that isnt "" add it as an option for the select menu
-            for tank_name in tank_rows[0]['tank_name']:
-                if tank_name != "":
-                    test_options.append(discord.ui.SelectOption(
-                        label=tank_name, value=tank_name))
-
-            # Set the select menu with the tank options
-            components = discord.ui.MessageComponents(
-                discord.ui.ActionRow(
-                    discord.ui.SelectMenu(custom_id="clean",
-                                          options=test_options,
-                                          placeholder="Select an option",
-                                          )
-                )
-            )
-
-            # Ask them what tank they want to entertain with component
-            message = await ctx.send("What tank would you like to clean?", components=components)
-
-            # If it's the correct message and author return true
-            def check(payload):
-                if payload.message.id != message.id:
-                    return False
-
-                # If its the wrong author send an ephemeral message
-                if payload.user.id != ctx.author.id:
-                    self.bot.loop.create_task(payload.response.send_message(
-                        "You can't respond to this message!", ephemeral=True))
-                    return False
-                return True
-
-            # If it works don't fail, and if it times out say that
-            try:
-                payload = await self.bot.wait_for("component_interaction", check=check, timeout=60)
-                await payload.response.defer_update()
-            except asyncio.TimeoutError:
-                return await ctx.send(f"Timed out asking for tank to clean <@{ctx.author.id}>")
-
-            # Set the tank entertained to what they chose
-            tank_cleaned = str(payload.values[0])
+            # Creates a select menu of all the tanks and returns the users choice
+            tank_cleaned = utils.create_select_menu(
+                self.bot, ctx, tank_rows[0]['tank_name'], "tank", "clean")
 
         async with vbu.Database() as db:
             fish_rows = await db(
@@ -501,18 +400,29 @@ class FishCare(vbu.Cog):
 
     @commands.command()
     @commands.bot_has_permissions(send_messages=True)
-    async def revive(self, ctx: commands.Context, fish: str):
+    async def revive(self, ctx: commands.Context, fish: str = None):
         """
         This command uses a revival and revives a specified fish.
         """
 
         # Get database vars
         async with vbu.Database() as db:
+            fish_rows = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_alive == FALSE""", ctx.author.id, fish)
             fish_row = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2""", ctx.author.id, fish)
             revival_count = await db("""SELECT revival FROM user_item_inventory WHERE user_id = $1""", ctx.author.id)
 
+        if not fish:
+
+            fish_in_tank = []
+            for fish in fish_rows:
+                fish_in_tank.append(fish["fish_name"])
+
+            fish = utils.create_select_menu(
+                self.bot, ctx, fish_in_tank, "dead fish", "revive")
+
         # Checks that error
         if not fish_row:
+
             return await ctx.send(
                 f"You have no fish named {fish}!",
                 allowed_mentions=discord.AllowedMentions.none()
