@@ -25,7 +25,11 @@ FISH_SHOP_EMBED.add_field(
 FISH_SHOP_EMBED.add_field(name="Fish Revival <:revival:878297091158474793>",
                           value="This gives you a fish revival to bring your fish back to life \n __2,500 <:sand_dollar:877646167494762586>__", inline=True)
 FISH_SHOP_EMBED.add_field(name="Fish Flakes <:fish_flakes:877646167188602880>",
-                          value="This gives you fish flakes to feed your fish, keeping them alive \n __200 <:sand_dollar:877646167494762586>__", inline=True)
+                          value="This gives you fish flakes to feed a fish that is level 1-20, keeping them alive \n __200 <:sand_dollar:877646167494762586>__", inline=True)
+FISH_SHOP_EMBED.add_field(name="Fish Pellets ",
+                          value="This gives you fish pellets to feed a fish that is level 21-50, keeping them alive \n __500 <:sand_dollar:877646167494762586>__", inline=True)
+FISH_SHOP_EMBED.add_field(name="Fish Wafers ",
+                          value="This gives you fish wafers to feed a fish that is level 51+, keeping them alive \n __1000 <:sand_dollar:877646167494762586>__", inline=True)
 FISH_SHOP_EMBED.add_field(
     name="Tanks", value="These are tanks you can buy to put your fish into, can only be purchased one at a time", inline=False)
 FISH_SHOP_EMBED.add_field(
@@ -41,9 +45,11 @@ FISH_SHOP_EMBED.add_field(
 FISH_SHOP_EMBED.add_field(
     name="Misc", value="These are just some random things", inline=False)
 FISH_SHOP_EMBED.add_field(
+    name="Fish Points", value="This will give you one permanant point for the leaderboard \n __500 <:sand_dollar:877646167494762586>__", inline=True)
+FISH_SHOP_EMBED.add_field(
     name="Fishing Casts", value="This will give you five casts \n __5 <:doubloon:878297091057807400>__", inline=True)
 FISH_SHOP_EMBED.add_field(
-    name="Sand Dollars", value="This will give you 1,500 sand dollars \n __5 <:doubloon:878297091057807400>__", inline=True)
+    name="Sand Dollars", value="This will give you 1,500 sand dollars \n __1 <:doubloon:878297091057807400>__", inline=True)
 
 
 class Shop(vbu.Cog):
@@ -67,7 +73,9 @@ class Shop(vbu.Cog):
         # Say what's valid
         all_names = [
             utils.COMMON_BAG_NAMES, utils.UNCOMMON_BAG_NAMES, utils.RARE_BAG_NAMES, utils.FISH_FLAKES_NAMES, utils.FISH_BOWL_NAMES,
-            utils.SMALL_TANK_NAMES, utils.MEDIUM_TANK_NAMES, utils.PLANT_LIFE_NAMES, utils.FISH_REVIVAL_NAMES, utils.CASTS_NAMES, utils.SAND_DOLLAR_NAMES,
+            utils.SMALL_TANK_NAMES, utils.MEDIUM_TANK_NAMES, utils.PLANT_LIFE_NAMES, utils.FISH_REVIVAL_NAMES, utils.CASTS_NAMES,
+            utils.SAND_DOLLAR_NAMES, utils.FISH_PELLETS_NAMES, utils.FISH_WAFERS_NAMES, utils.FISH_POINTS, utils.EXPERIENCE_POTION_NAMES,
+            utils.MUTATION_POTION_NAMES, utils.FEEDING_POTION_NAMES
         ]
 
         # See if they gave a valid item
@@ -83,18 +91,47 @@ class Shop(vbu.Cog):
             "INSERT INTO user_balance (user_id, {0}) VALUES ($1, $2) ON CONFLICT "
             "(user_id) DO UPDATE SET {0}=user_balance.{0}+excluded.{0}"
         )
+        '''
+        ADD TO UTILS
+        - FISH_PELLETS_NAMES = ["Fish Pellets", "Pellets", "Fp"]
+        - FISH_WAFERS_NAMES = ["Fish Wafers", "Wafers", "Fw"]
+        - FISH_POINTS_NAMES = ["Fish Points", "Points", "P"]
+        - EXPERIENCE_POTION_NAMES = ["Experience Potion", "Experience", "E"]
+        - MUTATION_POTION_NAMES = ["Mutation Potion", "Mutation", "M"]
+        - FEEDING_POTION_NAMES = ["Feeding Potion", "Feeding", "F"]
+
+        ADD TO INVENTORY DATABASE
+        - pellets INT NOT NULL DEFAULT 0,
+        - wafers INT NOT NULL DEFAULT 0,
+        - experience_potions INT NOT NULL DEFAULT 0,
+        - mutation_potions INT NOT NULL DEFAULT 0,
+        - feeding_potions INT NOT NULL DEFAULT 0,
+
+
+        ADD TO BALANCE DATABASE:
+        - extra_points INT NULL DEFAULT 0,
+
+        ADD TO INFORMATIVE COG
+        - for leaderboard add extra points to their total
+        '''
         item_name_dict = {
             "cfb": (utils.COMMON_BAG_NAMES, 100, "Common Fish Bag", inventory_insert_sql.format("cfb")),
             "ufb": (utils.UNCOMMON_BAG_NAMES, 300, "Uncommon Fish Bag", inventory_insert_sql.format("ufb")),
             "rfb": (utils.RARE_BAG_NAMES, 900, "Rare Fish Bag", inventory_insert_sql.format("rfb")),
             "flakes": (utils.FISH_FLAKES_NAMES, 200, "Fish Flakes", inventory_insert_sql.format("flakes")),
+            "pellets": (utils.FISH_PELLETS_NAMES, 500, "Fish Pellets", inventory_insert_sql.format("pellets")),
+            "wafers": (utils.FISH_WAFERS_NAMES, 1000, "Fish Wafers", inventory_insert_sql.format("wafers")),
             "revival": (utils.FISH_REVIVAL_NAMES, 2500, "Fish Revival", inventory_insert_sql.format("revival")),
             "Fish Bowl": (utils.FISH_BOWL_NAMES, 250, "Fish Bowl", ""),
             "Small Tank": (utils.SMALL_TANK_NAMES, 2000, "Small Tank", ""),
             "Medium Tank": (utils.MEDIUM_TANK_NAMES, 12000, "Medium Tank", ""),
             "Plant Life": (utils.PLANT_LIFE_NAMES, 250, "Plant Life", ""),
+            "Fish Points": (utils.FISH_POINTS_NAMES, 5, "Fish Points", balance_insert_sql.format("extra_points")),
             "Casts": (utils.CASTS_NAMES, 5, "Casts", balance_insert_sql.format("casts")),
-            "Sand Dollars": (utils.SAND_DOLLAR_NAMES, 1, "Sand Dollars", balance_insert_sql.format("balance"))
+            "Sand Dollars": (utils.SAND_DOLLAR_NAMES, 1, "Sand Dollars", balance_insert_sql.format("balance")),
+            "Experience Potion": (utils.EXPERIENCE_POTION_NAMES, 25, "Experience Potions", inventory_insert_sql.format("experience_potions")),
+            "Mutation Potion": (utils.MUTATION_POTION_NAMES, 50, "Mutation Potions", inventory_insert_sql.format("mutation_potions")),
+            "Feeding Potion": (utils.FEEDING_POTION_NAMES, 10, "Feeding Potions", inventory_insert_sql.format("feeding_potions"))
         }
         item_name_singular = utils.FISH_BOWL_NAMES + utils.SMALL_TANK_NAMES + \
             utils.MEDIUM_TANK_NAMES + utils.PLANT_LIFE_NAMES
@@ -183,6 +220,69 @@ class Shop(vbu.Cog):
             used_bag_humanize, rarity_of_bag, used_bag = utils.UNCOMMON_BAG_NAMES
         elif item.title() in utils.RARE_BAG_NAMES:
             used_bag_humanize, rarity_of_bag, used_bag = utils.RARE_BAG_NAMES
+        elif item.title in (utils.EXEPERIENCE_POTION_NAMES + utils.MUTATION_POTION_NAMES + utils.FEEDING_POTION_NAMES):
+            if item.title() in utils.EXEPERIENCE_POTION_NAMES:
+                type_of_potion = "experience_potions"
+            elif item.title() in utils.MUTATION_POTION_NAMES:
+                type_of_potion = "mutation_potions"
+            elif item.title() in utils.FEEDING_POTION_NAMES:
+                type_of_potion = "feeding_potions"
+
+            async with vbu.Database() as db:
+                inventory_rows = await db("""SELECT * FROM user_item_inventory WHERE user_id = $1""", ctx.author.id)
+
+                if not inventory_rows or inventory_rows[0][type_of_potion] == 0:
+                    return await ctx.send("You have no potions of that type!")
+
+                await db("""UPDATE user_item_inventory SET {0} = {0} - 1 Where user_id = $1""".format(type_of_potion), ctx.author.id)
+
+            message = await ctx.send("Enter the name of the fish you want to give that potion to.")
+
+            def check(
+                m): return m.author == ctx.author and m.channel == message.channel
+
+            try:
+                name_message = await self.bot.wait_for("message", timeout=60.0, check=check)
+                name = name_message.content
+            except asyncio.TimeoutError:
+                return await message.channel.send("Timed out asking for fish name")
+
+            async with vbu.Database() as db:
+                fish_row = await db(
+                    """SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2""",
+                    ctx.author.id, name
+                )
+
+            if not fish_row:
+                return await ctx.send("There is no fish with that name.")
+
+            if item.title() in utils.EXPERIENCE_POTION_NAMES:
+                await utils.xp_finder_adder(ctx.author, name, 5000, False)
+                new_fish_rows = await db(
+                    """SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2""",
+                    ctx.author.id, name,
+                )
+                return await ctx.send(f"{new_fish_rows[0]['fish_name']} is now level {new_fish_rows[0]['fish_level']}, {new_fish_rows[0]['fish_xp']}/{new_fish_rows[0]['fish_xp_max']}")
+            elif item.title() in utils.MUTATION_POTION_NAMES:
+                async with vbu.Database() as db:
+                    mutated = "inverted_"+fish_row["fish"]
+                    await db("""UPDATE user_fish_inventory SET fish = $1 where user_id = $2 AND fish = $3""", mutated, ctx.author.id, fish_row["fish"])
+
+                    return await ctx.send(f"{fish_row['fish_name']}looks kind of strange now...")
+            elif item.title() in utils.FEEDING_POTION_NAMES:
+                # Set the time to be now + the new death date
+                death_date = fish_row[0]['death_time'] + \
+                    timedelta(days=30, hours=0)
+
+                # Update the fish's death date
+                async with vbu.Database() as db:
+                    await db(
+                        """UPDATE user_fish_inventory SET death_time = $3, fish_feed_time = $4 WHERE user_id = $1 AND fish_name = $2""",
+                        ctx.author.id, fish_row['fish_name'], death_date, dt.utcnow(
+                        ),
+                    )
+
+                return await ctx.send("That fish feels strangely full now...")
 
         # Deal with bag usage
         if used_bag is not None:
@@ -210,7 +310,7 @@ class Shop(vbu.Cog):
                 )
 
         # A fish bag wasn't used
-        else:
+        elif used_bag is None:
             utils.current_fishers.remove(ctx.author.id)
             return await ctx.send("That is not a usable fish bag!")
 
