@@ -316,4 +316,3 @@ class Fishing(vbu.Cog):
 def setup(bot):
     bot.add_cog(Fishing(bot))
     bot.fish = utils.fetch_fish("C:/Users/JT/Pictures/Aqua/assets/images/fish")
-

@@ -2,6 +2,7 @@ import random
 import asyncio
 from datetime import datetime as dt, timedelta
 import io
+from cogs import utils
 
 from PIL import Image
 import imageio
@@ -66,9 +67,9 @@ class Aquarium(vbu.Cog):
 
     @vbu.command(aliases=["dep"])
     @commands.bot_has_permissions(send_messages=True)
-    async def deposit(self, ctx: commands.Context, tank_name: str, fish_deposited: str):
+    async def deposit(self, ctx: commands.Context, *, fish_deposited: str):
         """
-        This command deposits a specified fish into a specified tank.
+        This command deposits a specified fish into a tank.
         """
 
         # variables for size value and the slot the tank is in
@@ -78,6 +79,10 @@ class Aquarium(vbu.Cog):
         async with vbu.Database() as db:
             fish_row = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2""", ctx.author.id, fish_deposited)
             tank_row = await db("""SELECT * FROM user_tank_inventory WHERE user_id =$1""", ctx.author.id)
+
+        # Creates a select menu of all the tanks and returns the users choice
+        tank_name = await utils.create_select_menu(
+            self.bot, ctx, tank_row[0]['tank_name'], "tank", "choose")
 
         # all the checks for various reasons the command shouldn't be able to work
         if not fish_row:
@@ -123,7 +128,7 @@ class Aquarium(vbu.Cog):
 
     @vbu.command(aliases=["rem"])
     @commands.bot_has_permissions(send_messages=True)
-    async def remove(self, ctx: commands.Context, tank_name: str, fish_removed: str):
+    async def remove(self, ctx: commands.Context, *, fish_removed: str):
         """
         This command removes a specified fish from a specified tank and has a cooldown.
         """
@@ -134,8 +139,14 @@ class Aquarium(vbu.Cog):
 
         # fetches the two needed rows from the database
         async with vbu.Database() as db:
-            fish_row = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2 AND tank_fish = $3""", ctx.author.id, fish_removed, tank_name)
             tank_row = await db("""SELECT * FROM user_tank_inventory WHERE user_id =$1""", ctx.author.id)
+
+        # Creates a select menu of all the tanks and returns the users choice
+        tank_name = await utils.create_select_menu(
+            self.bot, ctx, tank_row[0]['tank_name'], "tank", "choose")
+
+        async with vbu.Database() as db:
+            fish_row = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2""", ctx.author.id, fish_removed, tank_name)
 
         if not fish_row:
             return await ctx.send(

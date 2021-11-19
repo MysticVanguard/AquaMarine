@@ -112,6 +112,18 @@ class Shop(vbu.Cog):
 
             if item.title() in item_name_singular:
                 amount = 1
+            # else:
+            #     components = discord.ui.MessageComponents.add_number_buttons(
+            #         add_negative=True)
+            #     message = await ctx.send("How many of that item do you want to buy?", components=components)
+
+            #     def button_check(payload):
+            #         if payload.message.id != message.id:
+            #             return False
+            #         self.bot.loop.create_task(payload.response.defer_update())
+            #         return payload.user.id == ctx.author.id
+            #         # Keep going...
+
             # See if the user has enough money
             type_of_balance = 'balance'
             emoji = "<:sand_dollar:877646167494762586>"
@@ -152,7 +164,7 @@ class Shop(vbu.Cog):
 
     @commands.command(aliases=["u"])
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
-    async def use(self, ctx: commands.Context, item: str):
+    async def use(self, ctx: commands.Context, *, item: str):
         """
         This command is only for using fish bags, and is just like using the fish command.
         """
@@ -381,7 +393,7 @@ class Shop(vbu.Cog):
 
     @commands.command()
     @commands.bot_has_permissions(send_messages=True)
-    async def sell(self, ctx: commands.Context, fish_sold: str):
+    async def sell(self, ctx: commands.Context, *, fish_sold: str):
         """
         This command sells the specified fish, and it must be out of a tank.
         """

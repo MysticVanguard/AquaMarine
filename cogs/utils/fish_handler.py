@@ -111,7 +111,7 @@ LURE_UPGRADES = {
 }
 
 # Crate chance upgrade that increases the chance of catching a crate
-CRATE_CHANCE_UPGRADE = {0: 8760, 1: 6480, 2: 4320, 3: 2160, 4: 1440, 5: 720}
+CRATE_CHANCE_UPGRADE = {0: 2190, 1: 1570, 2: 1080, 3: 540, 4: 360, 5: 180}
 
 # Weight upgrade that increases the level of the caught fish
 WEIGHT_UPGRADES = {0: (1, 2), 1: (5, 10), 2: (

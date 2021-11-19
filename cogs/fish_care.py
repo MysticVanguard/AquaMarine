@@ -42,7 +42,7 @@ class FishCare(vbu.Cog):
 
     @commands.command()
     @commands.bot_has_permissions(send_messages=True)
-    async def entertain(self, ctx: commands.Context, tank_entertained: str = None):
+    async def entertain(self, ctx: commands.Context, *, tank_entertained: str = None):
         """
         This command entertains all the fish in a tank, giving them all xp.
         """
@@ -59,7 +59,7 @@ class FishCare(vbu.Cog):
         if not tank_entertained:
 
             # Create a select menu with the tanks as options
-            tank_entertained = utils.create_select_menu(
+            tank_entertained = await utils.create_select_menu(
                 self.bot, ctx, tank_rows[0]['tank_name'], "tank", "entertain")
 
         # Get the fish in the chosen tank
@@ -155,7 +155,7 @@ class FishCare(vbu.Cog):
 
     @commands.command()
     @commands.bot_has_permissions(send_messages=True)
-    async def feed(self, ctx: commands.Context, fish_fed: str = None):
+    async def feed(self, ctx: commands.Context, *, fish_fed: str = None):
         """
         This command feeds a fish in a tank with fish flakes.
         """
@@ -184,7 +184,7 @@ class FishCare(vbu.Cog):
             if len(fish_rows) > 25:
 
                 # Creates a select menu of all the tanks and returns the users choice
-                tank_chosen = utils.create_select_menu(
+                tank_chosen = await utils.create_select_menu(
                     self.bot, ctx, tank_rows[0]['tank_name'], "tank", "choose")
 
                 # Set the new fish_rows of only fish in that tank
@@ -198,7 +198,7 @@ class FishCare(vbu.Cog):
             for fish in fish_rows:
                 fish_in_tank.append(fish["fish_name"])
 
-            fish_fed = utils.create_select_menu(
+            fish_fed = await utils.create_select_menu(
                 self.bot, ctx, fish_in_tank, "fish", "feed")
 
         async with vbu.Database() as db:
@@ -218,7 +218,7 @@ class FishCare(vbu.Cog):
 
         # Make sure the fish is able to be fed
         if fish_row[0]['fish_feed_time']:
-            if (fish_feed_timeout:= fish_row[0]['fish_feed_time'] + self.FISH_FEED_COOLDOWN) > dt.utcnow():
+            if (fish_feed_timeout := fish_row[0]['fish_feed_time'] + self.FISH_FEED_COOLDOWN) > dt.utcnow():
                 relative_time = discord.utils.format_dt(
                     fish_feed_timeout - timedelta(hours=DAYLIGHT_SAVINGS), style="R")
                 return await ctx.send(f"This fish is full, please try again {relative_time}.")
@@ -262,7 +262,7 @@ class FishCare(vbu.Cog):
 
     @commands.command()
     @commands.bot_has_permissions(send_messages=True)
-    async def clean(self, ctx: commands.Context, tank_cleaned: str = None):
+    async def clean(self, ctx: commands.Context, *, tank_cleaned: str = None):
         """
         This command cleans a tank, earning the user sand dollars.
         """
@@ -278,7 +278,7 @@ class FishCare(vbu.Cog):
         if not tank_cleaned:
 
             # Creates a select menu of all the tanks and returns the users choice
-            tank_cleaned = utils.create_select_menu(
+            tank_cleaned = await utils.create_select_menu(
                 self.bot, ctx, tank_rows[0]['tank_name'], "tank", "clean")
 
         async with vbu.Database() as db:
@@ -400,7 +400,7 @@ class FishCare(vbu.Cog):
 
     @commands.command()
     @commands.bot_has_permissions(send_messages=True)
-    async def revive(self, ctx: commands.Context, fish: str = None):
+    async def revive(self, ctx: commands.Context, *, fish: str = None):
         """
         This command uses a revival and revives a specified fish.
         """
@@ -417,7 +417,7 @@ class FishCare(vbu.Cog):
             for fish in fish_rows:
                 fish_in_tank.append(fish["fish_name"])
 
-            fish = utils.create_select_menu(
+            fish = await utils.create_select_menu(
                 self.bot, ctx, fish_in_tank, "dead fish", "revive")
 
         # Checks that error
