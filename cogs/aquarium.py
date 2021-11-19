@@ -105,7 +105,8 @@ class Aquarium(vbu.Cog):
 
         # another check
         if tank_row[0]["fish_room"][tank_slot] < size_values[fish_row[0]["fish_size"]]:
-            return await ctx.send("You have no room in that tank!")
+            n = "\n"
+            return await ctx.send(f"{fish_row[0]['fish_name']} is {fish_row[0]['fish_size']} and takes up {size_values[fish_row[0]['fish_size']]} Size Points.{n}That tank only has {tank_row[0]['fish_room'][tank_slot]} Size Points left")
 
         # tank slot has one added as python indexes start at 0 but database start at 1
         tank_slot += 1
