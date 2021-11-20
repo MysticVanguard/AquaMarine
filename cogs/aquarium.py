@@ -73,7 +73,7 @@ class Aquarium(vbu.Cog):
         """
 
         # variables for size value and the slot the tank is in
-        size_values = {"small": 1, "medium": 5, "large": 10}
+        size_values = {"small": 1, "medium": 5, "large": 25}
 
         # fetches the two needed rows from the database
         async with vbu.Database() as db:
@@ -238,19 +238,18 @@ class Aquarium(vbu.Cog):
             for selected_fish_types in selected_fish:
                 fishes[selected_fish_types['fish']] = [
                     selected_fish_types['fish_alive']]
-            for name, info in fishes.items():
 
+            for name, info in fishes.items():
                 if "golden" in name:
                     fishes[name].append(name.lstrip("golden_"))
                     name = name.lstrip("golden_")
                     golden_inverted_normal = 'golden'
                 if "inverted" in name:
-                    fishes[name].append(name.lstrip("inverted_"))
-                    name = name.lstrip("inverted_")
+                    fishes[name].append(name.replace("inverted_", ""))
+                    name = name.replace("inverted_", "")
                     golden_inverted_normal = 'inverted'
                 else:
                     fishes[name].append(name)
-
                 for _, fish_types in self.bot.fish.items():
                     for fish_data in fish_types.values():
                         if info[1] == fish_data['raw_name']:
@@ -258,6 +257,8 @@ class Aquarium(vbu.Cog):
                                 min_max_x[tank_info][0], min_max_x[tank_info][1]))
                             fish_y_value.append(random.randint(
                                 min_max_y[tank_info][0], min_max_y[tank_info][1]))
+                            print(
+                                f"C:/Users/JT/Pictures/Aqua/assets/images/{golden_inverted_normal}_fish_size{fish_data['image'][44:]}")
                             fish_selections.append(
                                 f"C:/Users/JT/Pictures/Aqua/assets/images/{golden_inverted_normal}_fish_size{fish_data['image'][44:]}")
                             if info[0] is True:

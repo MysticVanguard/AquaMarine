@@ -500,6 +500,7 @@ class Informative(vbu.Cog):
             user_info_sorted = {}
             async with vbu.Database() as db:
                 user_info_rows = await db("""SELECT * FROM user_fish_inventory""")
+                user_extra_points = await db("""SELECT * FROM user_balance""")
             for user_info in user_info_rows:
                 if user_info['user_id'] not in user_info_unsorted.keys():
                     user_info_unsorted[user_info['user_id']] = []
@@ -524,6 +525,7 @@ class Informative(vbu.Cog):
                     for fish_type in fish:
                         if fish_type in fish_types:
                             user_points += rarity_points[rarity]
+                user_points += user_extra_points[user]
                 user_points_unsorted[user] = user_points
             user_id_sorted = [(user, points) for user, points in sorted(
                 user_points_unsorted.items(), key=lambda item: item[1], reverse=True)]

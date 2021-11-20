@@ -310,6 +310,12 @@ PLANT_LIFE_NAMES = ["Plant Life", "Plant", "Pl"]
 FISH_REVIVAL_NAMES = ["Fish Revival", "Revival", "Fr"]
 CASTS_NAMES = ["Fishing Casts", "Casts", "Fc"]
 SAND_DOLLAR_NAMES = ["Sand Dollars", "Dollars", "Sd"]
+FISH_PELLETS_NAMES = ["Fish Pellets", "Pellets", "Fp"]
+FISH_WAFERS_NAMES = ["Fish Wafers", "Wafers", "Fw"]
+FISH_POINTS_NAMES = ["Fish Points", "Points", "P"]
+EXPERIENCE_POTION_NAMES = ["Experience Potion", "Experience", "E"]
+MUTATION_POTION_NAMES = ["Mutation Potion", "Mutation", "M"]
+FEEDING_POTION_NAMES = ["Feeding Potion", "Feeding", "F"]
 
 # Daylight savings variable because for some reason i need to add four and then an hour when its daylight savings,
 # will be changed to 4 when daylight savings is over

@@ -50,6 +50,12 @@ FISH_SHOP_EMBED.add_field(
     name="Fishing Casts", value="This will give you five casts \n __5 <:doubloon:878297091057807400>__", inline=True)
 FISH_SHOP_EMBED.add_field(
     name="Sand Dollars", value="This will give you 1,500 sand dollars \n __1 <:doubloon:878297091057807400>__", inline=True)
+FISH_SHOP_EMBED.add_field(
+    name="Feeding Potion", value="This will give you a feeding potion that will make your fish full for 30 days \n __10,000 <:sand_dollar:877646167494762586>__", inline=True)
+FISH_SHOP_EMBED.add_field(
+    name="Experience Potion", value="This will give you an experience potion that gives your fish 5,000 experience \n __40,000 <:sand_dollar:877646167494762586>__", inline=True)
+FISH_SHOP_EMBED.add_field(
+    name="Mutation Potion", value="This will give you a mutation potion that turns one of your fish inverted \n __50 <:doubloon:878297091057807400>__", inline=True)
 
 
 class Shop(vbu.Cog):
@@ -74,7 +80,7 @@ class Shop(vbu.Cog):
         all_names = [
             utils.COMMON_BAG_NAMES, utils.UNCOMMON_BAG_NAMES, utils.RARE_BAG_NAMES, utils.FISH_FLAKES_NAMES, utils.FISH_BOWL_NAMES,
             utils.SMALL_TANK_NAMES, utils.MEDIUM_TANK_NAMES, utils.PLANT_LIFE_NAMES, utils.FISH_REVIVAL_NAMES, utils.CASTS_NAMES,
-            utils.SAND_DOLLAR_NAMES, utils.FISH_PELLETS_NAMES, utils.FISH_WAFERS_NAMES, utils.FISH_POINTS, utils.EXPERIENCE_POTION_NAMES,
+            utils.SAND_DOLLAR_NAMES, utils.FISH_PELLETS_NAMES, utils.FISH_WAFERS_NAMES, utils.FISH_POINTS_NAMES, utils.EXPERIENCE_POTION_NAMES,
             utils.MUTATION_POTION_NAMES, utils.FEEDING_POTION_NAMES
         ]
 
@@ -91,29 +97,7 @@ class Shop(vbu.Cog):
             "INSERT INTO user_balance (user_id, {0}) VALUES ($1, $2) ON CONFLICT "
             "(user_id) DO UPDATE SET {0}=user_balance.{0}+excluded.{0}"
         )
-        '''
-        ADD TO UTILS
-        - FISH_PELLETS_NAMES = ["Fish Pellets", "Pellets", "Fp"]
-        - FISH_WAFERS_NAMES = ["Fish Wafers", "Wafers", "Fw"]
-        - FISH_POINTS_NAMES = ["Fish Points", "Points", "P"]
-        - EXPERIENCE_POTION_NAMES = ["Experience Potion", "Experience", "E"]
-        - MUTATION_POTION_NAMES = ["Mutation Potion", "Mutation", "M"]
-        - FEEDING_POTION_NAMES = ["Feeding Potion", "Feeding", "F"]
 
-        ADD TO INVENTORY DATABASE
-        - pellets INT NOT NULL DEFAULT 0,
-        - wafers INT NOT NULL DEFAULT 0,
-        - experience_potions INT NOT NULL DEFAULT 0,
-        - mutation_potions INT NOT NULL DEFAULT 0,
-        - feeding_potions INT NOT NULL DEFAULT 0,
-
-
-        ADD TO BALANCE DATABASE:
-        - extra_points INT NULL DEFAULT 0,
-
-        ADD TO INFORMATIVE COG
-        - for leaderboard add extra points to their total
-        '''
         item_name_dict = {
             "cfb": (utils.COMMON_BAG_NAMES, 100, "Common Fish Bag", inventory_insert_sql.format("cfb")),
             "ufb": (utils.UNCOMMON_BAG_NAMES, 300, "Uncommon Fish Bag", inventory_insert_sql.format("ufb")),
@@ -129,14 +113,14 @@ class Shop(vbu.Cog):
             "Fish Points": (utils.FISH_POINTS_NAMES, 5, "Fish Points", balance_insert_sql.format("extra_points")),
             "Casts": (utils.CASTS_NAMES, 5, "Casts", balance_insert_sql.format("casts")),
             "Sand Dollars": (utils.SAND_DOLLAR_NAMES, 1, "Sand Dollars", balance_insert_sql.format("balance")),
-            "Experience Potion": (utils.EXPERIENCE_POTION_NAMES, 25, "Experience Potions", inventory_insert_sql.format("experience_potions")),
+            "Experience Potion": (utils.EXPERIENCE_POTION_NAMES, 40000, "Experience Potions", inventory_insert_sql.format("experience_potions")),
             "Mutation Potion": (utils.MUTATION_POTION_NAMES, 50, "Mutation Potions", inventory_insert_sql.format("mutation_potions")),
-            "Feeding Potion": (utils.FEEDING_POTION_NAMES, 10, "Feeding Potions", inventory_insert_sql.format("feeding_potions"))
+            "Feeding Potion": (utils.FEEDING_POTION_NAMES, 15000, "Feeding Potions", inventory_insert_sql.format("feeding_potions"))
         }
         item_name_singular = utils.FISH_BOWL_NAMES + utils.SMALL_TANK_NAMES + \
             utils.MEDIUM_TANK_NAMES + utils.PLANT_LIFE_NAMES
         Doubloon_things = utils.PLANT_LIFE_NAMES + \
-            utils.CASTS_NAMES + utils.SAND_DOLLAR_NAMES
+            utils.CASTS_NAMES + utils.SAND_DOLLAR_NAMES + utils.MUTATION_POTION_NAMES
 
         # Work out which of the SQL statements to use
         for table, data in item_name_dict.items():
@@ -208,7 +192,6 @@ class Shop(vbu.Cog):
 
         if ctx.author.id in utils.current_fishers:
             return await ctx.send(f"{ctx.author.display_name}, you're already fishing!")
-        utils.current_fishers.append(ctx.author.id)
 
         # See if they are trying to use a bag
         rarity_of_bag = None
@@ -220,8 +203,8 @@ class Shop(vbu.Cog):
             used_bag_humanize, rarity_of_bag, used_bag = utils.UNCOMMON_BAG_NAMES
         elif item.title() in utils.RARE_BAG_NAMES:
             used_bag_humanize, rarity_of_bag, used_bag = utils.RARE_BAG_NAMES
-        elif item.title in (utils.EXEPERIENCE_POTION_NAMES + utils.MUTATION_POTION_NAMES + utils.FEEDING_POTION_NAMES):
-            if item.title() in utils.EXEPERIENCE_POTION_NAMES:
+        elif item.title() in (utils.EXPERIENCE_POTION_NAMES + utils.MUTATION_POTION_NAMES + utils.FEEDING_POTION_NAMES):
+            if item.title() in utils.EXPERIENCE_POTION_NAMES:
                 type_of_potion = "experience_potions"
             elif item.title() in utils.MUTATION_POTION_NAMES:
                 type_of_potion = "mutation_potions"
@@ -258,17 +241,18 @@ class Shop(vbu.Cog):
 
             if item.title() in utils.EXPERIENCE_POTION_NAMES:
                 await utils.xp_finder_adder(ctx.author, name, 5000, False)
-                new_fish_rows = await db(
-                    """SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2""",
-                    ctx.author.id, name,
-                )
+                async with vbu.Database() as db:
+                    new_fish_rows = await db(
+                        """SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2""",
+                        ctx.author.id, name,
+                    )
                 return await ctx.send(f"{new_fish_rows[0]['fish_name']} is now level {new_fish_rows[0]['fish_level']}, {new_fish_rows[0]['fish_xp']}/{new_fish_rows[0]['fish_xp_max']}")
             elif item.title() in utils.MUTATION_POTION_NAMES:
                 async with vbu.Database() as db:
-                    mutated = "inverted_"+fish_row["fish"]
-                    await db("""UPDATE user_fish_inventory SET fish = $1 where user_id = $2 AND fish = $3""", mutated, ctx.author.id, fish_row["fish"])
+                    mutated = "inverted_"+fish_row[0]["fish"]
+                    await db("""UPDATE user_fish_inventory SET fish = $1 where user_id = $2 AND fish = $3""", mutated, ctx.author.id, fish_row[0]["fish"])
 
-                    return await ctx.send(f"{fish_row['fish_name']}looks kind of strange now...")
+                    return await ctx.send(f"{fish_row[0]['fish_name']}looks kind of strange now...")
             elif item.title() in utils.FEEDING_POTION_NAMES:
                 # Set the time to be now + the new death date
                 death_date = fish_row[0]['death_time'] + \
@@ -278,12 +262,13 @@ class Shop(vbu.Cog):
                 async with vbu.Database() as db:
                     await db(
                         """UPDATE user_fish_inventory SET death_time = $3, fish_feed_time = $4 WHERE user_id = $1 AND fish_name = $2""",
-                        ctx.author.id, fish_row['fish_name'], death_date, dt.utcnow(
+                        ctx.author.id, fish_row[0]['fish_name'], death_date, dt.utcnow(
                         ),
                     )
 
                 return await ctx.send("That fish feels strangely full now...")
 
+        utils.current_fishers.append(ctx.author.id)
         # Deal with bag usage
         if used_bag is not None:
 

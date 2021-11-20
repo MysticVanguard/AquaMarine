@@ -407,7 +407,7 @@ class FishCare(vbu.Cog):
 
         # Get database vars
         async with vbu.Database() as db:
-            fish_rows = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_alive == FALSE""", ctx.author.id, fish)
+            fish_rows = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_alive = FALSE""", ctx.author.id, fish)
             fish_row = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2""", ctx.author.id, fish)
             revival_count = await db("""SELECT revival FROM user_item_inventory WHERE user_id = $1""", ctx.author.id)
 
