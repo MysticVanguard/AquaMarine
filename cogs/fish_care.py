@@ -208,9 +208,15 @@ class FishCare(vbu.Cog):
             )
 
         # See if the user has fish flakes
-        user_food_count = item_rows[0]['flakes']
+        if fish_row[0]['fish_level'] <= 20:
+            type_of_food = "flakes"
+        elif fish_row[0]['fish_level'] <= 50:
+            type_of_food = "pellets"
+        else:
+            type_of_food = "wafers"
+        user_food_count = item_rows[0][type_of_food]
         if not item_rows or not user_food_count:
-            return await ctx.send("You have no fish flakes!")
+            return await ctx.send(f"You have no {type_of_food}!")
 
         # See if the user has a fish with that name
         if not fish_row:
@@ -218,7 +224,7 @@ class FishCare(vbu.Cog):
 
         # Make sure the fish is able to be fed
         if fish_row[0]['fish_feed_time']:
-            if (fish_feed_timeout := fish_row[0]['fish_feed_time'] + self.FISH_FEED_COOLDOWN) > dt.utcnow():
+            if (fish_feed_timeout:= fish_row[0]['fish_feed_time'] + self.FISH_FEED_COOLDOWN) > dt.utcnow():
                 relative_time = discord.utils.format_dt(
                     fish_feed_timeout - timedelta(hours=DAYLIGHT_SAVINGS), style="R")
                 return await ctx.send(f"This fish is full, please try again {relative_time}.")
@@ -246,7 +252,7 @@ class FishCare(vbu.Cog):
             full = random.randint(
                 1, utils.BIG_SERVINGS_UPGRADE[upgrades[0]['big_servings_upgrade']])
             if full != 1:
-                await db("""UPDATE user_item_inventory SET flakes=flakes-1 WHERE user_id=$1""", ctx.author.id)
+                await db("""UPDATE user_item_inventory SET {0}={0}-1 WHERE user_id=$1""".format(type_of_food), ctx.author.id)
             else:
                 extra = "\nThat fish wasn't as hungry and didn't consume food!"
 
@@ -407,7 +413,7 @@ class FishCare(vbu.Cog):
 
         # Get database vars
         async with vbu.Database() as db:
-            fish_rows = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_alive = FALSE""", ctx.author.id, fish)
+            fish_rows = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_alive == FALSE""", ctx.author.id, fish)
             fish_row = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2""", ctx.author.id, fish)
             revival_count = await db("""SELECT revival FROM user_item_inventory WHERE user_id = $1""", ctx.author.id)
 
@@ -456,3 +462,4 @@ class FishCare(vbu.Cog):
 
 def setup(bot):
     bot.add_cog(FishCare(bot))
+
