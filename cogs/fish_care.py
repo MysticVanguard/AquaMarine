@@ -224,7 +224,7 @@ class FishCare(vbu.Cog):
 
         # Make sure the fish is able to be fed
         if fish_row[0]['fish_feed_time']:
-            if (fish_feed_timeout:= fish_row[0]['fish_feed_time'] + self.FISH_FEED_COOLDOWN) > dt.utcnow():
+            if (fish_feed_timeout := fish_row[0]['fish_feed_time'] + self.FISH_FEED_COOLDOWN) > dt.utcnow() and ctx.author.id != 449966150898417664:
                 relative_time = discord.utils.format_dt(
                     fish_feed_timeout - timedelta(hours=DAYLIGHT_SAVINGS), style="R")
                 return await ctx.send(f"This fish is full, please try again {relative_time}.")
@@ -413,7 +413,7 @@ class FishCare(vbu.Cog):
 
         # Get database vars
         async with vbu.Database() as db:
-            fish_rows = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_alive == FALSE""", ctx.author.id, fish)
+            fish_rows = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_alive = FALSE""", ctx.author.id)
             fish_row = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2""", ctx.author.id, fish)
             revival_count = await db("""SELECT revival FROM user_item_inventory WHERE user_id = $1""", ctx.author.id)
 
@@ -462,4 +462,3 @@ class FishCare(vbu.Cog):
 
 def setup(bot):
     bot.add_cog(FishCare(bot))
-
