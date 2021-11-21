@@ -340,7 +340,7 @@ class FishCare(vbu.Cog):
         }
 
         # Randomly pick the effort extra
-        effort_extra = random.choices([0, 10, 20], [.6, .3, .1])
+        effort_extra = random.choices([0, 15, 30], [.6, .3, .1])
 
         # Initiate the size, extra, and rarity variables
         size_multiplier = 1

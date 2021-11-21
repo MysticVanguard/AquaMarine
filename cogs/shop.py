@@ -20,6 +20,10 @@ FISH_SHOP_EMBED.add_field(name="Uncommon Fish Bag <:uncommon_fish_bag:8776461671
                           value="This gives you one fish from the uncommon rarity \n __300 <:sand_dollar:877646167494762586>__", inline=True)
 FISH_SHOP_EMBED.add_field(name="Rare Fish Bag <:rare_fish_bag:877646167121489930>",
                           value="This gives you one fish from the rare rarity \n __900 <:sand_dollar:877646167494762586>__", inline=True)
+FISH_SHOP_EMBED.add_field(name="Inverted Fish Bag ",
+                          value="This gives you one inverted fish from any rarity \n __100000 <:sand_dollar:877646167494762586>__", inline=True)
+FISH_SHOP_EMBED.add_field(name="High Level Fish Bag ",
+                          value="This gives you one fish from any rarity between the levels 10-50 \n __75000 <:sand_dollar:877646167494762586>__", inline=True)
 
 FISH_SHOP_EMBED.add_field(
     name="Fish Care", value="These are items to help keep your fish alive", inline=False)
@@ -85,7 +89,7 @@ class Shop(vbu.Cog):
             utils.COMMON_BAG_NAMES, utils.UNCOMMON_BAG_NAMES, utils.RARE_BAG_NAMES, utils.FISH_FLAKES_NAMES, utils.FISH_BOWL_NAMES,
             utils.SMALL_TANK_NAMES, utils.MEDIUM_TANK_NAMES, utils.PLANT_LIFE_NAMES, utils.FISH_REVIVAL_NAMES, utils.CASTS_NAMES,
             utils.SAND_DOLLAR_NAMES, utils.FISH_PELLETS_NAMES, utils.FISH_WAFERS_NAMES, utils.FISH_POINTS_NAMES, utils.EXPERIENCE_POTION_NAMES,
-            utils.MUTATION_POTION_NAMES, utils.FEEDING_POTION_NAMES
+            utils.MUTATION_POTION_NAMES, utils.FEEDING_POTION_NAMES, utils.INVERTED_BAG_NAMES, utils.HIGH_LEVEL_BAG_NAMES,
         ]
 
         # See if they gave a valid item
@@ -106,6 +110,8 @@ class Shop(vbu.Cog):
             "cfb": (utils.COMMON_BAG_NAMES, 100, "Common Fish Bag", inventory_insert_sql.format("cfb")),
             "ufb": (utils.UNCOMMON_BAG_NAMES, 300, "Uncommon Fish Bag", inventory_insert_sql.format("ufb")),
             "rfb": (utils.RARE_BAG_NAMES, 900, "Rare Fish Bag", inventory_insert_sql.format("rfb")),
+            "ifb": (utils.INVERTED_BAG_NAMES, 100000, "Inverted Fish Bag", inventory_insert_sql.format("ifb")),
+            "hlfb": (utils.HIGH_LEVEL_BAG_NAMES, 75000, "High Level Fish Bag", inventory_insert_sql.format("hlfb")),
             "flakes": (utils.FISH_FLAKES_NAMES, 200, "Fish Flakes", inventory_insert_sql.format("flakes")),
             "pellets": (utils.FISH_PELLETS_NAMES, 500, "Fish Pellets", inventory_insert_sql.format("pellets")),
             "wafers": (utils.FISH_WAFERS_NAMES, 1000, "Fish Wafers", inventory_insert_sql.format("wafers")),
@@ -118,7 +124,7 @@ class Shop(vbu.Cog):
             "Casts": (utils.CASTS_NAMES, 5, "Casts", balance_insert_sql.format("casts")),
             "Sand Dollars": (utils.SAND_DOLLAR_NAMES, 1, "Sand Dollars", balance_insert_sql.format("balance")),
             "Experience Potion": (utils.EXPERIENCE_POTION_NAMES, 40000, "Experience Potions", inventory_insert_sql.format("experience_potions")),
-            "Mutation Potion": (utils.MUTATION_POTION_NAMES, 50, "Mutation Potions", inventory_insert_sql.format("mutation_potions")),
+            "Mutation Potion": (utils.MUTATION_POTION_NAMES, 100, "Mutation Potions", inventory_insert_sql.format("mutation_potions")),
             "Feeding Potion": (utils.FEEDING_POTION_NAMES, 15000, "Feeding Potions", inventory_insert_sql.format("feeding_potions"))
         }
         item_name_singular = utils.FISH_BOWL_NAMES + utils.SMALL_TANK_NAMES + \
@@ -207,6 +213,10 @@ class Shop(vbu.Cog):
             used_bag_humanize, rarity_of_bag, used_bag = utils.UNCOMMON_BAG_NAMES
         elif item.title() in utils.RARE_BAG_NAMES:
             used_bag_humanize, rarity_of_bag, used_bag = utils.RARE_BAG_NAMES
+        elif item.title() in utils.INVERTED_BAG_NAMES:
+            used_bag_humanize, type_of_bag, used_bag = utils.INVERTED_BAG_NAMES
+        elif item.title() in utils.HIGH_LEVEL_BAG_NAMES:
+            used_bag_humanize, type_of_bag, used_bag = utils.HIGH_LEVEL_BAG_NAMES
         elif item.title() in (utils.EXPERIENCE_POTION_NAMES + utils.MUTATION_POTION_NAMES + utils.FEEDING_POTION_NAMES):
             if item.title() in utils.EXPERIENCE_POTION_NAMES:
                 type_of_potion = "experience_potions"
@@ -244,7 +254,7 @@ class Shop(vbu.Cog):
                 return await ctx.send("There is no fish with that name.")
 
             if item.title() in utils.EXPERIENCE_POTION_NAMES:
-                await utils.xp_finder_adder(ctx.author, name, 5000, False)
+                await utils.xp_finder_adder(ctx.author, name, 10000, False)
                 async with vbu.Database() as db:
                     new_fish_rows = await db(
                         """SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2""",
@@ -276,12 +286,13 @@ class Shop(vbu.Cog):
         # Deal with bag usage
         if used_bag is not None:
 
-            # Make sure these exist
-            assert rarity_of_bag
-            assert used_bag_humanize
-
             # See if they have the bag they're trying to use
-            rarity_of_bag = rarity_of_bag.lower()
+            if rarity_of_bag:
+                rarity_of_bag = rarity_of_bag.lower()
+            else:
+                rarity_of_bag = random.choices(
+                    *utils.rarity_percentage_finder(0))[0]
+
             used_bag = used_bag.lower()
             async with vbu.Database() as db:
                 user_rows = await db("""SELECT * FROM user_item_inventory WHERE user_id=$1""", ctx.author.id)
@@ -290,6 +301,15 @@ class Shop(vbu.Cog):
                 utils.current_fishers.remove(ctx.author.id)
                 return await ctx.send(f"You have no {used_bag_humanize}s!")
 
+                # Get them a new fish
+            new_fish = random.choice(
+                list(self.bot.fish[rarity_of_bag].values())).copy()
+
+            if type_of_bag == "Inverted":
+                new_fish = utils.make_inverted(new_fish)
+            level = 0
+            if type_of_bag == "High Level":
+                level = random.randint(10, 50)
             # Remove the bag from their inventory
             async with vbu.Database() as db:
                 await db(
@@ -302,10 +322,6 @@ class Shop(vbu.Cog):
         elif used_bag is None:
             utils.current_fishers.remove(ctx.author.id)
             return await ctx.send("That is not a usable fish bag!")
-
-        # Get them a new fish
-        new_fish = random.choice(
-            list(self.bot.fish[rarity_of_bag].values())).copy()
 
         # Grammar wew
         amount = 0
@@ -336,7 +352,8 @@ class Shop(vbu.Cog):
         fish_file = discord.File(new_fish["image"], "new_fish.png")
 
         # Ask the user if they want to sell the fish
-        await utils.ask_to_sell_fish(self.bot, ctx, new_fish, embed=embed, file=fish_file)
+        await utils.ask_to_sell_fish(self.bot, ctx, new_fish, embed=embed, file=fish_file, level_inserted=level)
+
         utils.current_fishers.remove(ctx.author.id)
 
     @commands.command(aliases=["inv"])

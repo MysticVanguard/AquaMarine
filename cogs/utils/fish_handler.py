@@ -192,6 +192,8 @@ Other utils with various uses
 COMMON_BAG_NAMES = ["Common Fish Bag", "Common", "Cfb"]
 UNCOMMON_BAG_NAMES = ["Uncommon Fish Bag", "Uncommon", "Ufb"]
 RARE_BAG_NAMES = ["Rare Fish Bag", "Rare", "Rfb"]
+INVERTED_BAG_NAMES = ["Inverted Fish Bag", "Inverted", "Ifb"]
+HIGH_LEVEL_BAG_NAMES = ["High Level Fish Bag", "High Level", "Hlfb"]
 FISH_FLAKES_NAMES = ["Fish Flakes", "Flakes", "Ff"]
 FISH_BOWL_NAMES = ["Fish Bowl", "Bowl", "Fb"]
 SMALL_TANK_NAMES = ["Small Tank", "Small", "St"]

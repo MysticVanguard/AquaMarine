@@ -10,7 +10,7 @@ from cogs import utils
 current_fishers = []
 
 
-async def ask_to_sell_fish(bot, ctx, new_fish: dict, embed, file=None):
+async def ask_to_sell_fish(bot, ctx, new_fish: dict, embed, file=None, level_inserted: int = 0):
     """
     Ask the user if they want to sell a fish they've been given.
     """
@@ -46,8 +46,8 @@ async def ask_to_sell_fish(bot, ctx, new_fish: dict, embed, file=None):
         # Keep going...
 
     # Level variables
-    level = random.randint(utils.WEIGHT_UPGRADES[upgrades[0]['weight_upgrade']]
-                           [0], utils.WEIGHT_UPGRADES[upgrades[0]['weight_upgrade']][1])
+    level = (random.randint(utils.WEIGHT_UPGRADES[upgrades[0]['weight_upgrade']]
+                            [0], utils.WEIGHT_UPGRADES[upgrades[0]['weight_upgrade']][1]) + level_inserted)
 
     while True:
 

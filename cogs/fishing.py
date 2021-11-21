@@ -137,7 +137,7 @@ class Fishing(vbu.Cog):
 
                 # Give them a bonus based on the fish's cost and tell them they got it correct if they did
                 if message.title() == new_fish['name']:
-                    bonus = 10 + math.floor(int(new_fish['cost']) / 20)
+                    bonus = 15 + math.floor(int(new_fish['cost']) / 20)
                     await ctx.send(f"<@{ctx.author.id}> guessed correctly and recieved {bonus} bonus sand dollars <:sand_dollar:877646167494762586>!")
 
                     # Update the users balance with the bonus
