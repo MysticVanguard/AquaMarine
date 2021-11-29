@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS user_balance (
     balance INTEGER NOT NULL DEFAULT 0,
     doubloon INTEGER NOT NULL DEFAULT 0,
     casts INTEGER NOT NULL DEFAULT 0,
+    extra_points INT NULL DEFAULT 0,
     PRIMARY KEY (user_id)
 );
 
@@ -55,10 +56,15 @@ CREATE TABLE IF NOT EXISTS user_item_inventory (
     cfb INT NOT NULL DEFAULT 0,
     ufb INT NOT NULL DEFAULT 0,
     rfb INT NOT NULL DEFAULT 0,
-    efb INT NOT NULL DEFAULT 0,
-    lfb INT NOT NULL DEFAULT 0,
+    ifb INT NOT NULL DEFAULT 0,
+    hlfb INT NOT NULL DEFAULT 0,
     flakes INT NOT NULL DEFAULT 0,
     revival INT NOT NULL DEFAULT 0,
+    pellets INT NOT NULL DEFAULT 0,
+    wafers INT NOT NULL DEFAULT 0,
+    experience_potions INT NOT NULL DEFAULT 0,
+    mutation_potions INT NOT NULL DEFAULT 0,
+    feeding_potions INT NOT NULL DEFAULT 0,
     PRIMARY KEY (user_id)
 );
 

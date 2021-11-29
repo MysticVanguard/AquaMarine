@@ -54,6 +54,9 @@ class FishCare(vbu.Cog):
                 """SELECT toys_upgrade, amazement_upgrade FROM user_upgrades WHERE user_id = $1""",
                 ctx.author.id,
             )
+            if not upgrades:
+                await db("""INSERT INTO user_upgrades (user_id) VALUES ($1)""", ctx.author.id)
+                upgrades = await db("""SELECT toys_upgrade, amazement_upgrade FROM user_upgrades WHERE user_id = $1""", ctx.author.id)
 
         await ctx.trigger_typing()
         if not tank_entertained:
@@ -169,6 +172,9 @@ class FishCare(vbu.Cog):
                 """SELECT feeding_upgrade, big_servings_upgrade FROM user_upgrades WHERE user_id = $1""",
                 ctx.author.id,
             )
+            if not upgrades:
+                await db("""INSERT INTO user_upgrades (user_id) VALUES ($1)""", ctx.author.id)
+                upgrades = await db("""SELECT feeding_upgrade, big_servings_upgrade FROM user_upgrades WHERE user_id = $1""", ctx.author.id)
             fish_rows = await db(
                 """SELECT * FROM user_fish_inventory WHERE user_id = $1 AND tank_fish != ''""",
                 ctx.author.id,
@@ -279,6 +285,9 @@ class FishCare(vbu.Cog):
                 """SELECT bleach_upgrade, hygienic_upgrade, mutation_upgrade FROM user_upgrades WHERE user_id = $1""",
                 ctx.author.id,
             )
+            if not upgrades:
+                await db("""INSERT INTO user_upgrades (user_id) VALUES ($1)""", ctx.author.id)
+                upgrades = await db("""SELECT bleach_upgrade, hygienic_upgrade, mutation_upgrade FROM user_upgrades WHERE user_id = $1""", ctx.author.id)
             tank_rows = await db("""SELECT * FROM user_tank_inventory WHERE user_id = $1""", ctx.author.id)
 
         if not tank_cleaned:
@@ -377,9 +386,13 @@ class FishCare(vbu.Cog):
             money_gained += (fish["fish_level"] *
                              rarity_multiplier * size_multiplier)
 
+        vote_multiplier = 1
+        if await utils.get_user_voted(self.bot, ctx.author.id) == True:
+            vote_multiplier = 1.5
+            await ctx.send("You voted at <https://top.gg/bot/840956686743109652/vote> for a **1.5x** bonus")
         # After all the fish the new money is the total * upgrade multipliers + the effort rounded down
         money_gained = math.floor(
-            money_gained * (utils.BLEACH_UPGRADE[upgrades[0]['bleach_upgrade']]) * multiplier + effort_extra[0])
+            (money_gained * (utils.BLEACH_UPGRADE[upgrades[0]['bleach_upgrade']]) * multiplier + effort_extra[0]) * vote_multiplier)
 
         # Add the money gained to the database, and add the achievements
         async with vbu.Database() as db:

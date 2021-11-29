@@ -147,7 +147,7 @@ class Aquarium(vbu.Cog):
             self.bot, ctx, tank_row[0]['tank_name'], "tank", "choose")
 
         async with vbu.Database() as db:
-            fish_row = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2""", ctx.author.id, fish_removed, tank_name)
+            fish_row = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2""", ctx.author.id, fish_removed)
 
         if not fish_row:
             return await ctx.send(

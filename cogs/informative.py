@@ -99,6 +99,8 @@ class Informative(vbu.Cog):
             "cfb": "<:common_fish_bag:877646166983053383>",
             "ufb": "<:uncommon_fish_bag:877646167146651768>",
             "rfb": "<:rare_fish_bag:877646167121489930>",
+            "ifb": "<:inverted_fish_bag:912057608863637545>",
+            "hlfb": "<:high_level_fish_bag:912057609496985690>",
             "flakes": "<:fish_flakes:877646167188602880>",
             "pellets": "<:fish_pellets:911465714412552212>",
             "wafers": "<:fish_wafers:911465714395799574>",

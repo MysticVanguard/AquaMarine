@@ -10,7 +10,7 @@ from cogs import utils
 current_fishers = []
 
 
-async def ask_to_sell_fish(bot, ctx, new_fish: dict, embed, file=None, level_inserted: int = 0):
+async def ask_to_sell_fish(bot, ctx, new_fish: dict, embed, level_inserted: int = 0):
     """
     Ask the user if they want to sell a fish they've been given.
     """
@@ -25,7 +25,7 @@ async def ask_to_sell_fish(bot, ctx, new_fish: dict, embed, file=None, level_ins
         ),
     )
     try:
-        message = await ctx.send(embed=embed, components=components, file=file)
+        message = await ctx.send(embed=embed, components=components)
     except discord.HTTPException:
         return
 
@@ -116,10 +116,12 @@ async def ask_to_sell_fish(bot, ctx, new_fish: dict, embed, file=None, level_ins
 
             # They want to keep - ask what they want to name the fish
             await message.channel.send("What do you want to name your new fish? (32 character limit and cannot be named the same as another fish you own)")
-            def check(m): return m.author == ctx.author and m.channel == message.channel and len(
+            def check(m): print(m.author == ctx.author); print(m.channel == message.channel); print(len(m.content) > 1); print(len(m.content) <= 32); print("2"); return m.author == ctx.author and m.channel == message.channel and len(
                 m.content) > 1 and len(m.content) <= 32 and m.content not in fish_names
             try:
+                print("1")
                 name_message = await bot.wait_for("message", timeout=60.0, check=check)
+                print("3")
                 name = name_message.content
                 await message.channel.send(f"Your new fish **{name}** (Lvl. {level}) has been added to your bucket!")
             except asyncio.TimeoutError:
@@ -136,9 +138,16 @@ async def ask_to_sell_fish(bot, ctx, new_fish: dict, embed, file=None, level_ins
         if chosen_button == "sell":
             # See if they want to sell the fish
             print("sell confirm")
+            vote_multiplier = 1
+            if await get_user_voted(bot, ctx.author.id) == True:
+                vote_multiplier = 1.5
+                await message.channel.send("You voted at <https://top.gg/bot/840956686743109652/vote> for a **1.5x** bonus")
+
             level_multiplier = level / 20
+            print((int(new_fish['cost']) / 2), utils.ROD_UPGRADES[upgrades[0]['rod_upgrade']], (1 + level_multiplier), vote_multiplier, math.ceil(
+                (int(new_fish['cost']) / 2) * utils.ROD_UPGRADES[upgrades[0]['rod_upgrade']] * (1 + level_multiplier) * vote_multiplier))
             money_earned = math.ceil(
-                (int(new_fish['cost']) / 2) * utils.ROD_UPGRADES[upgrades[0]['rod_upgrade']] * (1 + level_multiplier))
+                (int(new_fish['cost']) / 2) * utils.ROD_UPGRADES[upgrades[0]['rod_upgrade']] * (1 + level_multiplier) * vote_multiplier)
             async with bot.database() as db:
                 await db(
                     """INSERT INTO user_balance (user_id, balance) VALUES ($1, $2)
@@ -274,3 +283,32 @@ async def buying_singular(bot, user: discord.user, ctx, item: str):
 
         async with bot.database() as db:
             await db("""UPDATE user_tank_inventory SET tank_theme[$1] = $2 WHERE user_id=$3""", theme_slots_dict[theme_message], item.replace(" ", "_"), user.id)
+
+
+# Vote confirmer tolen from https://github.com/Voxel-Fox-Ltd/Flower/blob/master/cogs/plant_care_commands.py
+async def get_user_voted(bot, user_id: int) -> bool:
+    """
+    Returns whether or not the user with the given ID has voted for the bot on Top.gg.
+    Args:
+        user_id (int): The ID of the user we want to check
+    Returns:
+        bool: Whether or not the user voted for the bot
+    """
+
+    TOPGG_GET_VOTES_ENDPOINT = "https://top.gg/api/bots/{bot_client_id}/check"
+    topgg_token = bot.config.get(
+        'bot_listing_api_keys', {}).get('topgg_token')
+    if not topgg_token:
+        return False
+    params = {"userId": user_id}
+    headers = {"Authorization": topgg_token}
+    url = TOPGG_GET_VOTES_ENDPOINT.format(
+        bot_client_id=bot.config['oauth']['client_id'])
+    async with bot.session.get(url, params=params, headers=headers) as r:
+        try:
+            data = await r.json()
+        except Exception:
+            return False
+        if r.status != 200:
+            return False
+    return bool(data['voted'])

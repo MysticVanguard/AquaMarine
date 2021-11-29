@@ -13,57 +13,63 @@ from cogs.utils.misc_utils import create_bucket_embed
 
 FISH_SHOP_EMBED = discord.Embed(title="Fish Shop")
 FISH_SHOP_EMBED.add_field(
-    name="Fish Bags", value="**These are bags containing a fish**", inline=False)
-FISH_SHOP_EMBED.add_field(name="Common Fish Bag <:common_fish_bag:877646166983053383>",
-                          value="This gives you one fish from the common rarity \n __100 <:sand_dollar:877646167494762586>__", inline=True)
-FISH_SHOP_EMBED.add_field(name="Uncommon Fish Bag <:uncommon_fish_bag:877646167146651768>",
-                          value="This gives you one fish from the uncommon rarity \n __300 <:sand_dollar:877646167494762586>__", inline=True)
-FISH_SHOP_EMBED.add_field(name="Rare Fish Bag <:rare_fish_bag:877646167121489930>",
-                          value="This gives you one fish from the rare rarity \n __900 <:sand_dollar:877646167494762586>__", inline=True)
-FISH_SHOP_EMBED.add_field(name="Inverted Fish Bag ",
-                          value="This gives you one inverted fish from any rarity \n __100000 <:sand_dollar:877646167494762586>__", inline=True)
-FISH_SHOP_EMBED.add_field(name="High Level Fish Bag ",
-                          value="This gives you one fish from any rarity between the levels 10-50 \n __75000 <:sand_dollar:877646167494762586>__", inline=True)
+    name="<:AMFC:913680729177751563> __AquaMarine Fish Corps State Issued Resources__ <:AMFC:913680729177751563>", value="*These are resources bought from the AMFC company.*", inline=False)
 
 FISH_SHOP_EMBED.add_field(
-    name="Fish Care", value="These are items to help keep your fish alive", inline=False)
-FISH_SHOP_EMBED.add_field(name="Fish Revival <:revival:878297091158474793>",
-                          value="This gives you a fish revival to bring your fish back to life \n __2,500 <:sand_dollar:877646167494762586>__", inline=True)
-FISH_SHOP_EMBED.add_field(name="Fish Flakes <:fish_flakes:877646167188602880>",
-                          value="This gives you fish flakes to feed a fish that is level 1-20, keeping them alive \n __200 <:sand_dollar:877646167494762586>__", inline=True)
-FISH_SHOP_EMBED.add_field(name="Fish Pellets <:fish_pellets:911465714412552212>",
-                          value="This gives you fish pellets to feed a fish that is level 21-50, keeping them alive \n __500 <:sand_dollar:877646167494762586>__", inline=True)
-FISH_SHOP_EMBED.add_field(name="Fish Wafers <:fish_wafers:911465714395799574>",
-                          value="This gives you fish wafers to feed a fish that is level 51+, keeping them alive \n __1000 <:sand_dollar:877646167494762586>__", inline=True)
-
-FISH_SHOP_EMBED.add_field(
-    name="Tanks", value="These are tanks you can buy to put your fish into, can only be purchased one at a time", inline=False)
-FISH_SHOP_EMBED.add_field(
-    name="Fish Bowl", value="This gives you a Fish Bowl Tank that you can deposit one small fish into \n __250 <:sand_dollar:877646167494762586>__", inline=True)
-FISH_SHOP_EMBED.add_field(
-    name="Small Tank", value="This gives you a Small Tank that you can deposit five small fish or one medium fish into\n __2,000 <:sand_dollar:877646167494762586>__", inline=True)
-FISH_SHOP_EMBED.add_field(
-    name="Medium Tank", value="This gives you a Medium Tank that you can deposit twenty five small fish, five medium fish, or one large fish into \n __12,000 <:sand_dollar:877646167494762586>__", inline=True)
-
-FISH_SHOP_EMBED.add_field(
-    name="Tank Themes", value="These are themes you can buy for your tanks", inline=False)
+    name="Tank Themes", value="*These are tank themes to apply to your tank*", inline=False)
 FISH_SHOP_EMBED.add_field(
     name="Plant Life", value="This gives you the plant life theme for one of your tanks \n __250 <:doubloon:878297091057807400>__", inline=True)
-
 FISH_SHOP_EMBED.add_field(
-    name="Misc", value="These are just some random things", inline=False)
-FISH_SHOP_EMBED.add_field(
-    name="Fish Points <:fish_points:911468089420427324>", value="This will give you one permanant point for the leaderboard \n __500 <:sand_dollar:877646167494762586>__", inline=True)
-FISH_SHOP_EMBED.add_field(
-    name="Fishing Casts <:Casts:911465713938612235>", value="This will give you five casts \n __5 <:doubloon:878297091057807400>__", inline=True)
-FISH_SHOP_EMBED.add_field(
-    name="Sand Dollars <:sand_dollar:877646167494762586>", value="This will give you 1,500 sand dollars \n __1 <:doubloon:878297091057807400>__", inline=True)
+    name="Potions", value="*These are potions with strange effects*", inline=False)
 FISH_SHOP_EMBED.add_field(
     name="Feeding Potion <:feeding_potion:911465714379018261>", value="This will give you a feeding potion that will make your fish full for 30 days \n __10,000 <:sand_dollar:877646167494762586>__", inline=True)
 FISH_SHOP_EMBED.add_field(
     name="Experience Potion <:experience_potion:911465714412568616>", value="This will give you an experience potion that gives your fish 5,000 experience \n __40,000 <:sand_dollar:877646167494762586>__", inline=True)
 FISH_SHOP_EMBED.add_field(
     name="Mutation Potion <:mutation_potion:911465714420949072>", value="This will give you a mutation potion that turns one of your fish inverted \n __50 <:doubloon:878297091057807400>__", inline=True)
+FISH_SHOP_EMBED.add_field(
+    name="Fish Bags", value="*These are bags of fish each containing one fish*", inline=False)
+FISH_SHOP_EMBED.add_field(name="Common Fish Bag <:common_fish_bag:877646166983053383>",
+                          value="This gives you one fish from the common rarity \n __100 <:sand_dollar:877646167494762586>__", inline=True)
+FISH_SHOP_EMBED.add_field(name="Uncommon Fish Bag <:uncommon_fish_bag:877646167146651768>",
+                          value="This gives you one fish from the uncommon rarity \n __300 <:sand_dollar:877646167494762586>__", inline=True)
+FISH_SHOP_EMBED.add_field(name="Rare Fish Bag <:rare_fish_bag:877646167121489930>",
+                          value="This gives you one fish from the rare rarity \n __900 <:sand_dollar:877646167494762586>__", inline=True)
+FISH_SHOP_EMBED.add_field(name="Inverted Fish Bag <:inverted_fish_bag:912057608863637545>",
+                          value="This gives you one inverted fish from any rarity \n __100000 <:sand_dollar:877646167494762586>__", inline=True)
+FISH_SHOP_EMBED.add_field(name="High Level Fish Bag <:high_level_fish_bag:912057609496985690>",
+                          value="This gives you one fish from any rarity between the levels 10-50 \n __75000 <:sand_dollar:877646167494762586>__", inline=True)
+FISH_SHOP_EMBED.add_field(
+    name="Misc", value="*These are miscellaneous items for sale*", inline=False)
+FISH_SHOP_EMBED.add_field(name="Fish Revival <:revival:878297091158474793>",
+                          value="This gives you a fish revival to bring your fish back to life \n __2,500 <:sand_dollar:877646167494762586>__", inline=True)
+
+FISH_SHOP_EMBED.add_field(
+    name="<:GFU:913680729517469716> __Golden Fishers Union Item Market__ <:GFU:913680729517469716>", value="These are items sold by the GFU", inline=False)
+FISH_SHOP_EMBED.add_field(
+    name="Fish Food", value="*These are foods for your fish*", inline=False)
+FISH_SHOP_EMBED.add_field(name="Fish Flakes <:fish_flakes:877646167188602880>",
+                          value="This gives you fish flakes to feed a fish that is level 1-20, keeping them alive \n __200 <:sand_dollar:877646167494762586>__", inline=True)
+FISH_SHOP_EMBED.add_field(name="Fish Pellets <:fish_pellets:911465714412552212>",
+                          value="This gives you fish pellets to feed a fish that is level 21-50, keeping them alive \n __500 <:sand_dollar:877646167494762586>__", inline=True)
+FISH_SHOP_EMBED.add_field(name="Fish Wafers <:fish_wafers:911465714395799574>",
+                          value="This gives you fish wafers to feed a fish that is level 51+, keeping them alive \n __1000 <:sand_dollar:877646167494762586>__", inline=True)
+FISH_SHOP_EMBED.add_field(
+    name="Fish Tanks", value="*These are tanks that will hold your fish*", inline=False)
+FISH_SHOP_EMBED.add_field(
+    name="Fish Bowl", value="This gives you a Fish Bowl Tank that you can deposit one small fish into \n __250 <:sand_dollar:877646167494762586>__", inline=True)
+FISH_SHOP_EMBED.add_field(
+    name="Small Tank", value="This gives you a Small Tank that you can deposit five small fish or one medium fish into\n __2,000 <:sand_dollar:877646167494762586>__", inline=True)
+FISH_SHOP_EMBED.add_field(
+    name="Medium Tank", value="This gives you a Medium Tank that you can deposit twenty five small fish, five medium fish, or one large fish into \n __12,000 <:sand_dollar:877646167494762586>__", inline=True)
+FISH_SHOP_EMBED.add_field(
+    name="Misc", value="*These are miscellaneous items for sale*", inline=False)
+FISH_SHOP_EMBED.add_field(
+    name="Fish Points <:fish_points:911468089420427324>", value="This will give you one permanant point for the leaderboard \n __500 <:sand_dollar:877646167494762586>__", inline=True)
+FISH_SHOP_EMBED.add_field(
+    name="Fishing Casts <:Casts:911465713938612235>", value="This will give you five casts \n __5 <:doubloon:878297091057807400>__", inline=True)
+FISH_SHOP_EMBED.add_field(
+    name="Sand Dollars <:sand_dollar:877646167494762586>", value="This will give you 1,500 sand dollars \n __1 <:doubloon:878297091057807400>__", inline=True)
 
 
 class Shop(vbu.Cog):
@@ -207,6 +213,7 @@ class Shop(vbu.Cog):
         rarity_of_bag = None
         used_bag = None
         used_bag_humanize = None
+        type_of_bag = None
         if item.title() in utils.COMMON_BAG_NAMES:
             used_bag_humanize, rarity_of_bag, used_bag = utils.COMMON_BAG_NAMES
         elif item.title() in utils.UNCOMMON_BAG_NAMES:
@@ -352,7 +359,8 @@ class Shop(vbu.Cog):
         fish_file = discord.File(new_fish["image"], "new_fish.png")
 
         # Ask the user if they want to sell the fish
-        await utils.ask_to_sell_fish(self.bot, ctx, new_fish, embed=embed, file=fish_file, level_inserted=level)
+        await ctx.send(file=fish_file)
+        await utils.ask_to_sell_fish(self.bot, ctx, new_fish, embed=embed, level_inserted=level)
 
         utils.current_fishers.remove(ctx.author.id)
 
@@ -464,25 +472,25 @@ class Shop(vbu.Cog):
     @commands.bot_has_permissions(send_messages=True)
     async def daily(self, ctx: commands.Context):
         """
-        This command gives the user a daily reward of 100 Sand Dollars.
+        This command gives the user a daily reward of 500 Sand Dollars.
         """
 
         # Adds the money to the users balance
         async with vbu.Database() as db:
             await db(
-                """INSERT INTO user_balance (user_id, balance) VALUES ($1, 100)
+                """INSERT INTO user_balance (user_id, balance) VALUES ($1, 500)
                 ON CONFLICT (user_id) DO UPDATE SET balance = user_balance.balance + 100""",
                 ctx.author.id,
             )
             # Achievements
             await db(
-                """INSERT INTO user_achievements (user_id, money_gained) VALUES ($1, 100)
+                """INSERT INTO user_achievements (user_id, money_gained) VALUES ($1, 500)
                 ON CONFLICT (user_id) DO UPDATE SET money_gained = user_achievements.money_gained + 100""",
                 ctx.author.id
             )
 
         # confirmation message
-        return await ctx.send("Daily reward of 100 <:sand_dollar:877646167494762586> claimed!")
+        return await ctx.send("Daily reward of 500 <:sand_dollar:877646167494762586> claimed!")
 
     @daily.error
     async def daily_error(self, ctx, error):
@@ -501,7 +509,7 @@ class Shop(vbu.Cog):
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def gamble(self, ctx: commands.Context):
         """
-        This command is similar to slots, but doesn't cost anything.
+        This command costs 50 sand dollars and will give a fish bag
         """
         items = {
             "cfb": ("<:common_fish_bag:877646166983053383>", "Common Fish Bag"),

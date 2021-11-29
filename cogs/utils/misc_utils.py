@@ -99,9 +99,9 @@ def get_fixed_field(field):
             # Add it to the new field with the original starting part
             fixed_field.append((field[0], current_string))
             # Set the current string to "current string"
-            current_string = fish_string
+            current_string = "\n" + fish_string
             # Set the sum back to 0
-            fish_character_sum = 0
+            fish_character_sum = len("\n" + fish_string)
 
     # If there was nothing sent to fixed field...
     if not fixed_field:

@@ -1,6 +1,7 @@
 import random
 from datetime import datetime as dt, timedelta
 
+
 import math
 import asyncio
 import discord
@@ -70,7 +71,6 @@ class Fishing(vbu.Cog):
             1, utils.LINE_UPGRADES[upgrades[0]['line_upgrade']])
         if two_in_one_roll == 1:
             caught_fish = 2
-
         # For each fish caught...
         for _ in range(caught_fish):
 
