@@ -6,43 +6,43 @@ from cogs import utils
 class Upgrades(vbu.Cog):
 
     UPGRADE_DESCRIPTIONS = {
-        'rod_upgrade': 'Increases the price a caught fish sells for',
-        'line_upgrade': 'Increases the chance of catching two fish in one cast',
-        'crate_chance_upgrade': 'Increases chance of catching a crate when fishing',
-        'weight_upgrade': 'Increases the level fish are when caught',
-        'bait_upgrade': 'Increases the chance of catching rarer fish when fishing',
-        'crate_tier_upgrade': 'Increases the tier of the crate caught',
-        'lure_upgrade': 'Increases the chance of catching a special fish when fishing',
-        'feeding_upgrade': 'Increases how long fish will live after being fed',
-        'toys_upgrade': 'Increases the xp gained from entertaining',
-        'mutation_upgrade': 'Increases the chance of a fish mutating to a special fish during cleaning',
-        'amazement_upgrade': 'Increases chance of bonus level when entertaining',
-        'bleach_upgrade': 'Increases the cleaning multiplier',
-        'big_servings_upgrade': 'Increases chance of a fish not eating food when they are fed',
-        'hygienic_upgrade': 'Lessens the frequency of cleaning, while giving a multiplier equal to the lost time',
+        "rod_upgrade": "Increases the price a caught fish sells for",
+        "line_upgrade": "Increases the chance of catching two fish in one cast",
+        "crate_chance_upgrade": "Increases chance of catching a crate when fishing",
+        "weight_upgrade": "Increases the level fish are when caught",
+        "bait_upgrade": "Increases the chance of catching rarer fish when fishing",
+        "crate_tier_upgrade": "Increases the tier of the crate caught",
+        "lure_upgrade": "Increases the chance of catching a special fish when fishing",
+        "feeding_upgrade": "Increases how long fish will live after being fed",
+        "toys_upgrade": "Increases the xp gained from entertaining",
+        "mutation_upgrade": "Increases the chance of a fish mutating to a special fish during cleaning",
+        "amazement_upgrade": "Increases chance of bonus level when entertaining",
+        "bleach_upgrade": "Increases the cleaning multiplier",
+        "big_servings_upgrade": "Increases chance of a fish not eating food when they are fed",
+        "hygienic_upgrade": "Lessens the frequency of cleaning, while giving a multiplier equal to the lost time",
     }
 
     TIER_RANKS = {
-        'rod_upgrade': {
-            'bait_upgrade': [
-                'line_upgrade',
-                'lure_upgrade',
+        "rod_upgrade": {
+            "bait_upgrade": [
+                "line_upgrade",
+                "lure_upgrade",
             ],
-            'crate_chance_upgrade': [
-                'weight_upgrade',
-                'crate_tier_upgrade',
-            ]
+            "crate_chance_upgrade": [
+                "weight_upgrade",
+                "crate_tier_upgrade",
+            ],
         },
-        'bleach_upgrade': {
-            'toys_upgrade': [
-                'amazement_upgrade',
-                'mutation_upgrade',
+        "bleach_upgrade": {
+            "toys_upgrade": [
+                "amazement_upgrade",
+                "mutation_upgrade",
             ],
-            'big_servings_upgrade': [
-                'hygienic_upgrade',
-                'feeding_upgrade',
-            ]
-        }
+            "big_servings_upgrade": [
+                "hygienic_upgrade",
+                "feeding_upgrade",
+            ],
+        },
     }
     UPGRADE_COST_LIST = (1000, 2000, 3000, 4000, 5000, 5000)
     UPGRADE_COST_LIST_TWO = (10000, 20000, 30000, 40000, 50000, 50000)
@@ -69,7 +69,10 @@ class Upgrades(vbu.Cog):
                 ctx.author.id,
             )
             if not upgrades:
-                upgrades = await db("""INSERT INTO user_upgrades (user_id) VALUES ($1) RETURNING *""", ctx.author.id)
+                upgrades = await db(
+                    """INSERT INTO user_upgrades (user_id) VALUES ($1) RETURNING *""",
+                    ctx.author.id,
+                )
 
         # Build out output strings
         tier = 0
@@ -79,7 +82,7 @@ class Upgrades(vbu.Cog):
             if upgrade != "user_id":
                 tier += 1
                 description = self.UPGRADE_DESCRIPTIONS[upgrade]
-                name = ' '.join(upgrade.split('_')).title()
+                name = " ".join(upgrade.split("_")).title()
                 # Get the cost of an upgrade
                 cost_string = f"{self.UPGRADE_COST_LIST[int(level)]:,} <:sand_dollar:877646167494762586>"
 
@@ -97,12 +100,12 @@ class Upgrades(vbu.Cog):
                         description = "???"
                         name = "???"
                         cost_string = "???"
-                    start = '<:straight_branch:886377903837806602>'
+                    start = "<:straight_branch:886377903837806602>"
                     start_two = "<:straight:886377903879753728>"
                     emote = "<:bar_2:877646166823694437>"
                     left_bar = "<:bar_L_branch:886377903581986848>"
                     if tier == 5:
-                        start = '<:branch:886377903825252402>'
+                        start = "<:branch:886377903825252402>"
                         start_two = "<:straight:886377903879753728>"
                 elif tier == 6 or tier == 3:
                     cost_string = f"{self.UPGRADE_COST_LIST_THREE[int(level)]:,} <:sand_dollar:877646167494762586>"
@@ -151,7 +154,11 @@ class Upgrades(vbu.Cog):
                 progress_bar = f"{left_bar}{''.join(emote_string_list)}<:bar_R:877646167113080842>"
                 nl = "\n"
                 message.append(
-                    (f"{start}{progress_bar}", f"{start_two}**{name}: (Lvl. {level}.): {cost_string}**{nl}{start_two}*{description}*"))
+                    (
+                        f"{start}{progress_bar}",
+                        f"{start_two}**{name}: (Lvl. {level}.): {cost_string}**{nl}{start_two}*{description}*",
+                    )
+                )
                 print(len(progress_bar))
 
                 if tier == 7:
@@ -163,13 +170,20 @@ class Upgrades(vbu.Cog):
         embed = vbu.Embed()
         for time, message_data in enumerate(message):
             if time == 0:
-                embed.add_field(name="The Way of the Fish",
-                                value="These upgrades have to do with fishing", inline=False)
+                embed.add_field(
+                    name="The Way of the Fish",
+                    value="These upgrades have to do with fishing",
+                    inline=False,
+                )
             elif time == 8:
-                embed.add_field(name="The Way of the Tank",
-                                value="These upgrades have to do with owning fish in aquariums", inline=False)
+                embed.add_field(
+                    name="The Way of the Tank",
+                    value="These upgrades have to do with owning fish in aquariums",
+                    inline=False,
+                )
             embed.add_field(
-                name=message_data[1], value=message_data[0], inline=False)
+                name=message_data[1], value=message_data[0], inline=False
+            )
         await ctx.send(embed=embed)
 
     @commands.command()
@@ -190,51 +204,102 @@ class Upgrades(vbu.Cog):
             )
 
         # Make sure the upgrade is valid
-        upgrade = "_".join(upgrade.lower().replace(' upgrade', '').split(' '))
+        upgrade = "_".join(upgrade.lower().replace(" upgrade", "").split(" "))
         upgraded = f"{upgrade}_upgrade"
         upgraded = f"{upgrade.replace(' ', '_')}_upgrade"
         if upgraded not in upgrades[0].keys():
             return await ctx.send("That's not a valid upgrade.")
-        if upgraded in ['line_upgrade', 'bait_upgrade', 'crate_chance_upgrade', 'lure_upgrade', 'crate_tier_upgrade', 'weight_upgrade']:
-            if upgrades[0]['rod_upgrade'] != 5:
+        if upgraded in [
+            "line_upgrade",
+            "bait_upgrade",
+            "crate_chance_upgrade",
+            "lure_upgrade",
+            "crate_tier_upgrade",
+            "weight_upgrade",
+        ]:
+            if upgrades[0]["rod_upgrade"] != 5:
                 return await ctx.send("The Rod Upgrade needs upgraded first!")
-            if upgrades[0]['bait_upgrade'] != 5 and upgraded in ['line_upgrade', 'lure_upgrade']:
+            if upgrades[0]["bait_upgrade"] != 5 and upgraded in [
+                "line_upgrade",
+                "lure_upgrade",
+            ]:
                 return await ctx.send("The Bait Upgrade needs upgraded first!")
-            if upgrades[0]['crate_chance_upgrade'] != 5 and upgraded in ['weight_upgrade', 'crate_tier_upgrade']:
-                return await ctx.send("The Crate Chance Upgrade needs upgraded first!")
-        if upgraded in ['toys_upgrade', 'big_servings_upgrade', 'amazement_upgrade', 'feeding_upgrade', 'mutation_upgrade', 'hygienic_upgrade']:
-            if upgrades[0]['bleach_upgrade'] != 5:
-                return await ctx.send("The Bleach Upgrade needs upgraded first!")
-            if upgrades[0]['toys_upgrade'] != 5 and upgraded in ['mutation_upgrade', 'amazement_upgrade']:
+            if upgrades[0]["crate_chance_upgrade"] != 5 and upgraded in [
+                "weight_upgrade",
+                "crate_tier_upgrade",
+            ]:
+                return await ctx.send(
+                    "The Crate Chance Upgrade needs upgraded first!"
+                )
+        if upgraded in [
+            "toys_upgrade",
+            "big_servings_upgrade",
+            "amazement_upgrade",
+            "feeding_upgrade",
+            "mutation_upgrade",
+            "hygienic_upgrade",
+        ]:
+            if upgrades[0]["bleach_upgrade"] != 5:
+                return await ctx.send(
+                    "The Bleach Upgrade needs upgraded first!"
+                )
+            if upgrades[0]["toys_upgrade"] != 5 and upgraded in [
+                "mutation_upgrade",
+                "amazement_upgrade",
+            ]:
                 return await ctx.send("The Toys Upgrade needs upgraded first!")
-            if upgrades[0]['big_servings_upgrade'] != 5 and upgraded in ['feeding_upgrade', 'hygienic_upgrade']:
-                return await ctx.send("The Big Servings Upgrade needs upgraded first!")
+            if upgrades[0]["big_servings_upgrade"] != 5 and upgraded in [
+                "feeding_upgrade",
+                "hygienic_upgrade",
+            ]:
+                return await ctx.send(
+                    "The Big Servings Upgrade needs upgraded first!"
+                )
 
         # See how upgraded the user currently is
         upgrade_level = upgrades[0][upgraded]
         if upgrade_level == 5:
             return await ctx.send("That upgrade is fully upgraded.")
-        if upgraded in ('rod_upgrade', 'bleach_upgrade'):
+        if upgraded in ("rod_upgrade", "bleach_upgrade"):
             upgrade_cost_list_used = self.UPGRADE_COST_LIST
-        elif upgraded in ('crate_chance_upgrade', 'bait_upgrade', 'toys_upgrade', 'big_servings_upgrade'):
+        elif upgraded in (
+            "crate_chance_upgrade",
+            "bait_upgrade",
+            "toys_upgrade",
+            "big_servings_upgrade",
+        ):
             upgrade_cost_list_used = self.UPGRADE_COST_LIST_TWO
         else:
             upgrade_cost_list_used = self.UPGRADE_COST_LIST_THREE
 
-        if not await utils.check_price(self.bot, ctx.author.id, upgrade_cost_list_used[int(upgrade_level)], 'balance'):
-            return await ctx.send("You don't have enough Sand Dollars <:sand_dollar:877646167494762586> for this upgrade!")
+        if not await utils.check_price(
+            self.bot,
+            ctx.author.id,
+            upgrade_cost_list_used[int(upgrade_level)],
+            "balance",
+        ):
+            return await ctx.send(
+                "You don't have enough Sand Dollars <:sand_dollar:877646167494762586> for this upgrade!"
+            )
 
         # Upgrade them in the database
         async with vbu.Database() as db:
             await db(
                 """UPDATE user_balance SET balance=balance-$1 WHERE user_id = $2""",
-                upgrade_cost_list_used[int(
-                    upgrades[0][upgraded])], ctx.author.id,
+                upgrade_cost_list_used[int(upgrades[0][upgraded])],
+                ctx.author.id,
             )
-            await db("""UPDATE user_upgrades SET {0}=user_upgrades.{0}+1 WHERE user_id = $1""".format(upgraded), ctx.author.id)
+            await db(
+                """UPDATE user_upgrades SET {0}=user_upgrades.{0}+1 WHERE user_id = $1""".format(
+                    upgraded
+                ),
+                ctx.author.id,
+            )
 
         # And bam
-        await ctx.send(f"{upgrade.title()} has been upgraded for {upgrade_cost_list_used[upgrade_level]:,}!")
+        await ctx.send(
+            f"{upgrade.title()} has been upgraded for {upgrade_cost_list_used[upgrade_level]:,}!"
+        )
 
 
 def setup(bot):

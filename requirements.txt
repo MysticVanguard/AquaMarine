@@ -1,3 +1,4 @@
-voxelbotutils
-pillow
 imageio
+pillow
+precommit
+voxelbotutils

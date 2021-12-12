@@ -7,7 +7,12 @@ from discord.ext import vbu
 
 
 # Finds out what level and xp each fish will be
-async def xp_finder_adder(user: typing.Union[discord.User, discord.Member], played_with_fish: str, xp_per_fish: int, level: bool) -> None:
+async def xp_finder_adder(
+    user: typing.Union[discord.User, discord.Member],
+    played_with_fish: str,
+    xp_per_fish: int,
+    level: bool,
+) -> None:
     """
     Takes umm it takes the uh so it takes the it's called every time every fish in a tank and it takes every
     it it takes the xp for that uh that fish and uh um and then basically it stop i hate it
@@ -20,13 +25,17 @@ async def xp_finder_adder(user: typing.Union[discord.User, discord.Member], play
 
     # Intial data for fish
     async with vbu.Database() as db:
-        fish_rows = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2""", user.id, played_with_fish)
+        fish_rows = await db(
+            """SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2""",
+            user.id,
+            played_with_fish,
+        )
 
     # Update what the current xp will be
-    current_xp = fish_rows[0]['fish_xp'] + xp_per_fish
+    current_xp = fish_rows[0]["fish_xp"] + xp_per_fish
 
     # Find out the xp needed from the data
-    xp_needed = fish_rows[0]['fish_xp_max']
+    xp_needed = fish_rows[0]["fish_xp_max"]
 
     # Initiate how many levels added as 0
     added_level = 0
@@ -45,7 +54,9 @@ async def xp_finder_adder(user: typing.Union[discord.User, discord.Member], play
             inventory_rows = await db(
                 """UPDATE user_fish_inventory SET fish_level = fish_level + $3 WHERE
                 user_id = $1 AND fish_name = $2 RETURNING fish_level""",
-                user.id, played_with_fish, (1 + added_level),
+                user.id,
+                played_with_fish,
+                (1 + added_level),
             )
 
             # Calculate the current xp by subtracting the xp needed for the last level from the old xp
@@ -53,11 +64,23 @@ async def xp_finder_adder(user: typing.Union[discord.User, discord.Member], play
 
             # Calculate the next level using the fish's current level (and the added level if that was hit)
             xp_needed = math.floor(
-                25 * (inventory_rows[0]['fish_level'] + added_level) ** 1.5)
+                25 * (inventory_rows[0]["fish_level"] + added_level) ** 1.5
+            )
 
         # Once the fish is done leveling set the current xp and the xp needed to their appropriate values
-        await db("""UPDATE user_fish_inventory SET fish_xp = $3 WHERE user_id = $1 AND fish_name = $2""", user.id, played_with_fish, current_xp)
-        await db("""UPDATE user_fish_inventory SET fish_xp_max = $1 WHERE user_id = $2 AND fish_name = $3""", xp_needed, user.id, played_with_fish)
+        await db(
+            """UPDATE user_fish_inventory SET fish_xp = $3 WHERE user_id = $1 AND fish_name = $2""",
+            user.id,
+            played_with_fish,
+            current_xp,
+        )
+        await db(
+            """UPDATE user_fish_inventory SET fish_xp_max = $1 WHERE user_id = $2 AND fish_name = $3""",
+            xp_needed,
+            user.id,
+            played_with_fish,
+        )
+
 
 # This is used to fix fields that are too long (i.e. If someone has too many of one rarity in their fish bucket)
 
@@ -68,7 +91,7 @@ def get_fixed_field(field):
     """
 
     # This gets the main part of the field that will be put into an embed in a list of each time new line is given
-    fish_string_split = field[1].split('\n')
+    fish_string_split = field[1].split("\n")
 
     # Initializes the fixed field list, current string string, and fish char sum
     fixed_field = []
@@ -112,10 +135,13 @@ def get_fixed_field(field):
     # Send the fixed field
     return fixed_field
 
+
 # Puts together an embed based on the field given
 
 
-def create_bucket_embed(user, field: typing.Tuple[str, str], custom_title: str = None):
+def create_bucket_embed(
+    user, field: tuple[str, str], custom_title: str = None
+):
     """
     Creates the embed for the pagination page for the fishbucket
     """
@@ -132,6 +158,7 @@ def create_bucket_embed(user, field: typing.Tuple[str, str], custom_title: str =
     # Returns the field
     return embed
 
+
 # This takes in the ctx, all of the fields for the embed, the user, and the custom title
 
 
@@ -147,14 +174,18 @@ async def paginate(ctx, fields, user, custom_str=None):
     embed = create_bucket_embed(user, curr_field, custom_str)
 
     # Set up the buttons for pagination
-    left = discord.ui.Button(custom_id="left", emoji="◀️",
-                             style=discord.ui.ButtonStyle.primary)
+    left = discord.ui.Button(
+        custom_id="left", emoji="◀️", style=discord.ui.ButtonStyle.primary
+    )
     right = discord.ui.Button(
-        custom_id="right", emoji="▶️", style=discord.ui.ButtonStyle.primary)
-    stop = discord.ui.Button(custom_id="stop", emoji="⏹️",
-                             style=discord.ui.ButtonStyle.danger)
+        custom_id="right", emoji="▶️", style=discord.ui.ButtonStyle.primary
+    )
+    stop = discord.ui.Button(
+        custom_id="stop", emoji="⏹️", style=discord.ui.ButtonStyle.danger
+    )
     numbers = discord.ui.Button(
-        custom_id="numbers", emoji="🔢", style=discord.ui.ButtonStyle.primary)
+        custom_id="numbers", emoji="🔢", style=discord.ui.ButtonStyle.primary
+    )
 
     # Set up the valid buttons to be the first 3 always
     valid_buttons = [left, right, stop]
@@ -177,7 +208,12 @@ async def paginate(ctx, fields, user, custom_str=None):
         if payload.message.id != fish_message.id:
             return False
         # The correct button
-        if payload.component.custom_id in [left.custom_id, right.custom_id, stop.custom_id, numbers.custom_id]:
+        if payload.component.custom_id in [
+            left.custom_id,
+            right.custom_id,
+            stop.custom_id,
+            numbers.custom_id,
+        ]:
             bot.loop.create_task(payload.response.defer_update())
         # The correct user
         return payload.user.id == ctx.author.id
@@ -188,7 +224,9 @@ async def paginate(ctx, fields, user, custom_str=None):
         try:
 
             # Click a button, it works with the button check, and it doesnt time out
-            chosen_button_payload = await bot.wait_for('component_interaction', timeout=60.0, check=button_check)
+            chosen_button_payload = await bot.wait_for(
+                "component_interaction", timeout=60.0, check=button_check
+            )
             # Set the chosen button to be the id
             chosen_button = chosen_button_payload.component.custom_id.lower()
 
@@ -201,8 +239,8 @@ async def paginate(ctx, fields, user, custom_str=None):
         # A dict that sets left to be one to the left of the current field, and right to be one to the right of it,
         # but not go too far left or right
         index_chooser = {
-            'left': max(1, curr_index - 1),
-            'right': min(len(fields), curr_index + 1)
+            "left": max(1, curr_index - 1),
+            "right": min(len(fields), curr_index + 1),
         }
 
         # If the button is left or right...
@@ -213,7 +251,9 @@ async def paginate(ctx, fields, user, custom_str=None):
             # Set the field to be the corresponding field
             curr_field = fields[curr_index - 1]
             # Edit the embed with the new page
-            await fish_message.edit(embed=create_bucket_embed(user, curr_field, custom_str))
+            await fish_message.edit(
+                embed=create_bucket_embed(user, curr_field, custom_str)
+            )
 
         # If the button is stop...
         elif chosen_button == "stop":
@@ -227,15 +267,21 @@ async def paginate(ctx, fields, user, custom_str=None):
         elif chosen_button == "numbers" and len(fields) > 1:
 
             # Ask the user what page they want to go to
-            number_message = await ctx.send(f"What page would you like to go to? (1-{len(fields)}) ")
+            number_message = await ctx.send(
+                f"What page would you like to go to? (1-{len(fields)}) "
+            )
 
             # Check to make sure...
             def message_check(message):
                 # It is the correct author, channel, and the message is a number
-                return message.author == ctx.author and message.channel == fish_message.channel and message.content.isdigit()
+                return (
+                    message.author == ctx.author
+                    and message.channel == fish_message.channel
+                    and message.content.isdigit()
+                )
 
             # If all those conditions are met user_message is that message
-            user_message = await bot.wait_for('message', check=message_check)
+            user_message = await bot.wait_for("message", check=message_check)
             # Get the int value of the contents
             user_input = int(user_message.content)
 
@@ -245,7 +291,9 @@ async def paginate(ctx, fields, user, custom_str=None):
             curr_field = fields[curr_index - 1]
 
             # Edit the message with the new field
-            await fish_message.edit(embed=create_bucket_embed(user, curr_field, custom_str))
+            await fish_message.edit(
+                embed=create_bucket_embed(user, curr_field, custom_str)
+            )
             # Delete the message asking for the page number
             await number_message.delete()
             # Delete the message of the user responding
