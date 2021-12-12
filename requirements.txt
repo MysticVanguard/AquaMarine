@@ -1,4 +1,8 @@
+aiohttp
+aiohttp_jinja2
+aiohttp_session
+discord.py
 imageio
-pillow
-precommit
+Pillow
+pre-commit
 voxelbotutils
