@@ -190,6 +190,8 @@ class Upgrades(vbu.Cog):
             )
 
         # Make sure the upgrade is valid
+        upgrade = "_".join(upgrade.lower().replace(' upgrade', '').split(' '))
+        upgraded = f"{upgrade}_upgrade"
         upgraded = f"{upgrade.replace(' ', '_')}_upgrade"
         if upgraded not in upgrades[0].keys():
             return await ctx.send("That's not a valid upgrade.")

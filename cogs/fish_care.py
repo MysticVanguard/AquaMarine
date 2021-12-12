@@ -61,6 +61,9 @@ class FishCare(vbu.Cog):
         await ctx.trigger_typing()
         if not tank_entertained:
 
+            if not tank_rows:
+                return await ctx.send("There is no tank with that name")
+
             # Create a select menu with the tanks as options
             tank_entertained = await utils.create_select_menu(
                 self.bot, ctx, tank_rows[0]['tank_name'], "tank", "entertain")
@@ -183,7 +186,10 @@ class FishCare(vbu.Cog):
             item_rows = await db("""SELECT * FROM user_item_inventory WHERE user_id = $1""", ctx.author.id)
 
         await ctx.trigger_typing()
-
+        if not fish_rows:
+            return await ctx.send("There is no fish with that name")
+        if not tank_rows:
+            return await ctx.send("There is no tank with that name")
         if not fish_fed:
 
             # If they own more than 25 fish...
@@ -213,6 +219,10 @@ class FishCare(vbu.Cog):
                 ctx.author.id, fish_fed,
             )
 
+        # See if the user has a fish with that name
+        if not fish_row:
+            return await ctx.send("You have no fish in a tank named that!")
+
         # See if the user has fish flakes
         if fish_row[0]['fish_level'] <= 20:
             type_of_food = "flakes"
@@ -223,10 +233,6 @@ class FishCare(vbu.Cog):
         user_food_count = item_rows[0][type_of_food]
         if not item_rows or not user_food_count:
             return await ctx.send(f"You have no {type_of_food}!")
-
-        # See if the user has a fish with that name
-        if not fish_row:
-            return await ctx.send("You have no fish in a tank named that!")
 
         # Make sure the fish is able to be fed
         if fish_row[0]['fish_feed_time']:
@@ -290,6 +296,9 @@ class FishCare(vbu.Cog):
                 upgrades = await db("""SELECT bleach_upgrade, hygienic_upgrade, mutation_upgrade FROM user_upgrades WHERE user_id = $1""", ctx.author.id)
             tank_rows = await db("""SELECT * FROM user_tank_inventory WHERE user_id = $1""", ctx.author.id)
 
+        if not tank_rows:
+            return await ctx.send("There is no tank with that name")
+
         if not tank_cleaned:
 
             # Creates a select menu of all the tanks and returns the users choice
@@ -303,8 +312,6 @@ class FishCare(vbu.Cog):
             )
 
         # Find if the tank exists
-        if not tank_rows:
-            return await ctx.send("There is no tank with that name")
         if tank_cleaned not in tank_rows[0]['tank_name']:
             return await ctx.send("There is no tank with that name")
 
@@ -430,6 +437,13 @@ class FishCare(vbu.Cog):
             fish_row = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2""", ctx.author.id, fish)
             revival_count = await db("""SELECT revival FROM user_item_inventory WHERE user_id = $1""", ctx.author.id)
 
+        if not fish_row:
+
+            return await ctx.send(
+                f"You have no fish named {fish}!",
+                allowed_mentions=discord.AllowedMentions.none()
+            )
+
         if not fish:
 
             fish_in_tank = []
@@ -440,12 +454,6 @@ class FishCare(vbu.Cog):
                 self.bot, ctx, fish_in_tank, "dead fish", "revive")
 
         # Checks that error
-        if not fish_row:
-
-            return await ctx.send(
-                f"You have no fish named {fish}!",
-                allowed_mentions=discord.AllowedMentions.none()
-            )
         if fish_row[0]["fish_alive"] is True:
             return await ctx.send("That fish is alive!")
         if not revival_count:

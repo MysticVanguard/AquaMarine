@@ -3,6 +3,9 @@ from datetime import timedelta
 import collections
 import asyncio
 
+import random
+import string
+from PIL import Image
 import discord
 from discord.ext import commands, vbu
 
@@ -46,10 +49,127 @@ class Informative(vbu.Cog):
         Shows information about the user's tanks.
         """
 
+        file_prefix = "C:/Users/JT/Pictures/Aqua/assets/images"
+        tank_types = {
+            'Fish Bowl': 'fishbowl',
+            'Small Tank': 'Small_Tank_2D',
+            'Medium Tank': 'Medium_Tank_2D'
+        }
+        position_glass = {
+            'Fish Bowl': [
+                (39, 16),
+                (147, 16),
+                (251, 16),
+                (39, 64),
+                (147, 64),
+                (251, 64),
+                (95, 117),
+                (197, 117),
+                (95, 154),
+                (197, 154)
+            ],
+            'Small Tank': [
+                (35, 4),
+                (140, 4),
+                (245, 4),
+                (35, 52),
+                (140, 52),
+                (245, 52),
+                (89, 105),
+                (190, 105),
+                (89, 144),
+                (190, 144)
+            ],
+            'Medium Tank': [
+                (24, 4),
+                (129, 4),
+                (234, 4),
+                (24, 52),
+                (129, 52),
+                (234, 52),
+                (77, 105),
+                (178, 105),
+                (77, 144),
+                (178, 144)
+            ]
+        }
+        position_theme = {
+            'Fish Bowl': [
+                (39, 16),
+                (147, 16),
+                (251, 16),
+                (39, 64),
+                (147, 64),
+                (251, 64),
+                (95, 117),
+                (197, 117),
+                (95, 154),
+                (197, 154)
+            ],
+            'Small Tank': [
+                (36, 7),
+                (141, 7),
+                (246, 7),
+                (36, 55),
+                (141, 55),
+                (246, 55),
+                (90, 108),
+                (191, 108),
+                (90, 147),
+                (191, 147)
+            ],
+            'Medium Tank': [
+                (25, 7),
+                (130, 7),
+                (235, 7),
+                (25, 55),
+                (130, 55),
+                (235, 55),
+                (78, 108),
+                (179, 108),
+                (78, 147),
+                (179, 147)
+            ]
+        }
+        id = ''.join(random.choice(string.ascii_uppercase + string.digits)
+                     for _ in range(10))
+        file_name = f"{file_prefix}/background/Room Walls/Tanks_Wall/User Walls/{id}user_tank_room.png"
         # Get the user's data
         async with vbu.Database() as db:
             fish_row = await db("""SELECT * FROM user_fish_inventory WHERE user_id = $1""", ctx.author.id)
             tank_rows = await db("""SELECT * FROM user_tank_inventory WHERE user_id = $1""", ctx.author.id)
+
+        background = Image.open(
+            f"{file_prefix}/background/Room Walls/Tank_Wall.png").convert("RGBA")
+        new_background = background.copy()
+        for slot, tank in enumerate(tank_rows[0]['tank_type']):
+            if tank == '':
+                continue
+            start = ''
+            theme_raise = 0
+            if (tank == 'Medium Tank' or tank == 'Small Tank') and slot in [10, 11]:
+                start = 'Under_'
+                theme_raise = 2
+            tank_type = tank_types[tank]
+            x_and_y_glass = position_glass[tank][slot]
+            x_and_y_theme = position_theme[tank][slot]
+            tank_theme = tank_rows[0]['tank_theme'][slot].replace(' ', '_')
+            glass = Image.open(
+                f"{file_prefix}/background/Room Walls/Tanks_Wall/{start}Glass_{tank_type}.png"
+            ).convert("RGBA")
+            theme = Image.open(
+                f"{file_prefix}/background/Room Walls/Tanks_Wall/{tank_theme}_{tank_type}.png"
+            ).convert("RGBA")
+            print(
+                f"{file_prefix}/background/Room Walls/Tanks_Wall/{tank_theme}_{tank_type}.png")
+            new_background.paste(
+                theme, (x_and_y_theme[0], x_and_y_theme[1]), theme)
+            new_background.paste(
+                glass, (x_and_y_glass[0], x_and_y_glass[1] - theme_raise), glass)
+
+        new_background.save(file_name, format="PNG")
+
+        await ctx.send(file=discord.File(file_name))
 
         # Set up some vars for later
         embed = discord.Embed()
@@ -60,32 +180,37 @@ class Informative(vbu.Cog):
                 relative_time = discord.utils.format_dt(
                     fish['death_time'] - timedelta(hours=DAYLIGHT_SAVINGS), style="R")
                 fish_collections[fish['tank_fish']].append(
-                    f"__**{fish['fish'].replace('_', ' ').title()}: \"{fish['fish_name']}\"**__\n"
-                    f"**Alive:** {fish['fish_alive']}\n **Death Date:** {relative_time}"
+                    f"**{fish['fish'].replace('_', ' ').title()}: \"{fish['fish_name']}\"**\n"
+                    f"<:__:886381017051586580>Alive: **{fish['fish_alive']}**\n"
+                    f"<:__:886381017051586580>Death Date: **{relative_time}**\n"
+                    f"<:__:886381017051586580>Level: **{fish['fish_level']}**\n"
+                    f"<:__:886381017051586580>XP: **{fish['fish_xp']}/{fish['fish_xp_max']}**"
                 )
 
         if not tank_rows:
             return await ctx.send("You have no tanks!")
         # Add a row in our embed for each tank
+
+        field = []
+        n = '\n'
         for tank_row in tank_rows:
             for count in range(len(tank_row['tank'])):
                 if tank_row['tank_name'][count] in fish_collections.keys():
-                    fish_message = [f"Type: {tank_row['tank_type'][count]}", f"**Fish:**", "\n".join(
+                    fish_message = ["\n".join(
                         fish_collections[tank_row['tank_name'][count]])]
                 else:
-                    fish_message = ["No fish in tank."]
+                    fish_message = [
+                        "No fish in tank."]
                 if tank_row['tank'][count] is True:
                     if not fish_message:
-                        fish_message = ["No fish in tank."]
-
-                    embed.add_field(
-                        name=tank_row['tank_name'][count],
-                        value="\n".join(fish_message)
-
-                    )
-
-        # And send
-        await ctx.send(embed=embed)
+                        fish_message = [
+                            "No fish in tank."]
+                    field.append(
+                        (f"{tank_row['tank_name'][count]} (Tank Type: {tank_row['tank_type'][count]})", "\n".join(fish_message)))
+        fields = []
+        for field_single in field:
+            [fields.append(i) for i in utils.get_fixed_field(field_single)]
+        await utils.paginate(ctx, fields, ctx.author, f"{ctx.author.display_name}'s tanks")
 
     @commands.command()
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
@@ -211,6 +336,11 @@ class Informative(vbu.Cog):
             return await utils.paginate(ctx, fields, ctx.author, "**Bestiary**\n")
 
         # Find the fish they asked for
+        inverted = False
+        if 'inverted' in fish_name.lower():
+            fish_name = fish_name.replace('inverted ', '')
+            inverted = True
+
         selected_fish = None
         for rarity, fish_types in self.bot.fish.items():
             for _, fish_info in fish_types.items():
@@ -223,12 +353,15 @@ class Informative(vbu.Cog):
             return await ctx.send("That fish doesn't exist.")
 
         # Make and send an embed
+        if inverted is True:
+            utils.make_inverted(selected_fish)
+
         embed = discord.Embed(title=selected_fish["name"])
         embed.set_image(url="attachment://new_fish.png")
         embed.add_field(
             name='Rarity:', value=f"{selected_fish['rarity']}", inline=False)
         embed.add_field(name='Base Sell Price:',
-                        value=f"{int(int(selected_fish['cost']) / 2)} <:sand_dollar:877646167494762586>", inline=False)
+                        value=f"{int(selected_fish['cost'])} <:sand_dollar:877646167494762586>", inline=False)
         embed.add_field(
             name='Size:', value=f"{selected_fish['size']}", inline=False)
         embed.color = {
@@ -491,20 +624,21 @@ class Informative(vbu.Cog):
                 user_info_rows = await db("""SELECT * FROM user_fish_inventory""")
                 user_extra_points = await db("""SELECT * FROM user_balance""")
             for user_info in user_info_rows:
-                if user_info['user_id'] not in user_info_unsorted.keys():
-                    user_info_unsorted[user_info['user_id']] = []
-                    user_info_unsorted[user_info['user_id']].append(
-                        user_info['fish'])
-                else:
-                    user_info_unsorted[user_info['user_id']].append(
-                        user_info['fish'])
+                if user_info['fish_alive'] is True:
+                    if user_info['user_id'] not in user_info_unsorted.keys():
+                        user_info_unsorted[user_info['user_id']] = []
+                        user_info_unsorted[user_info['user_id']].append(
+                            user_info['fish'])
+                    else:
+                        user_info_unsorted[user_info['user_id']].append(
+                            user_info['fish'])
             rarity_points = {
                 "common": 1,
                 "uncommon": 3,
-                "rare": 9,
-                "epic": 27,
-                "legendary": 81,
-                "mythic": 1728
+                "rare": 15,
+                "epic": 75,
+                "legendary": 150,
+                "mythic": 1000
             }
 
             user_points_unsorted = {}

@@ -63,7 +63,7 @@ async def ask_to_sell_fish(bot, ctx, new_fish: dict, embed, level_inserted: int 
 
             level_multiplier = level / 20
             money_earned = math.ceil(
-                (int(new_fish['cost']) / 2) * utils.ROD_UPGRADES[upgrades[0]['rod_upgrade']] * (1 + level_multiplier))
+                (int(new_fish['cost'])) * utils.ROD_UPGRADES[upgrades[0]['rod_upgrade']] * (1 + level_multiplier))
 
             async with bot.database() as db:
                 await db(
@@ -116,16 +116,16 @@ async def ask_to_sell_fish(bot, ctx, new_fish: dict, embed, level_inserted: int 
 
             # They want to keep - ask what they want to name the fish
             await message.channel.send("What do you want to name your new fish? (32 character limit and cannot be named the same as another fish you own)")
-            def check(m): print(m.author == ctx.author); print(m.channel == message.channel); print(len(m.content) > 1); print(len(m.content) <= 32); print("2"); return m.author == ctx.author and m.channel == message.channel and len(
+            def check(m): return m.author == ctx.author and m.channel.id == message.channel.id and len(
                 m.content) > 1 and len(m.content) <= 32 and m.content not in fish_names
             try:
-                print("1")
                 name_message = await bot.wait_for("message", timeout=60.0, check=check)
-                print("3")
                 name = name_message.content
                 await message.channel.send(f"Your new fish **{name}** (Lvl. {level}) has been added to your bucket!")
             except asyncio.TimeoutError:
-                name = f"{random.choice(['Captain', 'Mr.', 'Mrs.', 'Commander'])} {random.choice(['Nemo', 'Bubbles', 'Jack', 'Finley', 'Coral'])}"
+                name = f"{random.choice(['Captain', 'Mr.', 'Mrs.', 'Commander', 'Sir', 'Madam', 'Skipper', 'Crewmate'])} {random.choice(['Nemo', 'Bubbles', 'Jack', 'Finley', 'Coral', 'Fish', 'Turtle', 'Squid', 'Sponge', 'Starfish'])}"
+                while name in fish_names:
+                    name = f"{random.choice(['Captain', 'Mr.', 'Mrs.', 'Commander', 'Sir', 'Madam', 'Skipper', 'Crewmate'])} {random.choice(['Nemo', 'Bubbles', 'Jack', 'Finley', 'Coral', 'Fish', 'Turtle', 'Squid', 'Sponge', 'Starfish'])}"
                 await message.channel.send(f"Did you forget about me? I've been waiting for a while now! I'll name the fish for you. Let's call it **{name}** (Lvl. {level})")
 
             # Save the fish name
@@ -147,7 +147,7 @@ async def ask_to_sell_fish(bot, ctx, new_fish: dict, embed, level_inserted: int 
             print((int(new_fish['cost']) / 2), utils.ROD_UPGRADES[upgrades[0]['rod_upgrade']], (1 + level_multiplier), vote_multiplier, math.ceil(
                 (int(new_fish['cost']) / 2) * utils.ROD_UPGRADES[upgrades[0]['rod_upgrade']] * (1 + level_multiplier) * vote_multiplier))
             money_earned = math.ceil(
-                (int(new_fish['cost']) / 2) * utils.ROD_UPGRADES[upgrades[0]['rod_upgrade']] * (1 + level_multiplier) * vote_multiplier)
+                (int(new_fish['cost'])) * utils.ROD_UPGRADES[upgrades[0]['rod_upgrade']] * (1 + level_multiplier))
             async with bot.database() as db:
                 await db(
                     """INSERT INTO user_balance (user_id, balance) VALUES ($1, $2)

@@ -11,57 +11,62 @@ The following utils are for upgrades used in various commands throughout the bot
 '''
 
 
-# Rod upgrade that increases the multiplier of a fish when it is sold
-ROD_UPGRADES = {0: 1, 1: 1.1, 2: 1.3, 3: 1.6, 4: 2.0, 5: 2.5}
+ROD_UPGRADES = {0: 1, 1: 1.4, 2: 1.8, 3: 2.2, 4: 2.6, 5: 3.0}
 
 # Bait upgrade that increases your chances of catching rarer fish
 BAIT_UPGRADE = {
     0: [
-        ("common", 0.6689),
-        ("uncommon", 0.2230),
-        ("rare", 0.0743),
-        ("epic", 0.0248),
-        ("legendary", 0.0082),
+        # 5   3               164/240 --> 121/240 -26.36%
+        ("common", 0.6842),
+        # 15  1   5           60/240  --> 84/240  +40%    2
+        ("uncommon", 0.25),
+        # 75      1   5       12/240  --> 24/240  +100%   1   2
+        ("rare", 0.05),
+        # 375         1   2   2/240   --> 8/240   +250%       1   5
+        ("epic", 0.01),
+        # 750             1   1/240   --> 2/240   +100%           1
+        ("legendary", 0.005),
+        # 5000                1/1250  --> 3/2500  +50%
         ("mythic", 0.0008),
     ],
     1: [
-        ("common", 0.6429),
-        ("uncommon", 0.2330),
-        ("rare", 0.0843),
-        ("epic", 0.0298),
-        ("legendary", 0.0092),
-        ("mythic", 0.0008),
-    ],
-    2: [
-        ("common", 0.5908),
-        ("uncommon", 0.2530),
-        ("rare", 0.1043),
-        ("epic", 0.0398),
-        ("legendary", 0.0112),
+        ("common", 0.6481),
+        ("uncommon", 0.27),
+        ("rare", 0.06),
+        ("epic", 0.015),
+        ("legendary", 0.006),
         ("mythic", 0.0009),
     ],
-    3: [
-        ("common", 0.5387),
-        ("uncommon", 0.2730),
-        ("rare", 0.1243),
-        ("epic", 0.0498),
-        ("legendary", 0.0132),
-        ("mythic", 0.0010),
+    2: [
+        ("common", 0.612),
+        ("uncommon", 0.29),
+        ("rare", 0.07),
+        ("epic", 0.02),
+        ("legendary", 0.007),
+        ("mythic", 0.00010),
     ],
-    4: [
-        ("common", 0.4866),
-        ("uncommon", 0.2930),
-        ("rare", 0.1443),
-        ("epic", 0.0598),
-        ("legendary", 0.0152),
+    3: [
+        ("common", 0.5759),
+        ("uncommon", 0.31),
+        ("rare", 0.08),
+        ("epic", 0.025),
+        ("legendary", 0.008),
         ("mythic", 0.0011),
     ],
+    4: [
+        ("common", 0.5398),
+        ("uncommon", 0.33),
+        ("rare", 0.09),
+        ("epic", 0.03),
+        ("legendary", 0.009),
+        ("mythic", 0.0012),
+    ],
     5: [
-        ("common", 0.4605),
-        ("uncommon", 0.3030),
-        ("rare", 0.1543),
-        ("epic", 0.0648),
-        ("legendary", 0.0162),
+        ("common", 0.5038),
+        ("uncommon", 0.35),
+        ("rare", 0.1),
+        ("epic", 0.035),
+        ("legendary", 0.01),
         ("mythic", 0.0012),
     ],
 }
@@ -138,12 +143,11 @@ CRATE_TIERS = {
 }
 
 
-# Bleach upgrade increases the multiplier of sand dollars gained from cleaning
-BLEACH_UPGRADE = {0: 1, 1: 1.1, 2: 1.3, 3: 1.6, 4: 2.0, 5: 2.5}
+BLEACH_UPGRADE = {0: 1, 1: 1.4, 2: 1.8, 3: 2.2, 4: 2.6, 5: 3.0}
 
 # Toys upgrade that increases the amount of xp gained
-TOYS_UPGRADE = {0: (2, 40), 1: (5, 50), 2: (10, 100),
-                3: (25, 125), 4: (35, 150), 5: (50, 250)}
+TOYS_UPGRADE = {0: (5, 50), 1: (15, 75), 2: (25, 125),
+                3: (50, 250), 4: (100, 500), 5: (200, 1000)}
 
 # Amazement upgrade that increases the chance of a fish to gain a level when entertained
 AMAZEMENT_UPGRADE = {0: 1600, 1: 1500, 2: 1300, 3: 1000, 4: 600, 5: 100}
@@ -208,6 +212,9 @@ FISH_POINTS_NAMES = ["Fish Points", "Points", "P"]
 EXPERIENCE_POTION_NAMES = ["Experience Potion", "Experience", "E"]
 MUTATION_POTION_NAMES = ["Mutation Potion", "Mutation", "M"]
 FEEDING_POTION_NAMES = ["Feeding Potion", "Feeding", "F"]
+
+# List of names for tank themes
+TANK_THEMES = PLANT_LIFE_NAMES
 
 # Daylight savings variable because for some reason i need to add four and then an hour when its daylight savings,
 # will be changed to 4 when daylight savings is over
@@ -381,3 +388,7 @@ async def create_select_menu(bot, ctx, option_list, type_noun, type_verb):
 
     # Return what they chose
     return str(payload.values[0])
+
+
+# This is a list of fish that are no longer able to be caught
+past_fish = ["acorn_goldfish", "cornucopish", "turkeyfish"]

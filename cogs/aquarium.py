@@ -322,6 +322,33 @@ class Aquarium(vbu.Cog):
         # Send gif to Discord
         await ctx.send(file=discord.File(gif_filename))
 
+    @commands.command(enabled=False)
+    @commands.bot_has_permissions(send_messages=True, embed_links=True)
+    async def preview(self, ctx: commands.Context, theme: str):
+        """
+        Previews a tank theme
+        """
+        theme = theme.title()
+        if theme not in utils.TANK_THEMES:
+            return await ctx.send("That is not a valid tank theme!")
+
+        tank_themes = [
+            (utils.PLANT_LIFE_NAMES, "Plant_Life")
+        ]
+        for themes in tank_themes:
+            if theme in themes[0]:
+                theme_chosen = themes[1]
+        tank_types = {"Fish Bowl": "fishbowl",
+                      "Small Tank": "Small_Tank_2D", "Medium Tank": "Medium_Tank_2D"}
+
+        tank_type = await utils.create_select_menu(
+            self.bot, ctx, tank_types.keys(), "tank type", "choose")
+
+        file_prefix = "C:/Users/JT/Pictures/Aqua/assets/images"
+        image = f"{file_prefix}/background/tank_theme_previews/{theme_chosen}_{tank_types[tank_type]}_preview.png"
+
+        await ctx.send(file=discord.File(image))
+
 
 def setup(bot):
     bot.add_cog(Aquarium(bot))

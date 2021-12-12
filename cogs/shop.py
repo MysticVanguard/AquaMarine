@@ -10,66 +10,33 @@ from cogs import utils
 from cogs.utils.fish_handler import DAYLIGHT_SAVINGS
 from cogs.utils.misc_utils import create_bucket_embed
 
-
-FISH_SHOP_EMBED = discord.Embed(title="Fish Shop")
-FISH_SHOP_EMBED.add_field(
-    name="<:AMFC:913680729177751563> __AquaMarine Fish Corps State Issued Resources__ <:AMFC:913680729177751563>", value="*These are resources bought from the AMFC company.*", inline=False)
-
-FISH_SHOP_EMBED.add_field(
-    name="Tank Themes", value="*These are tank themes to apply to your tank*", inline=False)
-FISH_SHOP_EMBED.add_field(
-    name="Plant Life", value="This gives you the plant life theme for one of your tanks \n __250 <:doubloon:878297091057807400>__", inline=True)
-FISH_SHOP_EMBED.add_field(
-    name="Potions", value="*These are potions with strange effects*", inline=False)
-FISH_SHOP_EMBED.add_field(
-    name="Feeding Potion <:feeding_potion:911465714379018261>", value="This will give you a feeding potion that will make your fish full for 30 days \n __10,000 <:sand_dollar:877646167494762586>__", inline=True)
-FISH_SHOP_EMBED.add_field(
-    name="Experience Potion <:experience_potion:911465714412568616>", value="This will give you an experience potion that gives your fish 5,000 experience \n __40,000 <:sand_dollar:877646167494762586>__", inline=True)
-FISH_SHOP_EMBED.add_field(
-    name="Mutation Potion <:mutation_potion:911465714420949072>", value="This will give you a mutation potion that turns one of your fish inverted \n __50 <:doubloon:878297091057807400>__", inline=True)
-FISH_SHOP_EMBED.add_field(
-    name="Fish Bags", value="*These are bags of fish each containing one fish*", inline=False)
-FISH_SHOP_EMBED.add_field(name="Common Fish Bag <:common_fish_bag:877646166983053383>",
-                          value="This gives you one fish from the common rarity \n __100 <:sand_dollar:877646167494762586>__", inline=True)
-FISH_SHOP_EMBED.add_field(name="Uncommon Fish Bag <:uncommon_fish_bag:877646167146651768>",
-                          value="This gives you one fish from the uncommon rarity \n __300 <:sand_dollar:877646167494762586>__", inline=True)
-FISH_SHOP_EMBED.add_field(name="Rare Fish Bag <:rare_fish_bag:877646167121489930>",
-                          value="This gives you one fish from the rare rarity \n __900 <:sand_dollar:877646167494762586>__", inline=True)
-FISH_SHOP_EMBED.add_field(name="Inverted Fish Bag <:inverted_fish_bag:912057608863637545>",
-                          value="This gives you one inverted fish from any rarity \n __100000 <:sand_dollar:877646167494762586>__", inline=True)
-FISH_SHOP_EMBED.add_field(name="High Level Fish Bag <:high_level_fish_bag:912057609496985690>",
-                          value="This gives you one fish from any rarity between the levels 10-50 \n __75000 <:sand_dollar:877646167494762586>__", inline=True)
-FISH_SHOP_EMBED.add_field(
-    name="Misc", value="*These are miscellaneous items for sale*", inline=False)
-FISH_SHOP_EMBED.add_field(name="Fish Revival <:revival:878297091158474793>",
-                          value="This gives you a fish revival to bring your fish back to life \n __2,500 <:sand_dollar:877646167494762586>__", inline=True)
-
-FISH_SHOP_EMBED.add_field(
-    name="<:GFU:913680729517469716> __Golden Fishers Union Item Market__ <:GFU:913680729517469716>", value="These are items sold by the GFU", inline=False)
-FISH_SHOP_EMBED.add_field(
-    name="Fish Food", value="*These are foods for your fish*", inline=False)
-FISH_SHOP_EMBED.add_field(name="Fish Flakes <:fish_flakes:877646167188602880>",
-                          value="This gives you fish flakes to feed a fish that is level 1-20, keeping them alive \n __200 <:sand_dollar:877646167494762586>__", inline=True)
-FISH_SHOP_EMBED.add_field(name="Fish Pellets <:fish_pellets:911465714412552212>",
-                          value="This gives you fish pellets to feed a fish that is level 21-50, keeping them alive \n __500 <:sand_dollar:877646167494762586>__", inline=True)
-FISH_SHOP_EMBED.add_field(name="Fish Wafers <:fish_wafers:911465714395799574>",
-                          value="This gives you fish wafers to feed a fish that is level 51+, keeping them alive \n __1000 <:sand_dollar:877646167494762586>__", inline=True)
-FISH_SHOP_EMBED.add_field(
-    name="Fish Tanks", value="*These are tanks that will hold your fish*", inline=False)
-FISH_SHOP_EMBED.add_field(
-    name="Fish Bowl", value="This gives you a Fish Bowl Tank that you can deposit one small fish into \n __250 <:sand_dollar:877646167494762586>__", inline=True)
-FISH_SHOP_EMBED.add_field(
-    name="Small Tank", value="This gives you a Small Tank that you can deposit five small fish or one medium fish into\n __2,000 <:sand_dollar:877646167494762586>__", inline=True)
-FISH_SHOP_EMBED.add_field(
-    name="Medium Tank", value="This gives you a Medium Tank that you can deposit twenty five small fish, five medium fish, or one large fish into \n __12,000 <:sand_dollar:877646167494762586>__", inline=True)
-FISH_SHOP_EMBED.add_field(
-    name="Misc", value="*These are miscellaneous items for sale*", inline=False)
-FISH_SHOP_EMBED.add_field(
-    name="Fish Points <:fish_points:911468089420427324>", value="This will give you one permanant point for the leaderboard \n __500 <:sand_dollar:877646167494762586>__", inline=True)
-FISH_SHOP_EMBED.add_field(
-    name="Fishing Casts <:Casts:911465713938612235>", value="This will give you five casts \n __5 <:doubloon:878297091057807400>__", inline=True)
-FISH_SHOP_EMBED.add_field(
-    name="Sand Dollars <:sand_dollar:877646167494762586>", value="This will give you 1,500 sand dollars \n __1 <:doubloon:878297091057807400>__", inline=True)
+SHOP_FIELDS = [
+    ("Fish Shop\n*These are neutral items for sale.*",
+     "**Fish Points <:fish_points:911468089420427324>**\nOne permanant point for the leaderboard \n __500 <:sand_dollar:877646167494762586>__\n"
+     "**Fishing Casts <:Casts:911465713938612235>**\nFive casts \n __5 <:doubloon:878297091057807400>__\n"
+     "**Sand Dollars <:sand_dollar:877646167494762586>**\n1,500 sand dollars \n __1 <:doubloon:878297091057807400>__\n"
+     "**Fish Revival <:revival:878297091158474793>**\nFish revival to bring your fish back to life \n __2,500 <:sand_dollar:877646167494762586>__\n"
+     "**Plant Life**\nThe plant life theme for one of your tanks \n __250 <:doubloon:878297091057807400>__"
+     ),
+    ("<:AMFC:913680729177751563> __AquaMarine Fish Corps State Issued Resources__ <:AMFC:913680729177751563>\nThese are resources bought from the AMFC company.",
+     "**Fish Flakes <:fish_flakes:877646167188602880>**\nFish flakes to feed a fish that is level 1-20, keeping them alive \n __200 <:sand_dollar:877646167494762586>__\n"
+     "**Fish Pellets <:fish_pellets:911465714412552212>**\nFish pellets to feed a fish that is level 21-50, keeping them alive \n __500 <:sand_dollar:877646167494762586>__\n"
+     "**Fish Wafers <:fish_wafers:911465714395799574>**\nFish wafers to feed a fish that is level 51+, keeping them alive \n __1000 <:sand_dollar:877646167494762586>__\n"
+     "**Fish Bowl**\nFish Bowl Tank that you can deposit one small fish into \n __500 <:sand_dollar:877646167494762586>__\n"
+     "**Small Tank**\nSmall Tank that you can deposit five small fish or one medium fish into\n __2,000 <:sand_dollar:877646167494762586>__\n"
+     "**Medium Tank**\nMedium Tank that you can deposit twenty five small fish, five medium fish, or one large fish into \n __12,000 <:sand_dollar:877646167494762586>__"
+     ),
+    ("<:GFU:913680729517469716> __Golden Fishers Union Item Market__ <:GFU:913680729517469716>\nThese are items sold by the GFU",
+     "**Common Fish Bag <:common_fish_bag:877646166983053383>**\nOne fish from the common rarity \n __200 <:sand_dollar:877646167494762586>__\n"
+     "**Uncommon Fish Bag <:uncommon_fish_bag:877646167146651768>**\nOne fish from the uncommon rarity \n __600 <:sand_dollar:877646167494762586>__\n"
+     "**Rare Fish Bag <:rare_fish_bag:877646167121489930>**\nOne fish from the rare rarity \n __2,700 <:sand_dollar:877646167494762586>__\n"
+     "**Inverted Fish Bag <:inverted_fish_bag:912057608863637545>**\nOne inverted fish from any rarity \n __100,000 <:sand_dollar:877646167494762586>__\n"
+     "**High Level Fish Bag <:high_level_fish_bag:912057609496985690>**\nOne fish from any rarity between the levels 10-50 \n __75,000 <:sand_dollar:877646167494762586>__\n"
+     "**Feeding Potion <:feeding_potion:911465714379018261>**\nFeeding potion that will make your fish full for 30 days \n __10,000 <:sand_dollar:877646167494762586>__\n"
+     "**Experience Potion <:experience_potion:911465714412568616>**\nExperience potion that gives your fish 10,000 experience \n __40,000 <:sand_dollar:877646167494762586>__\n"
+     "**Mutation Potion <:mutation_potion:911465714420949072>**\nMutation potion that turns one of your fish inverted \n __50 <:doubloon:878297091057807400>__"
+     )
+]
 
 
 class Shop(vbu.Cog):
@@ -81,7 +48,10 @@ class Shop(vbu.Cog):
         This command shows everything buyable in the shop, along with their prices.
         """
 
-        await ctx.send(embed=FISH_SHOP_EMBED)
+        fields = []
+        for field in SHOP_FIELDS:
+            [fields.append(i) for i in utils.get_fixed_field(field)]
+        await utils.paginate(ctx, fields, ctx.author)
 
     @commands.command(aliases=["b"])
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
@@ -113,16 +83,16 @@ class Shop(vbu.Cog):
         )
 
         item_name_dict = {
-            "cfb": (utils.COMMON_BAG_NAMES, 100, "Common Fish Bag", inventory_insert_sql.format("cfb")),
-            "ufb": (utils.UNCOMMON_BAG_NAMES, 300, "Uncommon Fish Bag", inventory_insert_sql.format("ufb")),
-            "rfb": (utils.RARE_BAG_NAMES, 900, "Rare Fish Bag", inventory_insert_sql.format("rfb")),
+            "cfb": (utils.COMMON_BAG_NAMES, 50, "Common Fish Bag", inventory_insert_sql.format("cfb")),
+            "ufb": (utils.UNCOMMON_BAG_NAMES, 150, "Uncommon Fish Bag", inventory_insert_sql.format("ufb")),
+            "rfb": (utils.RARE_BAG_NAMES, 750, "Rare Fish Bag", inventory_insert_sql.format("rfb")),
             "ifb": (utils.INVERTED_BAG_NAMES, 100000, "Inverted Fish Bag", inventory_insert_sql.format("ifb")),
             "hlfb": (utils.HIGH_LEVEL_BAG_NAMES, 75000, "High Level Fish Bag", inventory_insert_sql.format("hlfb")),
             "flakes": (utils.FISH_FLAKES_NAMES, 200, "Fish Flakes", inventory_insert_sql.format("flakes")),
             "pellets": (utils.FISH_PELLETS_NAMES, 500, "Fish Pellets", inventory_insert_sql.format("pellets")),
             "wafers": (utils.FISH_WAFERS_NAMES, 1000, "Fish Wafers", inventory_insert_sql.format("wafers")),
             "revival": (utils.FISH_REVIVAL_NAMES, 2500, "Fish Revival", inventory_insert_sql.format("revival")),
-            "Fish Bowl": (utils.FISH_BOWL_NAMES, 250, "Fish Bowl", ""),
+            "Fish Bowl": (utils.FISH_BOWL_NAMES, 500, "Fish Bowl", ""),
             "Small Tank": (utils.SMALL_TANK_NAMES, 2000, "Small Tank", ""),
             "Medium Tank": (utils.MEDIUM_TANK_NAMES, 12000, "Medium Tank", ""),
             "Plant Life": (utils.PLANT_LIFE_NAMES, 250, "Plant Life", ""),
@@ -311,7 +281,10 @@ class Shop(vbu.Cog):
                 # Get them a new fish
             new_fish = random.choice(
                 list(self.bot.fish[rarity_of_bag].values())).copy()
-
+            while new_fish['raw_name'] in utils.past_fish:
+                print("reroll")
+                new_fish = random.choice(
+                    list(self.bot.fish[rarity_of_bag].values())).copy()
             if type_of_bag == "Inverted":
                 new_fish = utils.make_inverted(new_fish)
             level = 0
@@ -448,7 +421,7 @@ class Shop(vbu.Cog):
         for rarity, fish_types in self.bot.fish.items():
             for fish_type, fish_info in fish_types.items():
                 if fish_info["raw_name"] == utils.get_normal_name(fish_row[0]['fish']):
-                    cost = int(int(fish_info['cost']) / 2)
+                    cost = int(fish_info['cost'])
         sell_money = int(cost * (1 + multiplier))
 
         async with vbu.Database() as db:
@@ -475,22 +448,142 @@ class Shop(vbu.Cog):
         This command gives the user a daily reward of 500 Sand Dollars.
         """
 
-        # Adds the money to the users balance
-        async with vbu.Database() as db:
-            await db(
-                """INSERT INTO user_balance (user_id, balance) VALUES ($1, 500)
-                ON CONFLICT (user_id) DO UPDATE SET balance = user_balance.balance + 100""",
-                ctx.author.id,
-            )
-            # Achievements
-            await db(
-                """INSERT INTO user_achievements (user_id, money_gained) VALUES ($1, 500)
-                ON CONFLICT (user_id) DO UPDATE SET money_gained = user_achievements.money_gained + 100""",
-                ctx.author.id
-            )
+        # # Adds the money to the users balance
+        # async with vbu.Database() as db:
+        #     await db(
+        #         """INSERT INTO user_balance (user_id, balance) VALUES ($1, 500)
+        #         ON CONFLICT (user_id) DO UPDATE SET balance = user_balance.balance + 100""",
+        #         ctx.author.id,
+        #     )
+        #     # Achievements
+        #     await db(
+        #         """INSERT INTO user_achievements (user_id, money_gained) VALUES ($1, 500)
+        #         ON CONFLICT (user_id) DO UPDATE SET money_gained = user_achievements.money_gained + 100""",
+        #         ctx.author.id
+        #     )
 
-        # confirmation message
-        return await ctx.send("Daily reward of 500 <:sand_dollar:877646167494762586> claimed!")
+        # # confirmation message
+        # return await ctx.send("Daily reward of 500 <:sand_dollar:877646167494762586> claimed!")
+
+        if utils.get_user_voted(ctx.author.id) is False:
+            return await ctx.send("Please vote and then run this command to get the special daily reward for the event!")
+
+        if ctx.author.id in utils.current_fishers:
+            return await ctx.send(f"{ctx.author.display_name}, you're already fishing!")
+
+        # Grammar
+        new_fish = self.bot.fish["epic"]["gingerbread axolotl"]
+        print(new_fish)
+        a_an = "an"
+        rarity = "epic"
+        # Tell the user about the fish they caught
+        embed = discord.Embed(
+            title=f"<:AquaFish:877939115948134442> {ctx.author.display_name} caught {a_an} *{rarity}* {new_fish['size']} **{new_fish['name']}**!")
+        embed.set_image(url="attachment://new_fish.png")
+        embed.color = utils.RARITY_CULERS[rarity]
+
+        # Set the fish file to the fishes image
+        fish_file = discord.File(new_fish["image"], "new_fish.png")
+        await ctx.send("On the first day of fishmas, fish santa gave to me\n\tA Gingerbread Axolotl", file=fish_file)
+        # Ask if they want to sell the fish they just caught or keep it
+        await utils.ask_to_sell_fish(self.bot, ctx, new_fish, embed=embed)
+
+        # async with vbu.Database() as db:
+        #     await db(
+        #         """INSERT INTO user_item_inventory (user_id, revival) VALUES ($1, 2)
+        #         ON CONFLICT (user_id) DO UPDATE SET revival = user_item_inventory.revival + 2""",
+        #         ctx.author.id
+        #     )
+        # return await ctx.send("On the second day of fishmas, fish santa gave to me\n\tTwo revivals\n\tAnd a Gingerbread Axolotl")
+
+        # async with vbu.Database() as db:
+        #     await db(
+        #         """INSERT INTO user_item_inventory (user_id, flakes) VALUES ($1, 3)
+        #         ON CONFLICT (user_id) DO UPDATE SET flakes = user_item_inventory.flakes + 3""",
+        #         ctx.author.id
+        #     )
+        # return await ctx.send("On the third day of fishmas, fish santa gave to me\n\tThree fish flakes\n\tTwo revivals\n\tAnd a Gingerbread Axolotl")
+
+        # async with vbu.Database() as db:
+        #     await db(
+        #         """INSERT INTO user_balance (user_id, casts) VALUES ($1, 1)
+        #         ON CONFLICT (user_id) DO UPDATE SET casts = user_balance.casts + 4""",
+        #         ctx.author.id
+        #     )
+        # return await ctx.send("On the fourth day of fishmas, fish santa gave to me\n\tFour fishing casts\n\tThree fish flakes\n\tTwo revivals\n\tAnd a Gingerbread Axolotl")
+
+        # async with vbu.Database() as db:
+        #     await db(
+        #         """INSERT INTO user_item_inventory (user_id, wafers) VALUES ($1, 5)
+        #         ON CONFLICT (user_id) DO UPDATE SET wafers = user_item_inventory.wafers + 5""",
+        #         ctx.author.id
+        #     )
+        # return await ctx.send("On the fifth day of fishmas, fish santa gave to me\n\tFive fish wafers\n\tFour fishing casts\n\tThree fish flakes\n\tTwo revivals\n\tAnd a Gingerbread Axolotl")
+
+        # async with vbu.Database() as db:
+        #     await db(
+        #         """INSERT INTO user_item_inventory (user_id, rfb) VALUES ($1, 6)
+        #         ON CONFLICT (user_id) DO UPDATE SET rfb = user_item_inventory.rfb + 6""",
+        #         ctx.author.id
+        #     )
+        # return await ctx.send("On the sixth day of fishmas, fish santa gave to me\n\tSix rare bags of fish\n\tFive fish wafers\n\tFour fishing casts\n\tThree fish flakes\n\tTwo revivals\n\tAnd a Gingerbread Axolotl")
+
+        # # Adds the money to the users balance
+        # async with vbu.Database() as db:
+        #     await db(
+        #         """INSERT INTO user_balance (user_id, balance) VALUES ($1, 7000)
+        #         ON CONFLICT (user_id) DO UPDATE SET balance = user_balance.balance + 7000""",
+        #         ctx.author.id,
+        #     )
+        #     # Achievements
+        #     await db(
+        #         """INSERT INTO user_achievements (user_id, money_gained) VALUES ($1, 7000)
+        #         ON CONFLICT (user_id) DO UPDATE SET money_gained = user_achievements.money_gained + 7000""",
+        #         ctx.author.id
+        #     )
+
+        # # confirmation message
+        # return await ctx.send("On the seventh day of fishmas, fish santa gave to me:\n\tSeven thousand dollars\n\tSix rare bags of fish\n\tFive fish wafers\n\tFour fishing casts\n\tThree fish flakes\n\tTwo revivals\n\tAnd a Gingerbread Axolotl")
+
+        # async with vbu.Database() as db:
+        #             await db(
+        #                 """INSERT INTO user_item_inventory (user_id, pellets) VALUES ($1, 8)
+        #                 ON CONFLICT (user_id) DO UPDATE SET pellets = user_item_inventory.pellets + 8""",
+        #                 ctx.author.id
+        #             )
+        # return await ctx.send("On the eighth day of fishmas, fish santa gave to me\n\tEight fish food pellets\n\tSeven thousand dollars\n\tSix rare bags of fish\n\tFive fish wafers\n\tFour fishing casts\n\tThree fish flakes\n\tTwo revivals\n\tAnd a Gingerbread Axolotl")
+
+        # async with vbu.Database() as db:
+        #             await db(
+        #                 """INSERT INTO user_balance (user_id, extra_points) VALUES ($1, 9)
+        #                 ON CONFLICT (user_id) DO UPDATE SET extra_points = user_balance.extra_points + 9""",
+        #                 ctx.author.id
+        #             )
+        # return await ctx.send("On the ninth day of fishmas, fish santa gave to me\n\tNine leaderboard points\n\tEight fish food pellets\n\tSeven thousand dollars\n\tSix rare bags of fish\n\tFive fish wafers\n\tFour fishing casts\n\tThree fish flakes\n\tTwo revivals\n\tAnd a Gingerbread Axolotl")
+
+        # async with vbu.Database() as db:
+        #     await db(
+        #         """INSERT INTO user_item_inventory (user_id, ufb) VALUES ($1, 10)
+        #                 ON CONFLICT (user_id) DO UPDATE SET ufb = user_item_inventory.ufb + 10""",
+        #         ctx.author.id
+        #     )
+        # return await ctx.send("On the tenth day of fishmas, fish santa gave to me\n\tTen uncommon bags\n\tNine leaderboard points\n\tEight fish food pellets\n\tSeven thousand dollars\n\tSix rare bags of fish\n\tFive fish wafers\n\tFour fishing casts\n\tThree fish flakes\n\tTwo revivals\n\tAnd a Gingerbread Axolotl")
+
+        # async with vbu.Database() as db:
+        #     await db(
+        #         """INSERT INTO user_item_inventory (user_id, cfb) VALUES ($1, 11)
+        #                 ON CONFLICT (user_id) DO UPDATE SET cfb = user_item_inventory.cfb + 11""",
+        #         ctx.author.id
+        #     )
+        # return await ctx.send("On the eleventh day of fishmas, fish santa gave to me\n\tEleven common fish bags\n\tTen uncommon bags\n\tNine leaderboard points\n\tEight fish food pellets\n\tSeven thousand dollars\n\tSix rare bags of fish\n\tFive fish wafers\n\tFour fishing casts\n\tThree fish flakes\n\tTwo revivals\n\tAnd a Gingerbread Axolotl")
+
+        # async with vbu.Database() as db:
+        #     await db(
+        #         """INSERT INTO user_balance (user_id, doubloon) VALUES ($1, 12)
+        #                 ON CONFLICT (user_id) DO UPDATE SET doubloon = user_balance.doubloon + 12""",
+        #         ctx.author.id
+        #     )
+        # return await ctx.send("On the twelfth day of fishmas, fish santa gave to me\n\tTwelve shining doubloons\n\tEleven common fish bags\n\tTen uncommon bags\n\tNine leaderboard points\n\tEight fish food pellets\n\tSeven thousand dollars\n\tSix rare bags of fish\n\tFive fish wafers\n\tFour fishing casts\n\tThree fish flakes\n\tTwo revivals\n\tAnd a Gingerbread Axolotl")
 
     @daily.error
     async def daily_error(self, ctx, error):

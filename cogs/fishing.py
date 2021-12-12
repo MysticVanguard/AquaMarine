@@ -26,7 +26,14 @@ class Fishing(vbu.Cog):
     @tasks.loop(hours=1)
     async def user_cast_loop(self):
         async with vbu.Database() as db:
-            await db("""UPDATE user_balance SET casts=casts+1""")
+            print('start')
+            casts = await db("""SELECT * FROM user_balance""")
+            for x in casts:
+                if x['casts'] >= 50:
+                    continue
+                else:
+                    await db("""UPDATE user_balance SET casts=casts+1 WHERE user_id = $1""", x['user_id'])
+            print('end')
 
     # Wait until the bot is on and ready and not just until the cog is on
     @user_cast_loop.before_loop
@@ -86,7 +93,9 @@ class Fishing(vbu.Cog):
             # See which fish they caught by taking a random fish from the chosen rarity
             new_fish = random.choice(
                 list(self.bot.fish[rarity].values())).copy()
-
+            while new_fish['raw_name'] in utils.past_fish:
+                new_fish = random.choice(
+                    list(self.bot.fish[rarity].values())).copy()
             # See if we want to make the fish mutated based on what the modifier is
             special_functions = {
                 "inverted": utils.make_inverted(new_fish.copy()),
@@ -137,7 +146,7 @@ class Fishing(vbu.Cog):
 
                 # Give them a bonus based on the fish's cost and tell them they got it correct if they did
                 if message.title() == new_fish['name']:
-                    bonus = 15 + math.floor(int(new_fish['cost']) / 20)
+                    bonus = 15 + math.floor(int(new_fish['cost']) / 10)
                     await ctx.send(f"<@{ctx.author.id}> guessed correctly and recieved {bonus} bonus sand dollars <:sand_dollar:877646167494762586>!")
 
                     # Update the users balance with the bonus
@@ -293,24 +302,6 @@ class Fishing(vbu.Cog):
             f"Congratulations, you have renamed **{old}** to **{new}**!",
             allowed_mentions=discord.AllowedMentions.none(),
         )
-
-    @commands.command(enabled=False)
-    @commands.bot_has_permissions(send_messages=True, embed_links=True)
-    async def skin(self, ctx: commands.Context, skin: str, *, fish: str):
-        """
-        Applies a skin to a fish you own
-        """
-
-        ...
-
-    @commands.command(enabled=False)
-    @commands.bot_has_permissions(send_messages=True, embed_links=True)
-    async def preview(self, ctx: commands.Context, type: str, *, skin: str):
-        """
-        Previews a skin
-        """
-
-        ...
 
 
 def setup(bot):
