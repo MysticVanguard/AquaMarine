@@ -1,9 +1,9 @@
+import math
+import random
 from datetime import datetime as dt, timedelta
 
 from discord.ext import commands, tasks, vbu
 import discord
-import math
-import random
 
 from cogs import utils
 from cogs.utils.fish_handler import DAYLIGHT_SAVINGS

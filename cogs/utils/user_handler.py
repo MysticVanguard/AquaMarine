@@ -3,9 +3,9 @@ import math
 import random
 
 import discord
-from discord.ext import vbu
 
 from cogs import utils
+
 
 current_fishers = []
 

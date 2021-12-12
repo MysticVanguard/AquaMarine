@@ -1,14 +1,10 @@
 import random
-from datetime import datetime as dt, timedelta
-
-
 import math
 import asyncio
 import discord
 from discord.ext import commands, tasks, vbu
 
 from cogs import utils
-from cogs.utils.fish_handler import DAYLIGHT_SAVINGS
 
 
 class Fishing(vbu.Cog):
