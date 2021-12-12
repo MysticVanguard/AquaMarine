@@ -392,7 +392,7 @@ class Shop(vbu.Cog):
                 return await ctx.send(
                     f"{new_fish_rows[0]['fish_name']} is now level {new_fish_rows[0]['fish_level']}, {new_fish_rows[0]['fish_xp']}/{new_fish_rows[0]['fish_xp_max']}"
                 )
-            elif item.title() in utils.MUTATION_POTION_NAMES:
+            if item.title() in utils.MUTATION_POTION_NAMES:
                 async with vbu.Database() as db:
                     mutated = "inverted_" + fish_row[0]["fish"]
                     await db(
@@ -405,7 +405,7 @@ class Shop(vbu.Cog):
                     return await ctx.send(
                         f"{fish_row[0]['fish_name']}looks kind of strange now..."
                     )
-            elif item.title() in utils.FEEDING_POTION_NAMES:
+            if item.title() in utils.FEEDING_POTION_NAMES:
                 # Set the time to be now + the new death date
                 death_date = fish_row[0]["death_time"] + timedelta(
                     days=30, hours=0
@@ -982,8 +982,7 @@ class Shop(vbu.Cog):
             return await ctx.send(
                 f"{ctx.author.display_name} has won: {items[item_type[0][0]][1]}"
             )
-        else:
-            await ctx.send(f"{ctx.author.mention} lost!")
+        await ctx.send(f"{ctx.author.mention} lost!")
 
     @gamble.error
     async def gamble_error(self, ctx, error):
