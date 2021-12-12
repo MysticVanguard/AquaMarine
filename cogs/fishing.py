@@ -31,11 +31,10 @@ class Fishing(vbu.Cog):
             for x in casts:
                 if x["casts"] >= 50:
                     continue
-                else:
-                    await db(
-                        """UPDATE user_balance SET casts=casts+1 WHERE user_id = $1""",
-                        x["user_id"],
-                    )
+                await db(
+                    """UPDATE user_balance SET casts=casts+1 WHERE user_id = $1""",
+                    x["user_id"],
+                )
             print("end")
 
     # Wait until the bot is on and ready and not just until the cog is on

@@ -242,8 +242,7 @@ class Aquarium(vbu.Cog):
         for tank_slot_in in tank_row[0]["tank_name"]:
             if tank_slot_in == tank_name:
                 break
-            else:
-                tank_slot += 1
+            tank_slot += 1
 
         # dumb
         tank_slot += 1
@@ -329,8 +328,7 @@ class Aquarium(vbu.Cog):
             for tank_slot_in in tank_row[0]["tank_name"]:
                 if tank_slot_in == tank_name:
                     break
-                else:
-                    tank_slot += 1
+                tank_slot += 1
             # finds the type of tank it is and checks if it exists
             if tank_name not in tank_row[0]["tank_name"]:
                 return await ctx.send(
