@@ -26,14 +26,17 @@ class Fishing(vbu.Cog):
     @tasks.loop(hours=1)
     async def user_cast_loop(self):
         async with vbu.Database() as db:
-            print('start')
+            print("start")
             casts = await db("""SELECT * FROM user_balance""")
             for x in casts:
-                if x['casts'] >= 50:
+                if x["casts"] >= 50:
                     continue
                 else:
-                    await db("""UPDATE user_balance SET casts=casts+1 WHERE user_id = $1""", x['user_id'])
-            print('end')
+                    await db(
+                        """UPDATE user_balance SET casts=casts+1 WHERE user_id = $1""",
+                        x["user_id"],
+                    )
+            print("end")
 
     # Wait until the bot is on and ready and not just until the cog is on
     @user_cast_loop.before_loop
@@ -49,7 +52,9 @@ class Fishing(vbu.Cog):
 
         # Add their id to a list to make sure they can't fish twice
         if ctx.author.id in utils.current_fishers:
-            return await ctx.send(f"**{ctx.author.display_name}**, you're already fishing!")
+            return await ctx.send(
+                f"**{ctx.author.display_name}**, you're already fishing!"
+            )
         utils.current_fishers.append(ctx.author.id)
 
         # Fetch their upgrades and casts, if they arent in the database yet add them to it with 6 starting casts
@@ -60,22 +65,31 @@ class Fishing(vbu.Cog):
             )
             casts = await db(
                 """SELECT casts FROM user_balance WHERE user_id = $1""",
-                ctx.author.id
+                ctx.author.id,
             )
             if not upgrades:
-                upgrades = await db("""INSERT INTO user_upgrades (user_id) VALUES ($1) RETURNING *""", ctx.author.id)
+                upgrades = await db(
+                    """INSERT INTO user_upgrades (user_id) VALUES ($1) RETURNING *""",
+                    ctx.author.id,
+                )
             if not casts:
-                casts = await db("""INSERT INTO user_balance (user_id, casts) VALUES ($1, 6) RETURNING casts""", ctx.author.id)
+                casts = await db(
+                    """INSERT INTO user_balance (user_id, casts) VALUES ($1, 6) RETURNING casts""",
+                    ctx.author.id,
+                )
 
         # If they have no casts tell them they can't fish and remove them from currrent fishers
-        if casts[0]['casts'] <= 0:
+        if casts[0]["casts"] <= 0:
             utils.current_fishers.remove(ctx.author.id)
-            return await ctx.send("You have no casts, please wait atleast an hour until the next casts are out.")
+            return await ctx.send(
+                "You have no casts, please wait atleast an hour until the next casts are out."
+            )
 
         # pick a random number using the line upgrade, if it is equal to 1 they get to fish twice
         caught_fish = 1
         two_in_one_roll = random.randint(
-            1, utils.LINE_UPGRADES[upgrades[0]['line_upgrade']])
+            1, utils.LINE_UPGRADES[upgrades[0]["line_upgrade"]]
+        )
         if two_in_one_roll == 1:
             caught_fish = 2
         # For each fish caught...
@@ -83,34 +97,42 @@ class Fishing(vbu.Cog):
 
             # Use upgrades for chances of rarity and mutation, and choose one with weighted randomness
             rarity = random.choices(
-                *utils.rarity_percentage_finder(upgrades[0]['bait_upgrade']))[0]
+                *utils.rarity_percentage_finder(upgrades[0]["bait_upgrade"])
+            )[0]
             special = random.choices(
-                *utils.special_percentage_finder(upgrades[0]['lure_upgrade']))[0]
+                *utils.special_percentage_finder(upgrades[0]["lure_upgrade"])
+            )[0]
             # Disable golden for now...
             if special == "golden":
                 special = "inverted"
 
             # See which fish they caught by taking a random fish from the chosen rarity
             new_fish = random.choice(
-                list(self.bot.fish[rarity].values())).copy()
-            while new_fish['raw_name'] in utils.past_fish:
+                list(self.bot.fish[rarity].values())
+            ).copy()
+            while new_fish["raw_name"] in utils.past_fish:
                 new_fish = random.choice(
-                    list(self.bot.fish[rarity].values())).copy()
+                    list(self.bot.fish[rarity].values())
+                ).copy()
             # See if we want to make the fish mutated based on what the modifier is
             special_functions = {
                 "inverted": utils.make_inverted(new_fish.copy()),
-                "golden": utils.make_golden(new_fish.copy())
+                "golden": utils.make_golden(new_fish.copy()),
             }
             if special in special_functions:
                 new_fish = special_functions[special]
 
             # Grammar
-            a_an = "an" if rarity[0].lower() in (
-                "a", "e", "i", "o", "u") else "a"
+            a_an = (
+                "an" if rarity[0].lower() in ("a", "e", "i", "o", "u") else "a"
+            )
 
             # Get their fish inventory, add 1 to their times caught in achievements, subtract 1 from their casts
             async with vbu.Database() as db:
-                user_inventory = await db("SELECT * FROM user_fish_inventory WHERE user_id=$1", ctx.author.id)
+                user_inventory = await db(
+                    "SELECT * FROM user_fish_inventory WHERE user_id=$1",
+                    ctx.author.id,
+                )
 
                 # Achievements
                 await db(
@@ -126,39 +148,51 @@ class Fishing(vbu.Cog):
             # Find out how many of those fish they caught previously
             amount = 0
             for row in user_inventory:
-                if row['fish'] == new_fish['raw_name']:
+                if row["fish"] == new_fish["raw_name"]:
                     amount += 1
 
             # Set the fish file to the fishes image
             fish_file = discord.File(new_fish["image"], "new_fish.png")
 
             # Guessing game where they have to guess the fish name
-            await ctx.send(f"Guess the name of this fish <@{ctx.author.id}>", file=fish_file)
+            await ctx.send(
+                f"Guess the name of this fish <@{ctx.author.id}>",
+                file=fish_file,
+            )
 
             # Check for guessing game
-            def check(
-                guess): return guess.author == ctx.author and guess.channel == ctx.channel
+            def check(guess):
+                return (
+                    guess.author == ctx.author and guess.channel == ctx.channel
+                )
 
             # If the respond...
             try:
-                message_given = await ctx.bot.wait_for("message", timeout=60.0, check=check)
+                message_given = await ctx.bot.wait_for(
+                    "message", timeout=60.0, check=check
+                )
                 message = message_given.content
 
                 # Give them a bonus based on the fish's cost and tell them they got it correct if they did
-                if message.title() == new_fish['name']:
-                    bonus = 15 + math.floor(int(new_fish['cost']) / 10)
-                    await ctx.send(f"<@{ctx.author.id}> guessed correctly and recieved {bonus} bonus sand dollars <:sand_dollar:877646167494762586>!")
+                if message.title() == new_fish["name"]:
+                    bonus = 15 + math.floor(int(new_fish["cost"]) / 10)
+                    await ctx.send(
+                        f"<@{ctx.author.id}> guessed correctly and recieved {bonus} bonus sand dollars <:sand_dollar:877646167494762586>!"
+                    )
 
                     # Update the users balance with the bonus
                     async with vbu.Database() as db:
                         await db(
                             """INSERT INTO user_balance (user_id, balance) VALUES ($1, $2)
                             ON CONFLICT (user_id) DO UPDATE SET balance = user_balance.balance + $2""",
-                            ctx.author.id, bonus
+                            ctx.author.id,
+                            bonus,
                         )
                 # Else tell them it was wrong
                 else:
-                    await ctx.send(f"Incorrect <@{ctx.author.id}>, no bonus given.")
+                    await ctx.send(
+                        f"Incorrect <@{ctx.author.id}>, no bonus given."
+                    )
             # If it times out tell them it did
             except asyncio.TimeoutError:
                 await ctx.send("Timed out asking for guess.")
@@ -166,9 +200,13 @@ class Fishing(vbu.Cog):
             # Tell the user about the fish they caught
             owned_unowned = "Owned" if amount > 0 else "Unowned"
             embed = discord.Embed(
-                title=f"<:AquaFish:877939115948134442> {ctx.author.display_name} caught {a_an} *{rarity}* {new_fish['size']} **{new_fish['name']}**!")
+                title=f"<:AquaFish:877939115948134442> {ctx.author.display_name} caught {a_an} *{rarity}* {new_fish['size']} **{new_fish['name']}**!"
+            )
             embed.add_field(
-                name=owned_unowned, value=f"You have {amount} **{new_fish['name']}**", inline=False)
+                name=owned_unowned,
+                value=f"You have {amount} **{new_fish['name']}**",
+                inline=False,
+            )
             embed.set_image(url="attachment://new_fish.png")
             embed.color = utils.RARITY_CULERS[rarity]
 
@@ -177,34 +215,87 @@ class Fishing(vbu.Cog):
 
         # Find if they catch a crate with the crate_chance_upgrade
         crate_catch = random.randint(
-            1, utils.CRATE_CHANCE_UPGRADE[upgrades[0]['crate_chance_upgrade']])
+            1, utils.CRATE_CHANCE_UPGRADE[upgrades[0]["crate_chance_upgrade"]]
+        )
         # If they caught it...
         if crate_catch == 1:
             crate_loot = []
 
             # Choose a random crate tier based on their crate_tier_upgrade and add the loot for that tier
             crate = random.choices(
-                ("Wooden", "Bronze", "Steel", "Golden", "Diamond", "Enchanted"), utils.CRATE_TIER_UPGRADE[upgrades[0]['crate_tier_upgrade']])
-            crate_loot.append(("balance", random.randint(
-                0, utils.CRATE_TIERS[crate[0]][0]), "user_balance"))
-            crate_loot.append(("casts", random.randint(
-                0, utils.CRATE_TIERS[crate[0]][1]), "user_balance"))
-            crate_loot.append((random.choices(("none", "cfb", "ufb", "rfb", "ifb", "hlfb"),
-                                              utils.CRATE_TIERS[crate[0]][2])[0], random.randint(0, utils.CRATE_TIERS[crate[0]][3]), "user_inventory"))
-            crate_loot.append((random.choices(("none", "flakes", "pellets", "wafers"),
-                                              utils.CRATE_TIERS[crate[0]][4])[0], random.randint(0, utils.CRATE_TIERS[crate[0]][5]), "user_inventory"))
-            crate_loot.append((random.choices(("none", "fullness", "experience", "mutation"),
-                                              utils.CRATE_TIERS[crate[0]][6])[0], random.randint(0, utils.CRATE_TIERS[crate[0]][7]), "user_inventory"))
+                (
+                    "Wooden",
+                    "Bronze",
+                    "Steel",
+                    "Golden",
+                    "Diamond",
+                    "Enchanted",
+                ),
+                utils.CRATE_TIER_UPGRADE[upgrades[0]["crate_tier_upgrade"]],
+            )
+            crate_loot.append(
+                (
+                    "balance",
+                    random.randint(0, utils.CRATE_TIERS[crate[0]][0]),
+                    "user_balance",
+                )
+            )
+            crate_loot.append(
+                (
+                    "casts",
+                    random.randint(0, utils.CRATE_TIERS[crate[0]][1]),
+                    "user_balance",
+                )
+            )
+            crate_loot.append(
+                (
+                    random.choices(
+                        ("none", "cfb", "ufb", "rfb", "ifb", "hlfb"),
+                        utils.CRATE_TIERS[crate[0]][2],
+                    )[0],
+                    random.randint(0, utils.CRATE_TIERS[crate[0]][3]),
+                    "user_inventory",
+                )
+            )
+            crate_loot.append(
+                (
+                    random.choices(
+                        ("none", "flakes", "pellets", "wafers"),
+                        utils.CRATE_TIERS[crate[0]][4],
+                    )[0],
+                    random.randint(0, utils.CRATE_TIERS[crate[0]][5]),
+                    "user_inventory",
+                )
+            )
+            crate_loot.append(
+                (
+                    random.choices(
+                        ("none", "fullness", "experience", "mutation"),
+                        utils.CRATE_TIERS[crate[0]][6],
+                    )[0],
+                    random.randint(0, utils.CRATE_TIERS[crate[0]][7]),
+                    "user_inventory",
+                )
+            )
 
             # Initialize variables and display variable for every item
             crate_message = ""
             nl = "\n"
-            display = {"balance": "Sand Dollars", "casts": "Casts", "cfb": "Common Fish Bags",
-                       "ufb": "Uncommon Fish Bags", "rfb": "Rare Fish Bags", "ifb": "Inverted Fish Bags",
-                       "hlfb": "High Level Fish Bags", "flakes": "Fish Flakes", "pellets": "Fish Pellets",
-                       "wafers": "Fish Wafers", "experience": "Experience Potions", "mutation": "Mutation Potions",
-                       "fullness": "Fullness Potions"
-                       }
+            display = {
+                "balance": "Sand Dollars",
+                "casts": "Casts",
+                "cfb": "Common Fish Bags",
+                "ufb": "Uncommon Fish Bags",
+                "rfb": "Rare Fish Bags",
+                "ifb": "Inverted Fish Bags",
+                "hlfb": "High Level Fish Bags",
+                "flakes": "Fish Flakes",
+                "pellets": "Fish Pellets",
+                "wafers": "Fish Wafers",
+                "experience": "Experience Potions",
+                "mutation": "Mutation Potions",
+                "fullness": "Fullness Potions",
+            }
 
             async with vbu.Database() as db:
                 # For each piece of loot in the crate
@@ -216,14 +307,19 @@ class Fishing(vbu.Cog):
                     if type_of_loot != "none" and amount_of_loot != 0:
                         await db(
                             """INSERT INTO {0} (user_id, {1}) VALUES ($1, $2)
-                                    ON CONFLICT (user_id) DO UPDATE SET {1} = {0}.{1} + $2""".format(table_of_loot, type_of_loot),
-                            ctx.author.id, amount_of_loot
+                                    ON CONFLICT (user_id) DO UPDATE SET {1} = {0}.{1} + $2""".format(
+                                table_of_loot, type_of_loot
+                            ),
+                            ctx.author.id,
+                            amount_of_loot,
                         )
                         # Add a message to the end of the string to be sent
                         crate_message += f"{nl}{amount_of_loot}x {display[type_of_loot]} recieved!"
 
                 # Send the message telling them they caught a crate and what was in it
-                await ctx.send(f"{ctx.author.display_name} caught a {crate[0]} crate containing: {crate_message}")
+                await ctx.send(
+                    f"{ctx.author.display_name} caught a {crate[0]} crate containing: {crate_message}"
+                )
 
         # And now they should be allowed to fish again
         utils.current_fishers.remove(ctx.author.id)
@@ -237,17 +333,27 @@ class Fishing(vbu.Cog):
 
         # Get the user's fish with the old name, all their fish, and all their tanks
         async with vbu.Database() as db:
-            fish_row = await db("""SELECT fish_name FROM user_fish_inventory WHERE fish_name=$1 and user_id=$2""", old, ctx.author.id)
-            tank_rows = await db("""SELECT tank_name FROM user_tank_inventory WHERE user_id=$1""", ctx.author.id)
-            fish_rows = await db("""SELECT fish_name FROM user_fish_inventory WHERE user_id=$1""", ctx.author.id)
+            fish_row = await db(
+                """SELECT fish_name FROM user_fish_inventory WHERE fish_name=$1 and user_id=$2""",
+                old,
+                ctx.author.id,
+            )
+            tank_rows = await db(
+                """SELECT tank_name FROM user_tank_inventory WHERE user_id=$1""",
+                ctx.author.id,
+            )
+            fish_rows = await db(
+                """SELECT fish_name FROM user_fish_inventory WHERE user_id=$1""",
+                ctx.author.id,
+            )
 
         # Finds if you're renaming a tank
         spot_of_old = None
         if tank_rows:
 
             # If the old name is in tank rows, find the spot of it
-            if old in tank_rows[0]['tank_name']:
-                for spot, tank in enumerate(tank_rows[0]['tank_name']):
+            if old in tank_rows[0]["tank_name"]:
+                for spot, tank in enumerate(tank_rows[0]["tank_name"]):
                     if old == tank:
                         spot_of_old = spot + 1
 
@@ -255,18 +361,22 @@ class Fishing(vbu.Cog):
                     if new == tank:
                         return await ctx.send(
                             f"You already have a tank named **{new}**!",
-                            allowed_mentions=discord.AllowedMentions.none()
+                            allowed_mentions=discord.AllowedMentions.none(),
                         )
 
                 # rename the tank in the database and make any fish in that tank in the new named tank
                 async with vbu.Database() as db:
                     await db(
                         """UPDATE user_tank_inventory SET tank_name[$3]=$1 WHERE user_id=$2;""",
-                        new, ctx.author.id, spot_of_old,
+                        new,
+                        ctx.author.id,
+                        spot_of_old,
                     )
                     await db(
                         """UPDATE user_fish_inventory SET tank_fish=$1 WHERE user_id = $2 AND tank_fish=$3""",
-                        new, ctx.author.id, old
+                        new,
+                        ctx.author.id,
+                        old,
                     )
 
                 # Send confirmation message
@@ -279,7 +389,7 @@ class Fishing(vbu.Cog):
             if not fish_row:
                 return await ctx.send(
                     f"You have no fish or tank named **{old}**!",
-                    allowed_mentions=discord.AllowedMentions.none()
+                    allowed_mentions=discord.AllowedMentions.none(),
                 )
 
         # Check of fish is being changed to a name of a new fish
@@ -287,14 +397,16 @@ class Fishing(vbu.Cog):
             if new == fish_name:
                 return await ctx.send(
                     f"You already have a fish named **{new}**!",
-                    allowed_mentions=discord.AllowedMentions.none()
+                    allowed_mentions=discord.AllowedMentions.none(),
                 )
 
         # Update the database
         async with vbu.Database() as db:
             await db(
                 """UPDATE user_fish_inventory SET fish_name=$1 WHERE user_id=$2 and fish_name=$3;""",
-                new, ctx.author.id, old,
+                new,
+                ctx.author.id,
+                old,
             )
 
         # Send confirmation message

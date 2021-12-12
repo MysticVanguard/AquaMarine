@@ -6,9 +6,9 @@ import asyncio
 import discord
 from discord.ext import vbu
 
-'''
+"""
 The following utils are for upgrades used in various commands throughout the bot, and are based on the level of the upgrade
-'''
+"""
 
 
 ROD_UPGRADES = {0: 1, 1: 1.4, 2: 1.8, 3: 2.2, 4: 2.6, 5: 3.0}
@@ -83,71 +83,113 @@ LINE_UPGRADES = {
 
 # Lure upgrades to give users a better chance at special fish
 LURE_UPGRADES = {
-    0: [
-        ("normal", .1000),
-        ("inverted", .0000),
-        ("golden", .0000)
-    ],
-    1: [
-        ("normal", .9989),
-        ("inverted", .0010),
-        ("golden", .0001)
-    ],
-    2: [
-        ("normal", .9978),
-        ("inverted", .0020),
-        ("golden", .0002)
-    ],
-    3: [
-        ("normal", .9967),
-        ("inverted", .0030),
-        ("golden", .0003)
-    ],
-    4: [
-        ("normal", .9956),
-        ("inverted", .0040),
-        ("golden", .0004)
-    ],
-    5: [
-        ("normal", .9945),
-        ("inverted", .0050),
-        ("golden", .0005)
-    ]
+    0: [("normal", 0.1000), ("inverted", 0.0000), ("golden", 0.0000)],
+    1: [("normal", 0.9989), ("inverted", 0.0010), ("golden", 0.0001)],
+    2: [("normal", 0.9978), ("inverted", 0.0020), ("golden", 0.0002)],
+    3: [("normal", 0.9967), ("inverted", 0.0030), ("golden", 0.0003)],
+    4: [("normal", 0.9956), ("inverted", 0.0040), ("golden", 0.0004)],
+    5: [("normal", 0.9945), ("inverted", 0.0050), ("golden", 0.0005)],
 }
 
 # Crate chance upgrade that increases the chance of catching a crate
 CRATE_CHANCE_UPGRADE = {0: 2190, 1: 1570, 2: 1080, 3: 540, 4: 360, 5: 180}
 
 # Weight upgrade that increases the level of the caught fish
-WEIGHT_UPGRADES = {0: (1, 2), 1: (5, 10), 2: (
-    10, 15), 3: (10, 25), 4: (10, 50), 5: (25, 50)}
+WEIGHT_UPGRADES = {
+    0: (1, 2),
+    1: (5, 10),
+    2: (10, 15),
+    3: (10, 25),
+    4: (10, 50),
+    5: (25, 50),
+}
 
 # Crate tier upgrade that increases the tier of the crate and the items inside
 CRATE_TIER_UPGRADE = {
     0: (1.0, 0, 0, 0, 0, 0),
-    1: (.89, .1, .01, 0, 0, 0),
-    2: (.74, .2, .05, .01, 0, 0),
-    3: (.54, .3, .1, .05, .01, 0),
-    4: (.29, .4, .15, .1, .05, .01),
-    5: (0, .5, .2, .15, .1, 0.05)
+    1: (0.89, 0.1, 0.01, 0, 0, 0),
+    2: (0.74, 0.2, 0.05, 0.01, 0, 0),
+    3: (0.54, 0.3, 0.1, 0.05, 0.01, 0),
+    4: (0.29, 0.4, 0.15, 0.1, 0.05, 0.01),
+    5: (0, 0.5, 0.2, 0.15, 0.1, 0.05),
 }
 
 # Tiers for the crates and what is inside them (sand dollars, casts, chances of fish bags, amount of fish bags, changes of food, amount of food, chances of potions, amount of potions)
 CRATE_TIERS = {
-    "Wooden": (500, 1, (1.0, 0, 0, 0, 0, 0), 1, (1.0, 0, 0, 0), 1, (1.0, 0, 0, 0), 1),
-    "Bronze": (1000, 2, (.89, .1, .01, 0, 0, 0), 2, (.89, .1, .01, 0), 2, (.89, .1, .01, 0), 1),
-    "Steel": (2500, 5, (.74, .2, .05, .01, 0, 0), 4, (.74, .2, .05, .01), 4, (.74, .2, .05, .01), 1),
-    "Golden": (5000, 10, (.54, .3, .1, .05, .01, 0), 7, (.54, .3, .1, .05), 7, (.54, .3, .1, .05), 2),
-    "Diamond": (10000, 20, (.29, .4, .15, .1, .05, .01), 11, (.29, .4, .15, .1), 11, (.29, .4, .15, .1), 2),
-    "Enchanted": (50000, 100, (0, .5, .2, .15, .1, 0.05), 16, (0, .5, .2, .15), 16, (0, .5, .2, .15), 3),
+    "Wooden": (
+        500,
+        1,
+        (1.0, 0, 0, 0, 0, 0),
+        1,
+        (1.0, 0, 0, 0),
+        1,
+        (1.0, 0, 0, 0),
+        1,
+    ),
+    "Bronze": (
+        1000,
+        2,
+        (0.89, 0.1, 0.01, 0, 0, 0),
+        2,
+        (0.89, 0.1, 0.01, 0),
+        2,
+        (0.89, 0.1, 0.01, 0),
+        1,
+    ),
+    "Steel": (
+        2500,
+        5,
+        (0.74, 0.2, 0.05, 0.01, 0, 0),
+        4,
+        (0.74, 0.2, 0.05, 0.01),
+        4,
+        (0.74, 0.2, 0.05, 0.01),
+        1,
+    ),
+    "Golden": (
+        5000,
+        10,
+        (0.54, 0.3, 0.1, 0.05, 0.01, 0),
+        7,
+        (0.54, 0.3, 0.1, 0.05),
+        7,
+        (0.54, 0.3, 0.1, 0.05),
+        2,
+    ),
+    "Diamond": (
+        10000,
+        20,
+        (0.29, 0.4, 0.15, 0.1, 0.05, 0.01),
+        11,
+        (0.29, 0.4, 0.15, 0.1),
+        11,
+        (0.29, 0.4, 0.15, 0.1),
+        2,
+    ),
+    "Enchanted": (
+        50000,
+        100,
+        (0, 0.5, 0.2, 0.15, 0.1, 0.05),
+        16,
+        (0, 0.5, 0.2, 0.15),
+        16,
+        (0, 0.5, 0.2, 0.15),
+        3,
+    ),
 }
 
 
 BLEACH_UPGRADE = {0: 1, 1: 1.4, 2: 1.8, 3: 2.2, 4: 2.6, 5: 3.0}
 
 # Toys upgrade that increases the amount of xp gained
-TOYS_UPGRADE = {0: (5, 50), 1: (15, 75), 2: (25, 125),
-                3: (50, 250), 4: (100, 500), 5: (200, 1000)}
+TOYS_UPGRADE = {
+    0: (5, 50),
+    1: (15, 75),
+    2: (25, 125),
+    3: (50, 250),
+    4: (100, 500),
+    5: (200, 1000),
+}
 
 # Amazement upgrade that increases the chance of a fish to gain a level when entertained
 AMAZEMENT_UPGRADE = {0: 1600, 1: 1500, 2: 1300, 3: 1000, 4: 600, 5: 100}
@@ -159,12 +201,24 @@ MUTATION_UPGRADE = {0: 50000, 1: 40000, 2: 30000, 3: 20000, 4: 10000, 5: 5000}
 BIG_SERVINGS_UPGRADE = {0: 500, 1: 350, 2: 250, 3: 100, 4: 50, 5: 10}
 
 # Hygienic upgrade increases the time between cleans and the multiplier with that time
-HYGIENIC_UPGRADE = {0: (1, 60), 1: (4, 240), 2: (
-    8, 480), 3: (12, 720), 4: (16, 960), 5: (24, 1440)}
+HYGIENIC_UPGRADE = {
+    0: (1, 60),
+    1: (4, 240),
+    2: (8, 480),
+    3: (12, 720),
+    4: (16, 960),
+    5: (24, 1440),
+}
 
 # Feeding upgrade that increases the time before a fish dies from not being fed
-FEEDING_UPGRADES = {0: (3, 0), 1: (3, 6), 2: (
-    3, 12), 3: (3, 18), 4: (3, 24), 5: (4, 6)}
+FEEDING_UPGRADES = {
+    0: (3, 0),
+    1: (3, 6),
+    2: (3, 12),
+    3: (3, 18),
+    4: (3, 24),
+    5: (4, 6),
+}
 
 
 # This returns the results of the lure upgrade in [(list of types), (list of chances)]
@@ -174,23 +228,26 @@ def special_percentage_finder(upgrade_level):
         list(i[1] for i in LURE_UPGRADES[upgrade_level]),
     ]
 
+
 # This returns the results of the bait upgrade in [(list of rarities), (list of chances)]
 
 
-def rarity_percentage_finder(upgrade_level: int) -> typing.Tuple[typing.List[str], typing.List[float]]:
+def rarity_percentage_finder(
+    upgrade_level: int,
+) -> tuple[list[str], list[float]]:
     return [
         list(i[0] for i in BAIT_UPGRADE[upgrade_level]),
         list(i[1] for i in BAIT_UPGRADE[upgrade_level]),
     ]  # type:ignore
 
 
-'''
+"""
 The following utils are used for commands that use emojis such as slots and gamble
-'''
+"""
 
-'''
+"""
 Other utils with various uses
-'''
+"""
 
 # The different acceptable names for items bought in the shop
 COMMON_BAG_NAMES = ["Common Fish Bag", "Common", "Cfb"]
@@ -227,7 +284,7 @@ RARITY_CULERS = {
     "rare": 0x4AFBEF,  # Blue
     "epic": 0xE379FF,  # Light Purple
     "legendary": 0xFFE80D,  # Gold
-    "mythic": 0xFF0090  # Hot Pink
+    "mythic": 0xFF0090,  # Hot Pink
 }
 
 # This parses file names
@@ -249,7 +306,13 @@ def parse_fish_filename(filename: str) -> dict:
     # If rarity is actually the modifier...
     if rarity in ["inverted", "golden"]:
         # Change the variables to what they actually should be
-        modifier, rarity, cost, size, raw_name = rarity, cost, size, raw_name[0], raw_name[1:]
+        modifier, rarity, cost, size, raw_name = (
+            rarity,
+            cost,
+            size,
+            raw_name[0],
+            raw_name[1:],
+        )
     # Make sure the raw name is the name with underscores joining
     raw_name = "_".join(raw_name)
 
@@ -288,14 +351,15 @@ def fetch_fish(directory: str) -> dict:
 
         # Add the fish to the dict
         fish_data = parse_fish_filename(filename)
-        if fish_data['modifier']:
+        if fish_data["modifier"]:
             continue  # We don't care about inverted/golden fish here
-        fetched_fish[fish_data['rarity']][fish_data['name'].lower()] = {
+        fetched_fish[fish_data["rarity"]][fish_data["name"].lower()] = {
             "image": f"{directory}/{filename}",
             **fish_data,
         }
 
     return fetched_fish
+
 
 # This will make the fish golden
 
@@ -312,6 +376,7 @@ def make_golden(fish: dict) -> dict:
     fish["image"] = fish["image"][:40] + "golden_" + fish["image"][40:]
     return fish
 
+
 # This will make the fish inverted
 
 
@@ -326,6 +391,7 @@ def make_inverted(fish: dict) -> dict:
     # Adds the modifier to the image folder path in the correct place
     fish["image"] = fish["image"][:40] + "inverted_" + fish["image"][40:]
     return fish
+
 
 # This will get rid of any modifiers
 
@@ -351,21 +417,26 @@ async def create_select_menu(bot, ctx, option_list, type_noun, type_verb):
     # For each name that isnt "" add it as an option for the select menu
     for option in option_list:
         if option != "":
-            test_options.append(discord.ui.SelectOption(
-                label=option, value=option))
+            test_options.append(
+                discord.ui.SelectOption(label=option, value=option)
+            )
 
     # Set the select menu with the options
     components = discord.ui.MessageComponents(
         discord.ui.ActionRow(
-            discord.ui.SelectMenu(custom_id=type_verb,
-                                  options=test_options,
-                                  placeholder="Select an option",
-                                  )
+            discord.ui.SelectMenu(
+                custom_id=type_verb,
+                options=test_options,
+                placeholder="Select an option",
+            )
         )
     )
 
     # Ask them what they want to do with component
-    message = await ctx.send(f"What {type_noun} would you like to {type_verb}?", components=components)
+    message = await ctx.send(
+        f"What {type_noun} would you like to {type_verb}?",
+        components=components,
+    )
 
     # If it's the correct message and author return true
     def check(payload):
@@ -374,17 +445,24 @@ async def create_select_menu(bot, ctx, option_list, type_noun, type_verb):
 
         # If its the wrong author send an ephemeral message
         if payload.user.id != ctx.author.id:
-            bot.loop.create_task(payload.response.send_message(
-                "You can't respond to this message!", ephemeral=True))
+            bot.loop.create_task(
+                payload.response.send_message(
+                    "You can't respond to this message!", ephemeral=True
+                )
+            )
             return False
         return True
 
     # If it works don't fail, and if it times out say that
     try:
-        payload = await bot.wait_for("component_interaction", check=check, timeout=60)
+        payload = await bot.wait_for(
+            "component_interaction", check=check, timeout=60
+        )
         await payload.response.defer_update()
     except asyncio.TimeoutError:
-        return await ctx.send(f"Timed out asking for {type_noun} to {type_verb} <@{ctx.author.id}>")
+        return await ctx.send(
+            f"Timed out asking for {type_noun} to {type_verb} <@{ctx.author.id}>"
+        )
 
     # Return what they chose
     return str(payload.values[0])
