@@ -2,13 +2,13 @@ import random
 import asyncio
 from datetime import datetime as dt, timedelta
 import io
-from cogs import utils
 
 from PIL import Image
 import imageio
 import discord
 from discord.ext import commands, vbu
 
+from cogs import utils
 from cogs.utils.fish_handler import DAYLIGHT_SAVINGS
 
 

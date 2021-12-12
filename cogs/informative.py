@@ -1,10 +1,9 @@
-import typing
 from datetime import timedelta
 import collections
 import asyncio
-
 import random
 import string
+
 from PIL import Image
 import discord
 from discord.ext import commands, vbu
