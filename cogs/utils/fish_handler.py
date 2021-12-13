@@ -298,8 +298,6 @@ RARITY_CULERS = {
     "mythic": 0xFF0090,  # Hot Pink
 }
 
-# This parses file names
-
 
 def parse_fish_filename(filename: str) -> dict:
     """
@@ -402,8 +400,8 @@ def make_inverted(fish: dict) -> dict:
 def get_normal_name(fish_name):
     """Get the unmodified fish name by removing inverted/golden prefix"""
 
-    fish_name = fish_name.strip("inverted_")
-    fish_name = fish_name.strip("golden_")
+    fish_name = fish_name.removeprefix("inverted_")
+    fish_name = fish_name.removeprefix("golden_")
     return fish_name
 
 
