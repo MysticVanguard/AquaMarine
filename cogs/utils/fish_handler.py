@@ -1,12 +1,12 @@
 from os import walk
-import re
 import asyncio
 
 import discord
 
 
 """
-The following utils are for upgrades used in various commands throughout the bot, and are based on the level of the upgrade
+The following utils are for upgrades used in various commands
+throughout the bot, and are based on the level of the upgrade
 """
 
 
@@ -113,7 +113,9 @@ CRATE_TIER_UPGRADE = {
     5: (0, 0.5, 0.2, 0.15, 0.1, 0.05),
 }
 
-# Tiers for the crates and what is inside them (sand dollars, casts, chances of fish bags, amount of fish bags, changes of food, amount of food, chances of potions, amount of potions)
+# Tiers for the crates and what is inside them
+# (sand dollars, casts, chances of fish bags, amount of fish bags,
+# changes of food, amount of food, chances of potions, amount of potions)
 CRATE_TIERS = {
     "Wooden": (
         500,
@@ -190,16 +192,20 @@ TOYS_UPGRADE = {
     5: (200, 1000),
 }
 
-# Amazement upgrade that increases the chance of a fish to gain a level when entertained
+# Amazement upgrade increases the chance of a fish to gain a level
+# when entertained
 AMAZEMENT_UPGRADE = {0: 1600, 1: 1500, 2: 1300, 3: 1000, 4: 600, 5: 100}
 
-# Mutation upgrade that increases the chance of a fish to mutate to golden or inverted after being *****TBD
+# Mutation upgrade increases the chance of a fish to mutate to
+# golden or inverted after being *****TBD
 MUTATION_UPGRADE = {0: 50000, 1: 40000, 2: 30000, 3: 20000, 4: 10000, 5: 5000}
 
-# Big servings upgrade that increases the chance of fish food not being consumed when a fish is fed
+# Big servings upgrade increases the chance of fish food not being
+# consumed when a fish is fed
 BIG_SERVINGS_UPGRADE = {0: 500, 1: 350, 2: 250, 3: 100, 4: 50, 5: 10}
 
-# Hygienic upgrade increases the time between cleans and the multiplier with that time
+# Hygienic upgrade increases the time between cleans
+# and the multiplier with that time
 HYGIENIC_UPGRADE = {
     0: (1, 60),
     1: (4, 240),
@@ -209,7 +215,7 @@ HYGIENIC_UPGRADE = {
     5: (24, 1440),
 }
 
-# Feeding upgrade that increases the time before a fish dies from not being fed
+# Feeding upgrade increases the time before a fish dies from not being fed
 FEEDING_UPGRADES = {
     0: (3, 0),
     1: (3, 6),
@@ -220,20 +226,24 @@ FEEDING_UPGRADES = {
 }
 
 
-# This returns the results of the lure upgrade in [(list of types), (list of chances)]
 def special_percentage_finder(upgrade_level):
+    """
+    Returns the results of the lure upgrade
+    [(list of types), (list of chances)]
+    """
     return [
         list(i[0] for i in LURE_UPGRADES[upgrade_level]),
         list(i[1] for i in LURE_UPGRADES[upgrade_level]),
     ]
 
 
-# This returns the results of the bait upgrade in [(list of rarities), (list of chances)]
-
-
 def rarity_percentage_finder(
     upgrade_level: int,
 ) -> tuple[list[str], list[float]]:
+    """
+    Returns the results of the bait upgrade
+    [(list of rarities), (list of chances)]
+    """
     return [
         list(i[0] for i in BAIT_UPGRADE[upgrade_level]),
         list(i[1] for i in BAIT_UPGRADE[upgrade_level]),
@@ -241,7 +251,8 @@ def rarity_percentage_finder(
 
 
 """
-The following utils are used for commands that use emojis such as slots and gamble
+The following utils are used for commands that use emojis
+such as slots and gamble
 """
 
 """
@@ -272,7 +283,8 @@ FEEDING_POTION_NAMES = ["Feeding Potion", "Feeding", "F"]
 # List of names for tank themes
 TANK_THEMES = PLANT_LIFE_NAMES
 
-# Daylight savings variable because for some reason i need to add four and then an hour when its daylight savings,
+# Daylight savings variable because for some reason i need to
+# add four and then an hour when its daylight savings,
 # will be changed to 4 when daylight savings is over
 DAYLIGHT_SAVINGS = 5
 
@@ -360,9 +372,6 @@ def fetch_fish(directory: str) -> dict:
     return fetched_fish
 
 
-# This will make the fish golden
-
-
 def make_golden(fish: dict) -> dict:
     """
     Take the given fish and change the dict to make it golden.
@@ -370,13 +379,11 @@ def make_golden(fish: dict) -> dict:
 
     # Adds the modifier to the raw name
     fish["raw_name"] = f"golden_{fish['raw_name']}"
-    fish["name"] = f"Golden {fish['name']}"  # Adds the modifier to the name
+    # Adds the modifier to the name
+    fish["name"] = f"Golden {fish['name']}"
     # Adds the modifier to the image folder path in the correct place
     fish["image"] = fish["image"][:40] + "golden_" + fish["image"][40:]
     return fish
-
-
-# This will make the fish inverted
 
 
 def make_inverted(fish: dict) -> dict:
@@ -392,23 +399,19 @@ def make_inverted(fish: dict) -> dict:
     return fish
 
 
-# This will get rid of any modifiers
-
-
 def get_normal_name(fish_name):
-    """
-    Get the non-inverted/golden name for the fish
-    """
+    """Get the unmodified fish name by removing inverted/golden prefix"""
 
-    # If there is inverted or golden at the front of the fish name, take it off
-    match = re.match(r"(inverted_|golden_)(?P<fish_name>.*)", fish_name)
-    if match:
-        return match.group("fish_name")
+    fish_name = fish_name.strip("inverted_")
+    fish_name = fish_name.strip("golden_")
     return fish_name
 
 
-# This will create a select menu from the given list, have the user select one, and return the selection
 async def create_select_menu(bot, ctx, option_list, type_noun, type_verb):
+    """
+    This will create a select menu from the given list,
+    have the user select one, and return the selection
+    """
 
     # Initiates the option list
     test_options = []
@@ -460,7 +463,8 @@ async def create_select_menu(bot, ctx, option_list, type_noun, type_verb):
         await payload.response.defer_update()
     except asyncio.TimeoutError:
         return await ctx.send(
-            f"Timed out asking for {type_noun} to {type_verb} <@{ctx.author.id}>"
+            f"Timed out asking for {type_noun} to "
+            f"{type_verb} <@{ctx.author.id}>"
         )
 
     # Return what they chose
