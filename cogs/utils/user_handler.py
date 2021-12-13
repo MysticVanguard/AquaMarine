@@ -81,7 +81,8 @@ async def ask_to_sell_fish(
         except asyncio.TimeoutError:
             await message.edit(components=components.disable_components())
             await message.channel.send(
-                "Did you forget about me? I've been waiting for a while now! I'll just assume you wanted to sell the fish."
+                "Did you forget about me? I've been waiting for a while now! "
+                "I'll just assume you wanted to sell the fish."
             )
             # See if they want to sell the fish
             print("sell confirm")
@@ -108,7 +109,8 @@ async def ask_to_sell_fish(
                     money_earned,
                 )
             await message.channel.send(
-                f"Sold your **{new_fish['name']}** for **{money_earned}** <:sand_dollar:877646167494762586>!"
+                f"Sold your **{new_fish['name']}** for **{money_earned}** "
+                f"<:sand_dollar:877646167494762586>!"
             )
             # Disable the given button
             await message.edit(components=components.disable_components())
@@ -121,7 +123,6 @@ async def ask_to_sell_fish(
             await message.edit(components=components.disable_components())
             # Get their current fish names
             print("keep confirm")
-            fish_names = []
             fish_names = [i["fish_name"] for i in fish_rows]
             fish_list = [(i["fish_name"], i["fish"]) for i in fish_rows]
             fish_list = sorted(fish_list, key=lambda x: x[1])
@@ -136,14 +137,8 @@ async def ask_to_sell_fish(
             }
 
             # Sorted Fish will become a dictionary of {rarity: [list of fish names of fish in that category]} if the fish is in the user's inventory
-            for (
-                rarity,
-                fish_types,
-            ) in bot.fish.items():  # For each rarity level
-                for (
-                    _,
-                    fish_detail,
-                ) in fish_types.items():  # For each fish in that level
+            for rarity, fish_types in bot.fish.items():
+                for _, fish_detail in fish_types.items():
                     raw_name = fish_detail["raw_name"]
                     for user_fish_name, user_fish in fish_list:
                         # If the fish in the user's list matches the name of a fish in the rarity catgeory
@@ -158,29 +153,53 @@ async def ask_to_sell_fish(
                 "What do you want to name your new fish? (32 character limit and cannot be named the same as another fish you own)"
             )
 
-            def check(m):
+            def message_check(msg):
                 return (
-                    m.author == ctx.author
-                    and m.channel.id == message.channel.id
-                    and len(m.content) > 1
-                    and len(m.content) <= 32
-                    and m.content not in fish_names
+                    msg.author == ctx.author
+                    and msg.channel.id == message.channel.id
+                    and len(msg.content) > 1
+                    and len(msg.content) <= 32
+                    and msg.content not in fish_names
                 )
 
             try:
                 name_message = await bot.wait_for(
-                    "message", timeout=60.0, check=check
+                    "message", timeout=60.0, check=message_check
                 )
                 name = name_message.content
                 await message.channel.send(
                     f"Your new fish **{name}** (Lvl. {level}) has been added to your bucket!"
                 )
             except asyncio.TimeoutError:
-                name = f"{random.choice(['Captain', 'Mr.', 'Mrs.', 'Commander', 'Sir', 'Madam', 'Skipper', 'Crewmate'])} {random.choice(['Nemo', 'Bubbles', 'Jack', 'Finley', 'Coral', 'Fish', 'Turtle', 'Squid', 'Sponge', 'Starfish'])}"
+                titles = [
+                    "Captain",
+                    "Mr.",
+                    "Mrs.",
+                    "Commander",
+                    "Sir",
+                    "Madam",
+                    "Skipper",
+                    "Crewmate",
+                ]
+                names = [
+                    "Nemo",
+                    "Bubbles",
+                    "Jack",
+                    "Finley",
+                    "Coral",
+                    "Fish",
+                    "Turtle",
+                    "Squid",
+                    "Sponge",
+                    "Starfish",
+                ]
+                name = f"{random.choice(titles)} {random.choice(names)}"
                 while name in fish_names:
-                    name = f"{random.choice(['Captain', 'Mr.', 'Mrs.', 'Commander', 'Sir', 'Madam', 'Skipper', 'Crewmate'])} {random.choice(['Nemo', 'Bubbles', 'Jack', 'Finley', 'Coral', 'Fish', 'Turtle', 'Squid', 'Sponge', 'Starfish'])}"
+                    name = f"{random.choice(titles)} {random.choice(names)}"
                 await message.channel.send(
-                    f"Did you forget about me? I've been waiting for a while now! I'll name the fish for you. Let's call it **{name}** (Lvl. {level})"
+                    f"Did you forget about me? I've been waiting for a while now! "
+                    f"I'll name the fish for you. "
+                    f"Let's call it **{name}** (Lvl. {level})"
                 )
 
             # Save the fish name
@@ -199,7 +218,7 @@ async def ask_to_sell_fish(
             # See if they want to sell the fish
             print("sell confirm")
             vote_multiplier = 1
-            if await get_user_voted(bot, ctx.author.id) == True:
+            if await get_user_voted(bot, ctx.author.id):
                 vote_multiplier = 1.5
                 await message.channel.send(
                     "You voted at <https://top.gg/bot/840956686743109652/vote> for a **1.5x** bonus"
@@ -238,25 +257,26 @@ async def ask_to_sell_fish(
                     money_earned,
                 )
             await message.channel.send(
-                f"Sold your **{new_fish['name']}** for **{money_earned}** <:sand_dollar:877646167494762586>!"
+                f"Sold your **{new_fish['name']}** for **{money_earned}** "
+                f"<:sand_dollar:877646167494762586>!"
             )
             # Disable the given button
             await message.edit(components=components.disable_components())
             return
 
 
-async def check_price(bot, user_id: int, cost: int, type: str) -> bool:
+async def check_price(bot, user_id: int, cost: int, balance_type: str) -> bool:
     """
     Returns if a user_id has enough money based on the cost.
     """
 
     async with bot.database() as db:
         user_rows = await db(
-            f"""SELECT {type} FROM user_balance WHERE user_id=$1""",
+            f"""SELECT {balance_type} FROM user_balance WHERE user_id=$1""",
             user_id,
         )
         if user_rows:
-            user_balance = user_rows[0][type]
+            user_balance = user_rows[0][balance_type]
         else:
             user_balance = 0
     return user_balance >= cost
@@ -268,7 +288,6 @@ async def buying_singular(bot, user: discord.user, ctx, item: str):
     """
 
     # Variables for possible inputs
-    tanks = ["Fish Bowl", "Small Tank", "Medium Tank"]
     themes = ["Plant Life"]
 
     # Gets the tank info for user
@@ -281,47 +300,42 @@ async def buying_singular(bot, user: discord.user, ctx, item: str):
             return False
 
     # Tank slot/name info variables
-    tank_slot = 0
     nonavailable_slots = []
     available_slots = []
     theme_slots_dict = {}
     nonavailable_tank_types = []
     tank_names = []
-    tank_size_values = {"Fish Bowl": 1, "Small Tank": 5, "Medium Tank": 25}
+    tank_types = {"Fish Bowl": 1, "Small Tank": 5, "Medium Tank": 25}
 
     # Finds the slots and names of tanks and puts them where they need to be in the list
-    for type in tanks:
-        if item == type:
+    for tank_type in tank_types:
+        if item == tank_type:
             break
-        nonavailable_tank_types.append(type)
-    for tank_named in tank_row[0]["tank_name"]:
-        tank_slot += 1
-        theme_slots_dict[tank_row[0]["tank_name"][tank_slot - 1]] = (
-            tank_slot - 1
-        )
-        if tank_row[0]["tank_type"][tank_slot - 1] == "":
+        nonavailable_tank_types.append(tank_type)
+
+    for tank_slot, tank_name in enumerate(tank_row[0]["tank_name"]):
+        theme_slots_dict[tank_name] = tank_slot
+        if not tank_row[0]["tank_type"][tank_slot]:
             tank_names.append("none")
-        if tank_row[0]["tank_theme"][tank_slot - 1] != item.replace(" ", "_"):
-            tank_names.append(tank_named)
-        if tank_named:
-            if (
-                tank_row[0]["tank_type"][tank_slot - 1]
-                not in nonavailable_tank_types
-            ):
-                continue
-            nonavailable_slots.append(str(tank_slot))
+        if tank_row[0]["tank_theme"][tank_slot] != item.replace(" ", "_"):
+            tank_names.append(tank_name)
+        if tank_name:
+            if tank_row[0]["tank_type"][tank_slot] in nonavailable_tank_types:
+                nonavailable_slots.append(str(tank_slot + 1))
             continue
-        available_slots.append(str(tank_slot))
+        available_slots.append(str(tank_slot + 1))
 
     # If the item is a tank...
-    if item in tanks:
+    if item in tank_types:
 
         # Asks the user what slot to put the tank in and checks that its a slot
         await ctx.send(
-            f"What tank slot would you like to put this tank in? (Available slots: {', '.join(available_slots)}, Taken spots to be updated: {', '.join(nonavailable_slots)})"
+            f"What tank slot would you like to put this tank in? "
+            f"(Available slots: {', '.join(available_slots)}, "
+            f"Taken spots to be updated: {', '.join(nonavailable_slots)})"
         )
 
-        def check(slot):
+        def slot_check(slot):
             return (
                 slot.author == ctx.author
                 and slot.channel == ctx.channel
@@ -331,7 +345,7 @@ async def buying_singular(bot, user: discord.user, ctx, item: str):
 
         try:
             message_given = await ctx.bot.wait_for(
-                "message", timeout=60.0, check=check
+                "message", timeout=60.0, check=slot_check
             )
             message = message_given.content
             await ctx.send(
@@ -348,10 +362,12 @@ async def buying_singular(bot, user: discord.user, ctx, item: str):
 
             # Asks what to name the new tank and makes sure it matches the check
             await ctx.send(
-                'What would you like to name this tank? (must be a different name from your other tanks, less than 32 characters, and cannot be "none")'
+                "What would you like to name this tank? "
+                "(must be a different name from your other tanks, "
+                'less than 32 characters, and cannot be "none")'
             )
 
-            def check(namem):
+            def name_check(namem):
                 return (
                     namem.author == ctx.author
                     and namem.channel == ctx.channel
@@ -363,7 +379,7 @@ async def buying_singular(bot, user: discord.user, ctx, item: str):
 
             try:
                 name_given = await ctx.bot.wait_for(
-                    "message", timeout=60.0, check=check
+                    "message", timeout=60.0, check=name_check
                 )
                 name = name_given.content
                 await ctx.send(f"You have named your new tank {name}!")
@@ -380,7 +396,7 @@ async def buying_singular(bot, user: discord.user, ctx, item: str):
                     int(message),
                     item,
                     name,
-                    tank_size_values[item],
+                    tank_types[item],
                     user.id,
                 )
         else:
@@ -395,8 +411,8 @@ async def buying_singular(bot, user: discord.user, ctx, item: str):
                     int(message),
                     item,
                     int(
-                        tank_size_values[item]
-                        - tank_size_values[
+                        tank_types[item]
+                        - tank_types[
                             tank_row[0]["tank_type"][int(message) - 1]
                         ]
                     ),
@@ -409,10 +425,11 @@ async def buying_singular(bot, user: discord.user, ctx, item: str):
 
         # Asks for the name of the tank the user is putting the theme on and makes sure it is correct
         await ctx.send(
-            f"What tank name would you like to put this theme on? (Available names: {', '.join(tank_names)})"
+            f"What tank name would you like to put this theme on? "
+            f"(Available names: {', '.join(tank_names)})"
         )
 
-        def check(themem):
+        def theme_check(themem):
             return (
                 themem.author == ctx.author
                 and themem.channel == ctx.channel
@@ -422,7 +439,7 @@ async def buying_singular(bot, user: discord.user, ctx, item: str):
 
         try:
             theme_message_given = await ctx.bot.wait_for(
-                "message", timeout=60.0, check=check
+                "message", timeout=60.0, check=theme_check
             )
             theme_message = theme_message_given.content
             await ctx.send(
@@ -443,30 +460,29 @@ async def buying_singular(bot, user: discord.user, ctx, item: str):
             )
 
 
-# Vote confirmer tolen from https://github.com/Voxel-Fox-Ltd/Flower/blob/master/cogs/plant_care_commands.py
+# Vote confirmer from https://github.com/Voxel-Fox-Ltd/Flower/blob/master/cogs/plant_care_commands.py
 async def get_user_voted(bot, user_id: int) -> bool:
     """
-    Returns whether or not the user with the given ID has voted for the bot on Top.gg.
+    Determines whether or not a user has voted for the bot on Top.gg.
     Args:
         user_id (int): The ID of the user we want to check
     Returns:
         bool: Whether or not the user voted for the bot
     """
 
-    TOPGG_GET_VOTES_ENDPOINT = "https://top.gg/api/bots/{bot_client_id}/check"
     topgg_token = bot.config.get("bot_listing_api_keys", {}).get("topgg_token")
     if not topgg_token:
         return False
     params = {"userId": user_id}
     headers = {"Authorization": topgg_token}
-    url = TOPGG_GET_VOTES_ENDPOINT.format(
-        bot_client_id=bot.config["oauth"]["client_id"]
-    )
-    async with bot.session.get(url, params=params, headers=headers) as r:
+    bot_client_id = bot.config["oauth"]["client_id"]
+    url = f"https://top.gg/api/bots/{bot_client_id}/check"
+
+    async with bot.session.get(url, params=params, headers=headers) as ret:
         try:
-            data = await r.json()
+            data = await ret.json()
         except Exception:
             return False
-        if r.status != 200:
+        if ret.status != 200:
             return False
     return bool(data["voted"])
