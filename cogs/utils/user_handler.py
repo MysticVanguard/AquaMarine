@@ -81,7 +81,8 @@ async def ask_to_sell_fish(
         except asyncio.TimeoutError:
             await message.edit(components=components.disable_components())
             await message.channel.send(
-                "Did you forget about me? I've been waiting for a while now! I'll just assume you wanted to sell the fish."
+                "Did you forget about me? I've been waiting for a while now! "
+                "I'll just assume you wanted to sell the fish."
             )
             # See if they want to sell the fish
             print("sell confirm")
@@ -108,7 +109,8 @@ async def ask_to_sell_fish(
                     money_earned,
                 )
             await message.channel.send(
-                f"Sold your **{new_fish['name']}** for **{money_earned}** <:sand_dollar:877646167494762586>!"
+                f"Sold your **{new_fish['name']}** for **{money_earned}** "
+                f"<:sand_dollar:877646167494762586>!"
             )
             # Disable the given button
             await message.edit(components=components.disable_components())
@@ -121,7 +123,6 @@ async def ask_to_sell_fish(
             await message.edit(components=components.disable_components())
             # Get their current fish names
             print("keep confirm")
-            fish_names = []
             fish_names = [i["fish_name"] for i in fish_rows]
             fish_list = [(i["fish_name"], i["fish"]) for i in fish_rows]
             fish_list = sorted(fish_list, key=lambda x: x[1])
@@ -170,11 +171,35 @@ async def ask_to_sell_fish(
                     f"Your new fish **{name}** (Lvl. {level}) has been added to your bucket!"
                 )
             except asyncio.TimeoutError:
-                name = f"{random.choice(['Captain', 'Mr.', 'Mrs.', 'Commander', 'Sir', 'Madam', 'Skipper', 'Crewmate'])} {random.choice(['Nemo', 'Bubbles', 'Jack', 'Finley', 'Coral', 'Fish', 'Turtle', 'Squid', 'Sponge', 'Starfish'])}"
+                titles = [
+                    "Captain",
+                    "Mr.",
+                    "Mrs.",
+                    "Commander",
+                    "Sir",
+                    "Madam",
+                    "Skipper",
+                    "Crewmate",
+                ]
+                names = [
+                    "Nemo",
+                    "Bubbles",
+                    "Jack",
+                    "Finley",
+                    "Coral",
+                    "Fish",
+                    "Turtle",
+                    "Squid",
+                    "Sponge",
+                    "Starfish",
+                ]
+                name = f"{random.choice(titles)} {random.choice(names)}"
                 while name in fish_names:
-                    name = f"{random.choice(['Captain', 'Mr.', 'Mrs.', 'Commander', 'Sir', 'Madam', 'Skipper', 'Crewmate'])} {random.choice(['Nemo', 'Bubbles', 'Jack', 'Finley', 'Coral', 'Fish', 'Turtle', 'Squid', 'Sponge', 'Starfish'])}"
+                    name = f"{random.choice(titles)} {random.choice(names)}"
                 await message.channel.send(
-                    f"Did you forget about me? I've been waiting for a while now! I'll name the fish for you. Let's call it **{name}** (Lvl. {level})"
+                    f"Did you forget about me? I've been waiting for a while now! "
+                    f"I'll name the fish for you. "
+                    f"Let's call it **{name}** (Lvl. {level})"
                 )
 
             # Save the fish name
@@ -232,7 +257,8 @@ async def ask_to_sell_fish(
                     money_earned,
                 )
             await message.channel.send(
-                f"Sold your **{new_fish['name']}** for **{money_earned}** <:sand_dollar:877646167494762586>!"
+                f"Sold your **{new_fish['name']}** for **{money_earned}** "
+                f"<:sand_dollar:877646167494762586>!"
             )
             # Disable the given button
             await message.edit(components=components.disable_components())
@@ -294,12 +320,8 @@ async def buying_singular(bot, user: discord.user, ctx, item: str):
         if tank_row[0]["tank_theme"][tank_slot] != item.replace(" ", "_"):
             tank_names.append(tank_name)
         if tank_name:
-            if (
-                tank_row[0]["tank_type"][tank_slot]
-                not in nonavailable_tank_types
-            ):
-                continue
-            nonavailable_slots.append(str(tank_slot + 1))
+            if tank_row[0]["tank_type"][tank_slot] in nonavailable_tank_types:
+                nonavailable_slots.append(str(tank_slot + 1))
             continue
         available_slots.append(str(tank_slot + 1))
 
@@ -308,7 +330,9 @@ async def buying_singular(bot, user: discord.user, ctx, item: str):
 
         # Asks the user what slot to put the tank in and checks that its a slot
         await ctx.send(
-            f"What tank slot would you like to put this tank in? (Available slots: {', '.join(available_slots)}, Taken spots to be updated: {', '.join(nonavailable_slots)})"
+            f"What tank slot would you like to put this tank in? "
+            f"(Available slots: {', '.join(available_slots)}, "
+            f"Taken spots to be updated: {', '.join(nonavailable_slots)})"
         )
 
         def slot_check(slot):
@@ -338,7 +362,9 @@ async def buying_singular(bot, user: discord.user, ctx, item: str):
 
             # Asks what to name the new tank and makes sure it matches the check
             await ctx.send(
-                'What would you like to name this tank? (must be a different name from your other tanks, less than 32 characters, and cannot be "none")'
+                "What would you like to name this tank? "
+                "(must be a different name from your other tanks, "
+                'less than 32 characters, and cannot be "none")'
             )
 
             def name_check(namem):
@@ -399,7 +425,8 @@ async def buying_singular(bot, user: discord.user, ctx, item: str):
 
         # Asks for the name of the tank the user is putting the theme on and makes sure it is correct
         await ctx.send(
-            f"What tank name would you like to put this theme on? (Available names: {', '.join(tank_names)})"
+            f"What tank name would you like to put this theme on? "
+            f"(Available names: {', '.join(tank_names)})"
         )
 
         def theme_check(themem):
@@ -433,10 +460,10 @@ async def buying_singular(bot, user: discord.user, ctx, item: str):
             )
 
 
-# Vote confirmer tolen from https://github.com/Voxel-Fox-Ltd/Flower/blob/master/cogs/plant_care_commands.py
+# Vote confirmer from https://github.com/Voxel-Fox-Ltd/Flower/blob/master/cogs/plant_care_commands.py
 async def get_user_voted(bot, user_id: int) -> bool:
     """
-    Returns whether or not the user with the given ID has voted for the bot on Top.gg.
+    Determines whether or not a user has voted for the bot on Top.gg.
     Args:
         user_id (int): The ID of the user we want to check
     Returns:
