@@ -31,9 +31,9 @@ SHOP_FIELDS = [
     ),
     (
         "<:GFU:913680729517469716> __Golden Fishers Union Item Market__ <:GFU:913680729517469716>\nThese are items sold by the GFU",
-        "**Common Fish Bag <:common_fish_bag:877646166983053383>**\nOne fish from the common rarity \n __200 <:sand_dollar:877646167494762586>__\n"
-        "**Uncommon Fish Bag <:uncommon_fish_bag:877646167146651768>**\nOne fish from the uncommon rarity \n __600 <:sand_dollar:877646167494762586>__\n"
-        "**Rare Fish Bag <:rare_fish_bag:877646167121489930>**\nOne fish from the rare rarity \n __2,700 <:sand_dollar:877646167494762586>__\n"
+        "**Common Fish Bag <:common_fish_bag:877646166983053383>**\nOne fish from the common rarity \n __50 <:sand_dollar:877646167494762586>__\n"
+        "**Uncommon Fish Bag <:uncommon_fish_bag:877646167146651768>**\nOne fish from the uncommon rarity \n __150 <:sand_dollar:877646167494762586>__\n"
+        "**Rare Fish Bag <:rare_fish_bag:877646167121489930>**\nOne fish from the rare rarity \n __750 <:sand_dollar:877646167494762586>__\n"
         "**Inverted Fish Bag <:inverted_fish_bag:912057608863637545>**\nOne inverted fish from any rarity \n __100,000 <:sand_dollar:877646167494762586>__\n"
         "**High Level Fish Bag <:high_level_fish_bag:912057609496985690>**\nOne fish from any rarity between the levels 10-50 \n __75,000 <:sand_dollar:877646167494762586>__\n"
         "**Feeding Potion <:feeding_potion:911465714379018261>**\nFeeding potion that will make your fish full for 30 days \n __10,000 <:sand_dollar:877646167494762586>__\n"
@@ -672,53 +672,53 @@ class Shop(vbu.Cog):
         This command gives the user a daily reward of 500 Sand Dollars.
         """
 
-        # # Adds the money to the users balance
-        # async with vbu.Database() as db:
-        #     await db(
-        #         """INSERT INTO user_balance (user_id, balance) VALUES ($1, 500)
-        #         ON CONFLICT (user_id) DO UPDATE SET balance = user_balance.balance + 100""",
-        #         ctx.author.id,
-        #     )
-        #     # Achievements
-        #     await db(
-        #         """INSERT INTO user_achievements (user_id, money_gained) VALUES ($1, 500)
-        #         ON CONFLICT (user_id) DO UPDATE SET money_gained = user_achievements.money_gained + 100""",
-        #         ctx.author.id
-        #     )
-
-        # # confirmation message
-        # return await ctx.send("Daily reward of 500 <:sand_dollar:877646167494762586> claimed!")
-
-        if utils.get_user_voted(ctx.author.id) is False:
-            return await ctx.send(
-                "Please vote and then run this command to get the special daily reward for the event!"
+        # Adds the money to the users balance
+        async with vbu.Database() as db:
+            await db(
+                """INSERT INTO user_balance (user_id, balance) VALUES ($1, 500)
+                ON CONFLICT (user_id) DO UPDATE SET balance = user_balance.balance + 100""",
+                ctx.author.id,
+            )
+            # Achievements
+            await db(
+                """INSERT INTO user_achievements (user_id, money_gained) VALUES ($1, 500)
+                ON CONFLICT (user_id) DO UPDATE SET money_gained = user_achievements.money_gained + 100""",
+                ctx.author.id
             )
 
-        if ctx.author.id in utils.current_fishers:
-            return await ctx.send(
-                f"{ctx.author.display_name}, you're already fishing!"
-            )
+        # confirmation message
+        return await ctx.send("Daily reward of 500 <:sand_dollar:877646167494762586> claimed!")
 
-        # Grammar
-        new_fish = self.bot.fish["epic"]["gingerbread axolotl"]
-        print(new_fish)
-        a_an = "an"
-        rarity = "epic"
-        # Tell the user about the fish they caught
-        embed = discord.Embed(
-            title=f"<:AquaFish:877939115948134442> {ctx.author.display_name} caught {a_an} *{rarity}* {new_fish['size']} **{new_fish['name']}**!"
-        )
-        embed.set_image(url="attachment://new_fish.png")
-        embed.color = utils.RARITY_CULERS[rarity]
+        # if utils.get_user_voted(ctx.author.id) is False:
+        #     return await ctx.send(
+        #         "Please vote and then run this command to get the special daily reward for the event!"
+        #     )
 
-        # Set the fish file to the fishes image
-        fish_file = discord.File(new_fish["image"], "new_fish.png")
-        await ctx.send(
-            "On the first day of fishmas, fish santa gave to me\n\tA Gingerbread Axolotl",
-            file=fish_file,
-        )
-        # Ask if they want to sell the fish they just caught or keep it
-        await utils.ask_to_sell_fish(self.bot, ctx, new_fish, embed=embed)
+        # if ctx.author.id in utils.current_fishers:
+        #     return await ctx.send(
+        #         f"{ctx.author.display_name}, you're already fishing!"
+        #     )
+
+        # # Grammar
+        # new_fish = self.bot.fish["epic"]["gingerbread axolotl"]
+        # print(new_fish)
+        # a_an = "an"
+        # rarity = "epic"
+        # # Tell the user about the fish they caught
+        # embed = discord.Embed(
+        #     title=f"<:AquaFish:877939115948134442> {ctx.author.display_name} caught {a_an} *{rarity}* {new_fish['size']} **{new_fish['name']}**!"
+        # )
+        # embed.set_image(url="attachment://new_fish.png")
+        # embed.color = utils.RARITY_CULERS[rarity]
+
+        # # Set the fish file to the fishes image
+        # fish_file = discord.File(new_fish["image"], "new_fish.png")
+        # await ctx.send(
+        #     "On the first day of fishmas, fish santa gave to me\n\tA Gingerbread Axolotl",
+        #     file=fish_file,
+        # )
+        # # Ask if they want to sell the fish they just caught or keep it
+        # await utils.ask_to_sell_fish(self.bot, ctx, new_fish, embed=embed)
 
         # async with vbu.Database() as db:
         #     await db(
