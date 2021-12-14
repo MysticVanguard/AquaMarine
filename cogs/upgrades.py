@@ -203,52 +203,64 @@ class Upgrades(vbu.Cog):
                 ctx.author.id,
             )
 
-        # Make sure the upgrade is valid
-        upgrade = "_".join(upgrade.lower().replace(" upgrade", "").split(" "))
-        upgraded = f"{upgrade}_upgrade"
-        upgraded = f"{upgrade.replace(' ', '_')}_upgrade"
-        if upgraded not in upgrades[0].keys():
-            return await ctx.send("That's not a valid upgrade.")
-        if upgraded in [
+        max_level = 5
+        rod_upgrades = [
             "line_upgrade",
             "bait_upgrade",
             "crate_chance_upgrade",
             "lure_upgrade",
             "crate_tier_upgrade",
             "weight_upgrade",
-        ]:
-            if upgrades[0]["rod_upgrade"] != 5:
-                return await ctx.send("The Rod Upgrade needs upgraded first!")
-            if upgrades[0]["bait_upgrade"] != 5 and upgraded in [
-                "line_upgrade",
-                "lure_upgrade",
-            ]:
-                return await ctx.send("The Bait Upgrade needs upgraded first!")
-            if upgrades[0]["crate_chance_upgrade"] != 5 and upgraded in [
-                "weight_upgrade",
-                "crate_tier_upgrade",
-            ]:
-                return await ctx.send(
-                    "The Crate Chance Upgrade needs upgraded first!"
-                )
-        if upgraded in [
+        ]
+        bleach_upgrades = [
             "toys_upgrade",
             "big_servings_upgrade",
             "amazement_upgrade",
             "feeding_upgrade",
             "mutation_upgrade",
             "hygienic_upgrade",
-        ]:
-            if upgrades[0]["bleach_upgrade"] != 5:
+        ]
+        upgrade_base_name = upgrade.lower().removesuffix(" upgrade")
+        upgrade = upgrade_base_name.replace(" ", "_") + "_upgrade"
+
+        if upgrade not in upgrades[0].keys():
+            return await ctx.send("That's not a valid upgrade.")
+
+        if upgrade in rod_upgrades:
+            if upgrades[0]["rod_upgrade"] != max_level:
+                return await ctx.send("The Rod Upgrade needs upgraded first!")
+
+            if upgrades[0]["bait_upgrade"] != max_level and upgrade in [
+                "line_upgrade",
+                "lure_upgrade",
+            ]:
+                return await ctx.send("The Bait Upgrade needs upgraded first!")
+
+            if upgrades[0][
+                "crate_chance_upgrade"
+            ] != max_level and upgrade in [
+                "weight_upgrade",
+                "crate_tier_upgrade",
+            ]:
+                return await ctx.send(
+                    "The Crate Chance Upgrade needs upgraded first!"
+                )
+
+        elif upgrade in bleach_upgrades:
+            if upgrades[0]["bleach_upgrade"] != max_level:
                 return await ctx.send(
                     "The Bleach Upgrade needs upgraded first!"
                 )
-            if upgrades[0]["toys_upgrade"] != 5 and upgraded in [
+
+            if upgrades[0]["toys_upgrade"] != max_level and upgrade in [
                 "mutation_upgrade",
                 "amazement_upgrade",
             ]:
                 return await ctx.send("The Toys Upgrade needs upgraded first!")
-            if upgrades[0]["big_servings_upgrade"] != 5 and upgraded in [
+
+            if upgrades[0][
+                "big_servings_upgrade"
+            ] != max_level and upgrade in [
                 "feeding_upgrade",
                 "hygienic_upgrade",
             ]:
@@ -257,12 +269,13 @@ class Upgrades(vbu.Cog):
                 )
 
         # See how upgraded the user currently is
-        upgrade_level = upgrades[0][upgraded]
-        if upgrade_level == 5:
+        upgrade_level = upgrades[0][upgrade]
+        if upgrade_level == max_level:
             return await ctx.send("That upgrade is fully upgraded.")
-        if upgraded in ("rod_upgrade", "bleach_upgrade"):
+
+        if upgrade in ("rod_upgrade", "bleach_upgrade"):
             upgrade_cost_list_used = self.UPGRADE_COST_LIST
-        elif upgraded in (
+        elif upgrade in (
             "crate_chance_upgrade",
             "bait_upgrade",
             "toys_upgrade",
@@ -286,19 +299,19 @@ class Upgrades(vbu.Cog):
         async with vbu.Database() as db:
             await db(
                 """UPDATE user_balance SET balance=balance-$1 WHERE user_id = $2""",
-                upgrade_cost_list_used[int(upgrades[0][upgraded])],
+                upgrade_cost_list_used[int(upgrades[0][upgrade])],
                 ctx.author.id,
             )
             await db(
-                """UPDATE user_upgrades SET {0}=user_upgrades.{0}+1 WHERE user_id = $1""".format(
-                    upgraded
-                ),
+                f"""UPDATE user_upgrades SET {upgrade}=user_upgrades.{upgrade}+1 WHERE user_id = $1""",
                 ctx.author.id,
             )
 
         # And bam
         await ctx.send(
-            f"{upgrade.title()} has been upgraded for {upgrade_cost_list_used[upgrade_level]:,}!"
+            f"You bought the Level {upgrade_level + 1} "
+            f"{upgrade_base_name.title()} Upgrade for "
+            f"{upgrade_cost_list_used[upgrade_level]:,}!"
         )
 
 
