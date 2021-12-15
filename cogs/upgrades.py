@@ -1,6 +1,7 @@
 from discord.ext import commands, vbu
 
 from cogs import utils
+from cogs.utils import Emojis
 
 
 class Upgrades(vbu.Cog):
@@ -84,64 +85,66 @@ class Upgrades(vbu.Cog):
         # Build out output strings
         tier = 0
         tree_number = 0
-        fields = []
+        unknown_str = "???"
         for upgrade, level in upgrades[0].items():
             if upgrade != "user_id":
                 tier += 1
                 description = self.UPGRADE_DESCRIPTIONS[upgrade]
                 name = " ".join(upgrade.split("_")).title()
                 # Get the cost of an upgrade
-                cost_string = f"{self.UPGRADE_COST_LIST[int(level)]:,} <:sand_dollar:877646167494762586>"
+                cost_string = f"{self.UPGRADE_COST_LIST[int(level)]:,} {Emojis['sand_dollar']}"
 
                 if tier == 1:
                     parent_one = upgrade
 
-                left_bar = "<:bar_L:886377903615528971>"
+                left_bar = Emojis["bar_L"]
                 start = ""
                 start_two = ""
-                emote = "<:bar_1:877646167184408617>"
-                if tier == 2 or tier == 5:
-                    cost_string = f"{self.UPGRADE_COST_LIST_TWO[int(level)]:,} <:sand_dollar:877646167494762586>"
+                emote = Emojis["bar_1"]
+                if tier in (2, 5):
+                    cost_string = f"{self.UPGRADE_COST_LIST_TWO[int(level)]:,} {Emojis['sand_dollar']}"
                     parent_two = upgrade
                     if upgrades[0][parent_one] != 5:
-                        description = "???"
-                        name = "???"
-                        cost_string = "???"
-                    start = "<:straight_branch:886377903837806602>"
-                    start_two = "<:straight:886377903879753728>"
-                    emote = "<:bar_2:877646166823694437>"
-                    left_bar = "<:bar_L_branch:886377903581986848>"
+                        description = unknown_str
+                        name = unknown_str
+                        cost_string = unknown_str
+                    start = Emojis["straight_branch"]
+                    start_two = Emojis["straight"]
+                    emote = Emojis["bar_2"]
+                    left_bar = Emojis["bar_L_branch"]
                     if tier == 5:
-                        start = "<:branch:886377903825252402>"
-                        start_two = "<:straight:886377903879753728>"
-                elif tier == 6 or tier == 3:
-                    cost_string = f"{self.UPGRADE_COST_LIST_THREE[int(level)]:,} <:sand_dollar:877646167494762586>"
+                        start = Emojis["branch"]
+                        start_two = Emojis["straight"]
+                elif tier in (3, 6):
+                    cost_string = f"{self.UPGRADE_COST_LIST_THREE[int(level)]:,} {Emojis['sand_dollar']}"
                     if upgrades[0][parent_two] != 5:
-                        description = "???"
-                        name = "???"
-                        cost_string = "???"
-                    start = "<:__:886381017051586580><:straight_branch:886377903837806602>"
-                    emote = "<:bar_3:877646167138267216>"
-                    left_bar = "<:bar_L_straight:886379040884260884>"
+                        description = unknown_str
+                        name = unknown_str
+                        cost_string = unknown_str
+                    start = f"{Emojis['empty']}{Emojis['straight_branch']}"
+                    emote = Emojis["bar_3"]
+                    left_bar = Emojis["bar_L_straight"]
                     if tier == 3:
-                        start_two = "<:straight:886377903879753728><:straight:886377903879753728>"
-                        start = "<:straight:886377903879753728><:straight_branch:886377903837806602>"
+                        start_two = f"{Emojis['straight']}{Emojis['straight']}"
+                        start = (
+                            f"{Emojis['straight']}{Emojis['straight_branch']}"
+                        )
                     else:
-                        start_two = "<:__:886381017051586580><:straight:886377903879753728>"
-                elif tier == 4 or tier == 7:
-                    cost_string = f"{self.UPGRADE_COST_LIST_THREE[int(level)]:,} <:sand_dollar:877646167494762586>"
+                        start_two = f"{Emojis['empty']}{Emojis['straight']}"
+                elif tier in (4, 7):
+                    cost_string = f"{self.UPGRADE_COST_LIST_THREE[int(level)]:,} {Emojis['sand_dollar']}"
                     if upgrades[0][parent_two] != 5:
-                        description = "???"
-                        name = "???"
-                        cost_string = "???"
-                    emote = "<:bar_3:877646167138267216>"
-                    left_bar = "<:bar_L_straight:886379040884260884>"
+                        description = unknown_str
+                        name = unknown_str
+                        cost_string = unknown_str
+                    emote = Emojis["bar_3"]
+                    left_bar = Emojis["bar_L_straight"]
                     if tier == 4:
-                        start_two = "<:straight:886377903879753728><:straight:886377903879753728>"
-                        start = "<:straight:886377903879753728><:branch:886377903825252402>"
+                        start_two = f"{Emojis['straight']}{Emojis['straight']}"
+                        start = f"{Emojis['straight']}{Emojis['branch']}"
                     else:
-                        start_two = "<:__:886381017051586580><:straight:886377903879753728>"
-                        start = "<:__:886381017051586580><:branch:886377903825252402>"
+                        start_two = f"{Emojis['empty']}{Emojis['straight']}"
+                        start = f"{Emojis['empty']}{Emojis['branch']}"
                 # If they're fully upgraded
                 if level == 5:
                     cost_string = "This Upgrade is fully upgraded."
@@ -153,17 +156,19 @@ class Upgrades(vbu.Cog):
                     emote_string_list.append(emote)
 
                 while len(emote_string_list) < 5:
-                    emote_string_list.append("<:bar_e:877646167146643556>")
+                    emote_string_list.append(Emojis["bar_e"])
                 print(emote_string_list)
 
                 # Generate the message to send
 
-                progress_bar = f"{left_bar}{''.join(emote_string_list)}<:bar_R:877646167113080842>"
-                nl = "\n"
+                progress_bar = (
+                    f"{left_bar}{''.join(emote_string_list)}{Emojis['bar_R']}"
+                )
+                new_line = "\n"
                 message.append(
                     (
                         f"{start}{progress_bar}",
-                        f"{start_two}**{name}: (Lvl. {level}.): {cost_string}**{nl}{start_two}*{description}*",
+                        f"{start_two}**{name}: (Lvl. {level}.): {cost_string}**{new_line}{start_two}*{description}*",
                     )
                 )
                 print(len(progress_bar))
@@ -255,7 +260,7 @@ class Upgrades(vbu.Cog):
             "balance",
         ):
             return await ctx.send(
-                "You don't have enough Sand Dollars <:sand_dollar:877646167494762586> for this upgrade!"
+                f"You don't have enough Sand Dollars {Emojis['sand_dollar']} for this upgrade!"
             )
 
         # Upgrade them in the database
