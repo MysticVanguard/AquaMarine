@@ -2,7 +2,7 @@ from cogs.utils.fish_handler import *
 from cogs.utils.misc_utils import *
 from cogs.utils.user_handler import *
 
-Emojis = {
+EMOJIS = {
     "bar_1": "<:bar_1:877646167184408617>",
     "bar_2": "<:bar_2:877646166823694437>",
     "bar_3": "<:bar_3:877646167138267216>",
