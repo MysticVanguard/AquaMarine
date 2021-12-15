@@ -457,7 +457,7 @@ class Shop(vbu.Cog):
                     list(self.bot.fish[rarity_of_bag].values())
                 ).copy()
             if type_of_bag == "Inverted":
-                new_fish = utils.make_inverted(new_fish)
+                new_fish = utils.make_inverted(new_fish.copy())
             level = 0
             if type_of_bag == "High Level":
                 level = random.randint(10, 50)

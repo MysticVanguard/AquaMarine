@@ -188,36 +188,19 @@ class Aquarium(vbu.Cog):
                 ctx.author.id,
             )
 
-        # Creates a select menu of all the tanks and returns the users choice
-        tank_name = await utils.create_select_menu(
-            self.bot, ctx, tank_row[0]["tank_name"], "tank", "choose"
-        )
-
         async with vbu.Database() as db:
             fish_row = await db(
-                """SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2""",
+                """SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2 AND tank_fish != ''""",
                 ctx.author.id,
                 fish_removed,
             )
 
         if not fish_row:
             return await ctx.send(
-                f"You have no fish named **{fish_removed}** in that tank!",
+                f"You have no fish named **{fish_removed}** in a tank!",
                 allowed_mentions=discord.AllowedMentions.none(),
             )
-        if not tank_row or tank_row[0]["tank"] == [
-            "False",
-            "False",
-            "False",
-            "False",
-            "False",
-            "False",
-            "False",
-            "False",
-            "False",
-            "False",
-        ]:
-            return await ctx.send("You have no tanks!")
+
         if fish_row[0]["fish_remove_time"]:
             if (
                 fish_row[0]["fish_remove_time"] + timedelta(days=5)
@@ -239,6 +222,7 @@ class Aquarium(vbu.Cog):
                 )
 
         # finds the tank slot the tank in question is at
+        tank_name = fish_row[0]['tank_fish']
         for tank_slot_in in tank_row[0]["tank_name"]:
             if tank_slot_in == tank_name:
                 break
@@ -271,6 +255,10 @@ class Aquarium(vbu.Cog):
         """
         This command produces a gif of the specified tank. DO NOT USE SLASH COMMANDS
         """
+
+        # Slash command defer
+        if hasattr(ctx, "interaction"):
+            await ctx.interaction.response.defer()
 
         # Typing Indicator
         async with ctx.typing():

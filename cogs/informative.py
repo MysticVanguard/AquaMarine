@@ -443,7 +443,12 @@ class Informative(vbu.Cog):
         Show a user's fishbucket.
         """
 
+        # Slash command defer
+        if hasattr(ctx, "interaction"):
+            await ctx.interaction.response.defer()
+
         # Default the user to the author of the command
+        print(self.bot.fish)
         user = user or ctx.author
 
         # Get the fish information
@@ -851,6 +856,10 @@ class Informative(vbu.Cog):
         """
         Shows a global leaderboard of balances.
         """
+
+        # Slash command defer
+        if hasattr(ctx, "interaction"):
+            await ctx.interaction.response.defer()
 
         async with ctx.typing():
             user_info_unsorted = {}

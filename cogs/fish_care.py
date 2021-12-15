@@ -36,8 +36,8 @@ class FishCare(vbu.Cog):
                 if fish_row["death_time"]:
                     if dt.utcnow() > fish_row["death_time"]:
                         await db(
-                            """UPDATE user_fish_inventory SET fish_alive=FALSE WHERE fish_name = $1""",
-                            fish_row["fish_name"],
+                            """UPDATE user_fish_inventory SET fish_alive=FALSE WHERE fish_name = $1 AND user_id = $2""",
+                            fish_row["fish_name"], fish_row["user_id"]
                         )
 
     # Make sure it starts when the bot starts
