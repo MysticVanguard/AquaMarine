@@ -22,28 +22,35 @@ class Upgrades(vbu.Cog):
         "hygienic_upgrade": "Lessens the frequency of cleaning, while giving a multiplier equal to the lost time",
     }
 
-    TIER_RANKS = {
-        "rod_upgrade": {
-            "bait_upgrade": [
-                "line_upgrade",
-                "lure_upgrade",
-            ],
-            "crate_chance_upgrade": [
-                "weight_upgrade",
-                "crate_tier_upgrade",
-            ],
-        },
-        "bleach_upgrade": {
-            "toys_upgrade": [
-                "amazement_upgrade",
-                "mutation_upgrade",
-            ],
-            "big_servings_upgrade": [
-                "hygienic_upgrade",
-                "feeding_upgrade",
-            ],
-        },
+    # TIER 3
+    BAIT_UPGRADES = ["line_upgrade", "lure_upgrade"]
+    CRATE_CHANCE_UPGRADES = ["weight_upgrade", "crate_tier_upgrade"]
+    TOYS_UPGRADES = ["amazement_upgrade", "mutation_upgrade"]
+    BIG_SERVINGS_UPGRADES = ["hygienic_upgrade", "feeding_upgrade"]
+    TIER_3 = (
+        BAIT_UPGRADES
+        + CRATE_CHANCE_UPGRADES
+        + TOYS_UPGRADES
+        + BIG_SERVINGS_UPGRADES
+    )
+
+    # TIER 2
+    ROD_UPGRADES = {
+        "bait_upgrade": BAIT_UPGRADES,
+        "crate_chance_upgrade": CRATE_CHANCE_UPGRADES,
     }
+    BLEACH_UPGRADES = {
+        "toys_upgrade": TOYS_UPGRADES,
+        "big_servings_upgrade": BIG_SERVINGS_UPGRADES,
+    }
+    TIER_2 = ROD_UPGRADES | BLEACH_UPGRADES
+
+    # TIER 1
+    TIER_1 = {
+        "rod_upgrade": ROD_UPGRADES,
+        "bleach_upgrade": BLEACH_UPGRADES,
+    }
+
     UPGRADE_COST_LIST = (1000, 2000, 3000, 4000, 5000, 5000)
     UPGRADE_COST_LIST_TWO = (10000, 20000, 30000, 40000, 50000, 50000)
     UPGRADE_COST_LIST_THREE = (100000, 200000, 300000, 400000, 500000, 500000)
@@ -196,81 +203,50 @@ class Upgrades(vbu.Cog):
         # Grab the user's current upgrades
         async with vbu.Database() as db:
             upgrades = await db(
-                """SELECT rod_upgrade, line_upgrade, crate_chance_upgrade, weight_upgrade, bait_upgrade,
-                crate_tier_upgrade, lure_upgrade, feeding_upgrade, toys_upgrade, mutation_upgrade,
-                amazement_upgrade, bleach_upgrade, big_servings_upgrade, hygienic_upgrade
+                """SELECT rod_upgrade, line_upgrade, crate_chance_upgrade,
+                weight_upgrade, bait_upgrade, crate_tier_upgrade,
+                lure_upgrade, feeding_upgrade, toys_upgrade,
+                mutation_upgrade, amazement_upgrade, bleach_upgrade,
+                big_servings_upgrade, hygienic_upgrade
                 FROM user_upgrades WHERE user_id = $1""",
                 ctx.author.id,
             )
 
-        # Make sure the upgrade is valid
-        upgrade = "_".join(upgrade.lower().replace(" upgrade", "").split(" "))
-        upgraded = f"{upgrade}_upgrade"
-        upgraded = f"{upgrade.replace(' ', '_')}_upgrade"
-        if upgraded not in upgrades[0].keys():
-            return await ctx.send("That's not a valid upgrade.")
-        if upgraded in [
-            "line_upgrade",
-            "bait_upgrade",
-            "crate_chance_upgrade",
-            "lure_upgrade",
-            "crate_tier_upgrade",
-            "weight_upgrade",
-        ]:
-            if upgrades[0]["rod_upgrade"] != 5:
-                return await ctx.send("The Rod Upgrade needs upgraded first!")
-            if upgrades[0]["bait_upgrade"] != 5 and upgraded in [
-                "line_upgrade",
-                "lure_upgrade",
-            ]:
-                return await ctx.send("The Bait Upgrade needs upgraded first!")
-            if upgrades[0]["crate_chance_upgrade"] != 5 and upgraded in [
-                "weight_upgrade",
-                "crate_tier_upgrade",
-            ]:
-                return await ctx.send(
-                    "The Crate Chance Upgrade needs upgraded first!"
-                )
-        if upgraded in [
-            "toys_upgrade",
-            "big_servings_upgrade",
-            "amazement_upgrade",
-            "feeding_upgrade",
-            "mutation_upgrade",
-            "hygienic_upgrade",
-        ]:
-            if upgrades[0]["bleach_upgrade"] != 5:
-                return await ctx.send(
-                    "The Bleach Upgrade needs upgraded first!"
-                )
-            if upgrades[0]["toys_upgrade"] != 5 and upgraded in [
-                "mutation_upgrade",
-                "amazement_upgrade",
-            ]:
-                return await ctx.send("The Toys Upgrade needs upgraded first!")
-            if upgrades[0]["big_servings_upgrade"] != 5 and upgraded in [
-                "feeding_upgrade",
-                "hygienic_upgrade",
-            ]:
-                return await ctx.send(
-                    "The Big Servings Upgrade needs upgraded first!"
-                )
+        upgrades = upgrades[0]
+        upgrade_base_name = upgrade.lower().removesuffix(" upgrade")
+        upgrade = upgrade_base_name.replace(" ", "_") + "_upgrade"
+        max_level = 5
 
-        # See how upgraded the user currently is
-        upgrade_level = upgrades[0][upgraded]
-        if upgrade_level == 5:
-            return await ctx.send("That upgrade is fully upgraded.")
-        if upgraded in ("rod_upgrade", "bleach_upgrade"):
+        def fully_leveled(item):
+            return item == max_level
+
+        def upgrade_error(msg_text):
+            msg_text = msg_text.replace("_", " ").title()
+            error_msg = f"The {msg_text} needs upgraded first!"
+            return error_msg
+
+        # Check for valid upgrade and dependencies of upgrade tiers
+        if upgrade in self.TIER_1:
             upgrade_cost_list_used = self.UPGRADE_COST_LIST
-        elif upgraded in (
-            "crate_chance_upgrade",
-            "bait_upgrade",
-            "toys_upgrade",
-            "big_servings_upgrade",
-        ):
+        elif upgrade in self.TIER_2:
+            # Find parent tier and check if it's upgraded
+            parent = [key for key, val in self.TIER_1 if upgrade in val][0]
+            if not fully_leveled(upgrades[parent]):
+                return await ctx.send(upgrade_error(parent))
             upgrade_cost_list_used = self.UPGRADE_COST_LIST_TWO
-        else:
+        elif upgrade in self.TIER_3:
+            # Find parent tier and check if it's upgraded
+            parent = [key for key, val in self.TIER_2 if upgrade in val][0]
+            if not fully_leveled(upgrades[parent]):
+                return await ctx.send(upgrade_error(parent))
             upgrade_cost_list_used = self.UPGRADE_COST_LIST_THREE
+        else:
+            return await ctx.send("That's not a valid upgrade.")
+
+        # Check level of validated upgrade
+        upgrade_level = upgrades[upgrade]
+        if fully_leveled(upgrade_level):
+            return await ctx.send("That upgrade is fully upgraded.")
 
         if not await utils.check_price(
             self.bot,
@@ -286,21 +262,22 @@ class Upgrades(vbu.Cog):
         async with vbu.Database() as db:
             await db(
                 """UPDATE user_balance SET balance=balance-$1 WHERE user_id = $2""",
-                upgrade_cost_list_used[int(upgrades[0][upgraded])],
+                upgrade_cost_list_used[int(upgrades[upgrade])],
                 ctx.author.id,
             )
             await db(
-                """UPDATE user_upgrades SET {0}=user_upgrades.{0}+1 WHERE user_id = $1""".format(
-                    upgraded
-                ),
+                f"""UPDATE user_upgrades SET {upgrade}=user_upgrades.{upgrade}+1 WHERE user_id = $1""",
                 ctx.author.id,
             )
 
         # And bam
         await ctx.send(
-            f"{upgrade.title()} has been upgraded for {upgrade_cost_list_used[upgrade_level]:,}!"
+            f"You bought the Level {upgrade_level + 1} "
+            f"{upgrade_base_name.title()} Upgrade for "
+            f"{upgrade_cost_list_used[upgrade_level]:,}!"
         )
 
 
 def setup(bot):
+    """Bot Setup"""
     bot.add_cog(Upgrades(bot))
