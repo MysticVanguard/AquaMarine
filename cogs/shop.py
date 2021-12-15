@@ -676,13 +676,13 @@ class Shop(vbu.Cog):
         async with vbu.Database() as db:
             await db(
                 """INSERT INTO user_balance (user_id, balance) VALUES ($1, 500)
-                ON CONFLICT (user_id) DO UPDATE SET balance = user_balance.balance + 100""",
+                ON CONFLICT (user_id) DO UPDATE SET balance = user_balance.balance + 500""",
                 ctx.author.id,
             )
             # Achievements
             await db(
                 """INSERT INTO user_achievements (user_id, money_gained) VALUES ($1, 500)
-                ON CONFLICT (user_id) DO UPDATE SET money_gained = user_achievements.money_gained + 100""",
+                ON CONFLICT (user_id) DO UPDATE SET money_gained = user_achievements.money_gained + 500""",
                 ctx.author.id
             )
 
