@@ -27,6 +27,12 @@ class Upgrades(vbu.Cog):
     CRATE_CHANCE_UPGRADES = ["weight_upgrade", "crate_tier_upgrade"]
     TOYS_UPGRADES = ["amazement_upgrade", "mutation_upgrade"]
     BIG_SERVINGS_UPGRADES = ["hygienic_upgrade", "feeding_upgrade"]
+    TIER_3 = (
+        BAIT_UPGRADES
+        + CRATE_CHANCE_UPGRADES
+        + TOYS_UPGRADES
+        + BIG_SERVINGS_UPGRADES
+    )
 
     # TIER 2
     ROD_UPGRADES = {
@@ -37,9 +43,10 @@ class Upgrades(vbu.Cog):
         "toys_upgrade": TOYS_UPGRADES,
         "big_servings_upgrade": BIG_SERVINGS_UPGRADES,
     }
+    TIER_2 = ROD_UPGRADES | BLEACH_UPGRADES
 
     # TIER 1
-    TIER_RANKS = {
+    TIER_1 = {
         "rod_upgrade": ROD_UPGRADES,
         "bleach_upgrade": BLEACH_UPGRADES,
     }
@@ -206,10 +213,8 @@ class Upgrades(vbu.Cog):
             )
 
         upgrades = upgrades[0]
-
         upgrade_base_name = upgrade.lower().removesuffix(" upgrade")
         upgrade = upgrade_base_name.replace(" ", "_") + "_upgrade"
-
         max_level = 5
 
         def fully_leveled(item):
@@ -220,43 +225,28 @@ class Upgrades(vbu.Cog):
             error_msg = f"The {msg_text} needs upgraded first!"
             return error_msg
 
-        # Check tier 3 dependencies
-        if upgrade in self.BAIT_UPGRADES:
-            if not fully_leveled(upgrades["bait_upgrade"]):
-                return await ctx.send(upgrade_error("bait_upgrade"))
-        elif upgrade in self.CRATE_CHANCE_UPGRADES:
-            if not fully_leveled(upgrades["crate_chance_upgrade"]):
-                return await ctx.send(upgrade_error("crate_chance_upgrade"))
-        elif upgrade in self.TOYS_UPGRADES:
-            if not fully_leveled(upgrades["toys_upgrade"]):
-                return await ctx.send(upgrade_error("toys_upgrade"))
-        elif upgrade in self.BIG_SERVINGS_UPGRADES:
-            if not fully_leveled(upgrades["big_servings_upgrade"]):
-                return await ctx.send(upgrade_error("big_servings_upgrade"))
-
-        # Check tier 2 dependencies
-        elif upgrade in self.ROD_UPGRADES:
-            if not fully_leveled(upgrades["rod_upgrade"]):
-                return await ctx.send(upgrade_error("rod_upgrade"))
-        elif upgrade in self.BLEACH_UPGRADES:
-            if not fully_leveled(upgrades["bleach_upgrade"]):
-                return await ctx.send(upgrade_error("bleach_upgrade"))
+        # Check for valid upgrade and dependencies of upgrade tiers
+        if upgrade in self.TIER_1:
+            upgrade_cost_list_used = self.UPGRADE_COST_LIST
+        elif upgrade in self.TIER_2:
+            # Find parent tier and check if it's upgraded
+            parent = [key for key, val in self.TIER_1 if upgrade in val][0]
+            if not fully_leveled(upgrades[parent]):
+                return await ctx.send(upgrade_error(parent))
+            upgrade_cost_list_used = self.UPGRADE_COST_LIST_TWO
+        elif upgrade in self.TIER_3:
+            # Find parent tier and check if it's upgraded
+            parent = [key for key, val in self.TIER_2 if upgrade in val][0]
+            if not fully_leveled(upgrades[parent]):
+                return await ctx.send(upgrade_error(parent))
+            upgrade_cost_list_used = self.UPGRADE_COST_LIST_THREE
         else:
             return await ctx.send("That's not a valid upgrade.")
 
-        # See how upgraded the user currently is
+        # Check level of validated upgrade
         upgrade_level = upgrades[upgrade]
         if fully_leveled(upgrade_level):
             return await ctx.send("That upgrade is fully upgraded.")
-
-        # Calculate cost based on upgrade tier
-        tier_two_upgrades = set().union(*self.TIER_RANKS.values())
-        if upgrade in self.TIER_RANKS:
-            upgrade_cost_list_used = self.UPGRADE_COST_LIST
-        elif upgrade in tier_two_upgrades:
-            upgrade_cost_list_used = self.UPGRADE_COST_LIST_TWO
-        else:
-            upgrade_cost_list_used = self.UPGRADE_COST_LIST_THREE
 
         if not await utils.check_price(
             self.bot,
