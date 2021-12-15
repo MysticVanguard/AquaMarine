@@ -224,15 +224,12 @@ class Upgrades(vbu.Cog):
         if upgrade in self.BAIT_UPGRADES:
             if not fully_leveled(upgrades["bait_upgrade"]):
                 return await ctx.send(upgrade_error("bait_upgrade"))
-
         elif upgrade in self.CRATE_CHANCE_UPGRADES:
             if not fully_leveled(upgrades["crate_chance_upgrade"]):
                 return await ctx.send(upgrade_error("crate_chance_upgrade"))
-
         elif upgrade in self.TOYS_UPGRADES:
             if not fully_leveled(upgrades["toys_upgrade"]):
                 return await ctx.send(upgrade_error("toys_upgrade"))
-
         elif upgrade in self.BIG_SERVINGS_UPGRADES:
             if not fully_leveled(upgrades["big_servings_upgrade"]):
                 return await ctx.send(upgrade_error("big_servings_upgrade"))
