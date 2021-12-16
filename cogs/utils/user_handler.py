@@ -85,7 +85,6 @@ async def ask_to_sell_fish(
                 "I'll just assume you wanted to sell the fish."
             )
             # See if they want to sell the fish
-            print("sell confirm")
 
             level_multiplier = level / 20
             money_earned = math.ceil(
@@ -118,11 +117,9 @@ async def ask_to_sell_fish(
 
         # Update the displayed emoji
         if chosen_button == "keep":
-            print("keep")
             # Disable the given button
             await message.edit(components=components.disable_components())
             # Get their current fish names
-            print("keep confirm")
             fish_names = [i["fish_name"] for i in fish_rows]
             fish_list = [(i["fish_name"], i["fish"]) for i in fish_rows]
             fish_list = sorted(fish_list, key=lambda x: x[1])
@@ -216,7 +213,6 @@ async def ask_to_sell_fish(
             return
         if chosen_button == "sell":
             # See if they want to sell the fish
-            print("sell confirm")
             vote_multiplier = 1
             if await get_user_voted(bot, ctx.author.id):
                 vote_multiplier = 1.5
@@ -225,18 +221,6 @@ async def ask_to_sell_fish(
                 )
 
             level_multiplier = level / 20
-            print(
-                (int(new_fish["cost"]) / 2),
-                utils.ROD_UPGRADES[upgrades[0]["rod_upgrade"]],
-                (1 + level_multiplier),
-                vote_multiplier,
-                math.ceil(
-                    (int(new_fish["cost"]) / 2)
-                    * utils.ROD_UPGRADES[upgrades[0]["rod_upgrade"]]
-                    * (1 + level_multiplier)
-                    * vote_multiplier
-                ),
-            )
             money_earned = math.ceil(
                 (int(new_fish["cost"]))
                 * utils.ROD_UPGRADES[upgrades[0]["rod_upgrade"]]

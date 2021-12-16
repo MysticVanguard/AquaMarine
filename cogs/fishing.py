@@ -22,7 +22,6 @@ class Fishing(vbu.Cog):
     @tasks.loop(hours=1)
     async def user_cast_loop(self):
         async with vbu.Database() as db:
-            print("start")
             casts = await db("""SELECT * FROM user_balance""")
             for x in casts:
                 if x["casts"] >= 50:
@@ -31,7 +30,6 @@ class Fishing(vbu.Cog):
                     """UPDATE user_balance SET casts=casts+1 WHERE user_id = $1""",
                     x["user_id"],
                 )
-            print("end")
 
     # Wait until the bot is on and ready and not just until the cog is on
     @user_cast_loop.before_loop

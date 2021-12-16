@@ -452,7 +452,6 @@ class Shop(vbu.Cog):
                 list(self.bot.fish[rarity_of_bag].values())
             ).copy()
             while new_fish["raw_name"] in utils.past_fish:
-                print("reroll")
                 new_fish = random.choice(
                     list(self.bot.fish[rarity_of_bag].values())
                 ).copy()
@@ -701,7 +700,6 @@ class Shop(vbu.Cog):
 
         # # Grammar
         # new_fish = self.bot.fish["epic"]["gingerbread axolotl"]
-        # print(new_fish)
         # a_an = "an"
         # rarity = "epic"
         # # Tell the user about the fish they caught
@@ -961,12 +959,10 @@ class Shop(vbu.Cog):
             )
 
             # Break when they're done picking fish
-            print(emojis)
             if "<a:roll:886068357378502717>" not in emojis:
                 break
 
         # Sees if they won the fish they rolled
-        print(emojis[0], emojis[1], emojis[2])
         if (
             emojis[0] == emojis[1] == emojis[2]
             and "<a:roll:886068357378502717>" not in emojis

@@ -357,9 +357,6 @@ class Aquarium(vbu.Cog):
                                     min_max_y[tank_info][1],
                                 )
                             )
-                            print(
-                                f"C:/Users/JT/Pictures/Aqua/assets/images/{golden_inverted_normal}_fish_size{fish_data['image'][44:]}"
-                            )
                             fish_selections.append(
                                 f"C:/Users/JT/Pictures/Aqua/assets/images/{golden_inverted_normal}_fish_size{fish_data['image'][44:]}"
                             )
