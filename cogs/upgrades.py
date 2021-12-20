@@ -157,7 +157,6 @@ class Upgrades(vbu.Cog):
 
                 while len(emote_string_list) < 5:
                     emote_string_list.append(EMOJIS["bar_e"])
-                print(emote_string_list)
 
                 # Generate the message to send
 
@@ -171,7 +170,6 @@ class Upgrades(vbu.Cog):
                         f"{start_two}**{name}: (Lvl. {level}.): {cost_string}**{new_line}{start_two}*{description}*",
                     )
                 )
-                print(len(progress_bar))
 
                 if tier == 7:
                     message.append(("** **", "** **"))
