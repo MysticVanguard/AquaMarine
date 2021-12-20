@@ -171,9 +171,6 @@ class Informative(vbu.Cog):
             theme = Image.open(
                 f"{file_prefix}/background/Room Walls/Tanks_Wall/{tank_theme}_{tank_type}.png"
             ).convert("RGBA")
-            print(
-                f"{file_prefix}/background/Room Walls/Tanks_Wall/{tank_theme}_{tank_type}.png"
-            )
             new_background.paste(
                 theme, (x_and_y_theme[0], x_and_y_theme[1]), theme
             )
@@ -337,7 +334,6 @@ class Informative(vbu.Cog):
             inventory_number = {}
             count = 0
             for key, value in inventory_row[0].items():
-                print(key, value)
                 if key == "user_id":
                     continue
                 if (count % 3) == 0 and count != 0:
@@ -448,7 +444,6 @@ class Informative(vbu.Cog):
             await ctx.interaction.response.defer()
 
         # Default the user to the author of the command
-        print(self.bot.fish)
         user = user or ctx.author
 
         # Get the fish information
