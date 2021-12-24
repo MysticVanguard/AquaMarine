@@ -5,6 +5,7 @@ import random
 import discord
 
 from cogs import utils
+from cogs.utils import EMOJIS
 
 
 current_fishers = []
@@ -20,12 +21,8 @@ async def ask_to_sell_fish(
     # Add the buttons to the message
     components = discord.ui.MessageComponents(
         discord.ui.ActionRow(
-            discord.ui.Button(
-                custom_id="keep", emoji="<:keep:844594468580491264>"
-            ),
-            discord.ui.Button(
-                custom_id="sell", emoji="<:sell:844594478392147968>"
-            ),
+            discord.ui.Button(custom_id="keep", emoji=EMOJIS["keep"]),
+            discord.ui.Button(custom_id="sell", emoji=EMOJIS["sell"]),
         ),
     )
     try:
@@ -109,7 +106,7 @@ async def ask_to_sell_fish(
                 )
             await message.channel.send(
                 f"Sold your **{new_fish['name']}** for **{money_earned}** "
-                f"<:sand_dollar:877646167494762586>!"
+                f"{EMOJIS['sand_dollar']}!"
             )
             # Disable the given button
             await message.edit(components=components.disable_components())
@@ -242,7 +239,7 @@ async def ask_to_sell_fish(
                 )
             await message.channel.send(
                 f"Sold your **{new_fish['name']}** for **{money_earned}** "
-                f"<:sand_dollar:877646167494762586>!"
+                f"{EMOJIS['sand_dollar']}!"
             )
             # Disable the given button
             await message.edit(components=components.disable_components())
