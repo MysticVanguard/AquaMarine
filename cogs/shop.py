@@ -9,36 +9,76 @@ import voxelbotutils as vbu
 from cogs import utils
 from cogs.utils.fish_handler import DAYLIGHT_SAVINGS
 from cogs.utils.misc_utils import create_bucket_embed
+from cogs.utils import EMOJIS
 
 
 SHOP_FIELDS = [
     (
         "Fish Shop\n*These are neutral items for sale.*",
-        "**Fish Points <:fish_points:911468089420427324>**\nOne permanant point for the leaderboard \n __500 <:sand_dollar:877646167494762586>__\n"
-        "**Fishing Casts <:Casts:911465713938612235>**\nFive casts \n __5 <:doubloon:878297091057807400>__\n"
-        "**Sand Dollars <:sand_dollar:877646167494762586>**\n1,500 sand dollars \n __1 <:doubloon:878297091057807400>__\n"
-        "**Fish Revival <:revival:878297091158474793>**\nFish revival to bring your fish back to life \n __2,500 <:sand_dollar:877646167494762586>__\n"
-        "**Plant Life**\nThe plant life theme for one of your tanks \n __250 <:doubloon:878297091057807400>__",
+        f"**Fish Points {EMOJIS['fish_points']}**\n"
+        f"One permanant point for the leaderboard \n"
+        f" __500 {EMOJIS['sand_dollar']}__\n"
+        f"**Fishing Casts {EMOJIS['casts']}**\n"
+        f"Five casts \n"
+        f" __5 {EMOJIS['doubloon']}__\n"
+        f"**Sand Dollars {EMOJIS['sand_dollar']}**\n"
+        f"1,500 sand dollars \n"
+        f" __1 {EMOJIS['doubloon']}__\n"
+        f"**Fish Revival {EMOJIS['revival']}**\n"
+        f"Fish revival to bring your fish back to life \n"
+        f" __2,500 {EMOJIS['sand_dollar']}__\n"
+        f"**Plant Life**\nThe plant life theme for one of your tanks \n"
+        f" __250 {EMOJIS['doubloon']}__",
     ),
     (
-        "<:AMFC:913680729177751563> __AquaMarine Fish Corps State Issued Resources__ <:AMFC:913680729177751563>\nThese are resources bought from the AMFC company.",
-        "**Fish Flakes <:fish_flakes:877646167188602880>**\nFish flakes to feed a fish that is level 1-20, keeping them alive \n __200 <:sand_dollar:877646167494762586>__\n"
-        "**Fish Pellets <:fish_pellets:911465714412552212>**\nFish pellets to feed a fish that is level 21-50, keeping them alive \n __500 <:sand_dollar:877646167494762586>__\n"
-        "**Fish Wafers <:fish_wafers:911465714395799574>**\nFish wafers to feed a fish that is level 51+, keeping them alive \n __1000 <:sand_dollar:877646167494762586>__\n"
-        "**Fish Bowl**\nFish Bowl Tank that you can deposit one small fish into \n __500 <:sand_dollar:877646167494762586>__\n"
-        "**Small Tank**\nSmall Tank that you can deposit five small fish or one medium fish into\n __2,000 <:sand_dollar:877646167494762586>__\n"
-        "**Medium Tank**\nMedium Tank that you can deposit twenty five small fish, five medium fish, or one large fish into \n __12,000 <:sand_dollar:877646167494762586>__",
+        f"{EMOJIS['amfc']} __AquaMarine Fish Corps State Issued Resources__ {EMOJIS['amfc']}\n"
+        f"These are resources bought from the AMFC company.",
+        f"**Fish Flakes {EMOJIS['fish_flakes']}**\n"
+        f"Fish flakes to feed a fish that is level 1-20, keeping them alive \n"
+        f" __200 {EMOJIS['sand_dollar']}__\n"
+        f"**Fish Pellets {EMOJIS['fish_pellets']}**\n"
+        f"Fish pellets to feed a fish that is level 21-50, keeping them alive \n"
+        f" __500 {EMOJIS['sand_dollar']}__\n"
+        f"**Fish Wafers {EMOJIS['fish_wafers']}**\n"
+        f"Fish wafers to feed a fish that is level 51+, keeping them alive \n"
+        f" __1000 {EMOJIS['sand_dollar']}__\n"
+        f"**Fish Bowl**\n"
+        f"Fish Bowl Tank that you can deposit one small fish into \n"
+        f" __500 {EMOJIS['sand_dollar']}__\n"
+        f"**Small Tank**\n"
+        f"Small Tank that you can deposit five small fish or one medium fish into\n"
+        f" __2,000 {EMOJIS['sand_dollar']}__\n"
+        f"**Medium Tank**\n"
+        f"Medium Tank that you can deposit twenty five small fish, five medium fish, or one large fish into \n"
+        f" __12,000 {EMOJIS['sand_dollar']}__",
     ),
     (
-        "<:GFU:913680729517469716> __Golden Fishers Union Item Market__ <:GFU:913680729517469716>\nThese are items sold by the GFU",
-        "**Common Fish Bag <:common_fish_bag:877646166983053383>**\nOne fish from the common rarity \n __50 <:sand_dollar:877646167494762586>__\n"
-        "**Uncommon Fish Bag <:uncommon_fish_bag:877646167146651768>**\nOne fish from the uncommon rarity \n __150 <:sand_dollar:877646167494762586>__\n"
-        "**Rare Fish Bag <:rare_fish_bag:877646167121489930>**\nOne fish from the rare rarity \n __750 <:sand_dollar:877646167494762586>__\n"
-        "**Inverted Fish Bag <:inverted_fish_bag:912057608863637545>**\nOne inverted fish from any rarity \n __100,000 <:sand_dollar:877646167494762586>__\n"
-        "**High Level Fish Bag <:high_level_fish_bag:912057609496985690>**\nOne fish from any rarity between the levels 10-50 \n __75,000 <:sand_dollar:877646167494762586>__\n"
-        "**Feeding Potion <:feeding_potion:911465714379018261>**\nFeeding potion that will make your fish full for 30 days \n __10,000 <:sand_dollar:877646167494762586>__\n"
-        "**Experience Potion <:experience_potion:911465714412568616>**\nExperience potion that gives your fish 10,000 experience \n __40,000 <:sand_dollar:877646167494762586>__\n"
-        "**Mutation Potion <:mutation_potion:911465714420949072>**\nMutation potion that turns one of your fish inverted \n __50 <:doubloon:878297091057807400>__",
+        f"{EMOJIS['gfu']} __Golden Fishers Union Item Market__ {EMOJIS['gfu']}\n"
+        f"These are items sold by the GFU",
+        f"**Common Fish Bag {EMOJIS['common_fish_bag']}**\n"
+        f"One fish from the common rarity \n"
+        f" __50 {EMOJIS['sand_dollar']}__\n"
+        f"**Uncommon Fish Bag {EMOJIS['uncommon_fish_bag']}**\n"
+        f"One fish from the uncommon rarity \n"
+        f" __150 {EMOJIS['sand_dollar']}__\n"
+        f"**Rare Fish Bag {EMOJIS['rare_fish_bag']}**\n"
+        f"One fish from the rare rarity \n"
+        f" __750 {EMOJIS['sand_dollar']}__\n"
+        f"**Inverted Fish Bag {EMOJIS['inverted_fish_bag']}**\n"
+        f"One inverted fish from any rarity \n"
+        f" __100,000 {EMOJIS['sand_dollar']}__\n"
+        f"**High Level Fish Bag {EMOJIS['high_level_fish_bag']}**\n"
+        f"One fish from any rarity between the levels 10-50 \n"
+        f" __75,000 {EMOJIS['sand_dollar']}__\n"
+        f"**Feeding Potion {EMOJIS['feeding_potion']}**\n"
+        f"Feeding potion that will make your fish full for 30 days \n"
+        f" __10,000 {EMOJIS['sand_dollar']}__\n"
+        f"**Experience Potion {EMOJIS['experience_potion']}**\n"
+        f"Experience potion that gives your fish 10,000 experience \n"
+        f" __40,000 {EMOJIS['sand_dollar']}__\n"
+        f"**Mutation Potion {EMOJIS['mutation_potion']}**\n"
+        f"Mutation potion that turns one of your fish inverted \n"
+        f" __50 {EMOJIS['doubloon']}__",
     ),
 ]
 
@@ -234,9 +274,9 @@ class Shop(vbu.Cog):
 
             # See if the user has enough money
             type_of_balance = "balance"
-            emoji = "<:sand_dollar:877646167494762586>"
+            emoji = EMOJIS["sand_dollar"]
             if item.title() in Doubloon_things:
-                emoji = "<:doubloon:878297091057807400>"
+                emoji = EMOJIS["doubloon"]
                 type_of_balance = "doubloon"
 
             full_cost = cost * amount
@@ -349,9 +389,7 @@ class Shop(vbu.Cog):
                     return await ctx.send("You have no potions of that type!")
 
                 await db(
-                    """UPDATE user_item_inventory SET {0} = {0} - 1 Where user_id = $1""".format(
-                        type_of_potion
-                    ),
+                    f"""UPDATE user_item_inventory SET {type_of_potion} = {type_of_potion} - 1 Where user_id = $1""",
                     ctx.author.id,
                 )
 
@@ -463,9 +501,7 @@ class Shop(vbu.Cog):
             # Remove the bag from their inventory
             async with vbu.Database() as db:
                 await db(
-                    """UPDATE user_item_inventory SET {0}={0}-1 WHERE user_id=$1""".format(
-                        used_bag
-                    ),
+                    f"""UPDATE user_item_inventory SET {used_bag}={used_bag}-1 WHERE user_id=$1""",
                     ctx.author.id,
                 )
 
@@ -592,9 +628,9 @@ class Shop(vbu.Cog):
             else:
                 amount_three = f"{fetched[0]['casts']:,}"
         await ctx.send(
-            f"""{other_or_self} {amount_one} Sand Dollars <:sand_dollar:877646167494762586>!
-            {other_or_self} {amount_two} Doubloons <:doubloon:878297091057807400>!
-            {other_or_self} {amount_three} Casts <:Casts:911465713938612235>!
+            f"""{other_or_self} {amount_one} Sand Dollars {EMOJIS["sand_dollar"]}!
+            {other_or_self} {amount_two} Doubloons {EMOJIS["doubloon"]}!
+            {other_or_self} {amount_three} Casts {EMOJIS["casts"]}!
             """
         )
 
@@ -627,7 +663,7 @@ class Shop(vbu.Cog):
                     fish_sold,
                 )
             return await ctx.send(
-                f"You have flushed your dead fish, {fish_sold} for 0 <:sand_dollar:877646167494762586>!"
+                f"You have flushed your dead fish, {fish_sold} for 0 {EMOJIS['sand_dollar']}!"
             )
 
         multiplier = fish_row[0]["fish_level"] / 20
@@ -660,7 +696,7 @@ class Shop(vbu.Cog):
                 fish_sold,
             )
         await ctx.send(
-            f"You have sold {fish_sold} for {sell_money} <:sand_dollar:877646167494762586>!"
+            f"You have sold {fish_sold} for {sell_money} {EMOJIS['sand_dollar']}!"
         )
 
     @commands.command(aliases=["d"])
@@ -682,11 +718,13 @@ class Shop(vbu.Cog):
             await db(
                 """INSERT INTO user_achievements (user_id, money_gained) VALUES ($1, 500)
                 ON CONFLICT (user_id) DO UPDATE SET money_gained = user_achievements.money_gained + 500""",
-                ctx.author.id
+                ctx.author.id,
             )
 
         # confirmation message
-        return await ctx.send("Daily reward of 500 <:sand_dollar:877646167494762586> claimed!")
+        return await ctx.send(
+            f"Daily reward of 500 {EMOJIS['sand_dollar']} claimed!"
+        )
 
         # if utils.get_user_voted(ctx.author.id) is False:
         #     return await ctx.send(
@@ -704,7 +742,7 @@ class Shop(vbu.Cog):
         # rarity = "epic"
         # # Tell the user about the fish they caught
         # embed = discord.Embed(
-        #     title=f"<:AquaFish:877939115948134442> {ctx.author.display_name} caught {a_an} *{rarity}* {new_fish['size']} **{new_fish['name']}**!"
+        #     title=f"{EMOJIS['aqua_fish']} {ctx.author.display_name} caught {a_an} *{rarity}* {new_fish['size']} **{new_fish['name']}**!"
         # )
         # embed.set_image(url="attachment://new_fish.png")
         # embed.color = utils.RARITY_CULERS[rarity]
@@ -839,14 +877,14 @@ class Shop(vbu.Cog):
         """
         items = {
             "cfb": (
-                "<:common_fish_bag:877646166983053383>",
+                EMOJIS["common_fish_bag"],
                 "Common Fish Bag",
             ),
             "ufb": (
-                "<:uncommon_fish_bag:877646167146651768>",
+                EMOJIS["uncommon_fish_bag"],
                 "Uncommon Fish Bag",
             ),
-            "rfb": ("<:rare_fish_bag:877646167121489930>", "Rare Fish Bag"),
+            "rfb": (EMOJIS["rare_fish_bag"], "Rare Fish Bag"),
         }
 
         # See if the user has enough money
@@ -871,12 +909,8 @@ class Shop(vbu.Cog):
         # Set up some vars for later
         item_type = []  # The list of fish that they rolled
         emoji_id = []  # The list of fish emojis that they rolled
-        emojis = [
-            "<a:roll:886068357378502717>",
-            "<a:roll:886068357378502717>",
-            "<a:roll:886068357378502717>",
-        ]
-        picked_buttons = [False, False, False]
+        emojis = [EMOJIS["roll"]] * 3
+        picked_buttons = [False] * 3
 
         # Pick three fish names from their rarity
         for i in range(3):
@@ -959,13 +993,13 @@ class Shop(vbu.Cog):
             )
 
             # Break when they're done picking fish
-            if "<a:roll:886068357378502717>" not in emojis:
+            if EMOJIS["roll"] not in emojis:
                 break
 
         # Sees if they won the fish they rolled
         if (
             emojis[0] == emojis[1] == emojis[2]
-            and "<a:roll:886068357378502717>" not in emojis
+            and EMOJIS["roll"] not in emojis
         ):
             bag_won = item_type[0][0]
             async with vbu.Database() as db:
