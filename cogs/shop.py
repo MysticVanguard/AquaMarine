@@ -630,7 +630,7 @@ class Shop(vbu.Cog):
         await ctx.send(
             f"""{other_or_self} {amount_one} Sand Dollars {EMOJIS["sand_dollar"]}!
             {other_or_self} {amount_two} Doubloons {EMOJIS["doubloon"]}!
-            {other_or_self} {amount_three} Casts {EMOJIS["Casts"]}!
+            {other_or_self} {amount_three} Casts {EMOJIS["casts"]}!
             """
         )
 
