@@ -5,6 +5,7 @@ import discord
 from discord.ext import commands, tasks, vbu
 
 from cogs import utils
+from cogs.utils import EMOJIS
 
 
 class Fishing(vbu.Cog):
@@ -174,7 +175,7 @@ class Fishing(vbu.Cog):
                 if message.title() == new_fish["name"]:
                     bonus = 15 + math.floor(int(new_fish["cost"]) / 10)
                     await ctx.send(
-                        f"<@{ctx.author.id}> guessed correctly and recieved {bonus} bonus sand dollars <:sand_dollar:877646167494762586>!"
+                        f"<@{ctx.author.id}> guessed correctly and recieved {bonus} bonus sand dollars {EMOJIS['sand_dollar:']}!"
                     )
 
                     # Update the users balance with the bonus
@@ -197,7 +198,7 @@ class Fishing(vbu.Cog):
             # Tell the user about the fish they caught
             owned_unowned = "Owned" if amount > 0 else "Unowned"
             embed = discord.Embed(
-                title=f"<:AquaFish:877939115948134442> {ctx.author.display_name} caught {a_an} *{rarity}* {new_fish['size']} **{new_fish['name']}**!"
+                title=f"{EMOJIS['aqua_fish:']} {ctx.author.display_name} caught {a_an} *{rarity}* {new_fish['size']} **{new_fish['name']}**!"
             )
             embed.add_field(
                 name=owned_unowned,
