@@ -359,7 +359,7 @@ class Informative(vbu.Cog):
                     f"{n}{n}**Balance**{n}"
                     f'{EMOJIS["sand_dollar"]}: x{balance[0]["balance"]}   '
                     f'{EMOJIS["doubloon"]}: x{balance[0]["doubloon"]}{n}'
-                    f'{EMOJIS["casts"]} x{balance[0]["casts"]}   '
+                    f'{EMOJIS["casts"]}: x{balance[0]["casts"]}   '
                     f'{EMOJIS["fish_points"]}: x{balance[0]["extra_points"]}'
                 )
             inventory_info = [
@@ -698,11 +698,11 @@ class Informative(vbu.Cog):
                     )
                 elif milestone_value <= user_achievement_value:
                     list_of_stars_per_achievement.append(
-                        EMOJIS["achievement_star_no"]
+                        EMOJIS["achievement_star_new"]
                     )
                 else:
                     list_of_stars_per_achievement.append(
-                        EMOJIS["achievement_star_new"]
+                        EMOJIS["achievement_star_no"]
                     )
 
             # Grammar stuff and the number of stars said
