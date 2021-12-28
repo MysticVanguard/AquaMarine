@@ -10,6 +10,7 @@ from discord.ext import commands, vbu
 
 from cogs import utils
 from cogs.utils.fish_handler import DAYLIGHT_SAVINGS
+from cogs.utils import EMOJIS
 
 
 CREDITS_EMBED = discord.Embed(
@@ -26,7 +27,17 @@ CREDITS_EMBED.add_field(
 )
 CREDITS_EMBED.add_field(
     name="Credits to the wonderful Peppoco (peppoco#6867), who made these lovely emotes!",
-    value="<:AquaBonk:877722771935883265><:AquaPensive:877939116266909756><:AquaFish:877939115948134442><:AquaScared:877939115943936074><:AquaShrug:877939116480802896><:AquaSmile:877939115994255383><:AquaUnamused:877939116132696085><:AquaLove:878248091201982524><:AquaCool:878248090895802438><:AquaBlep:878248090400870401>(https://peppoco.carrd.co/#)",
+    value=EMOJIS["aqua_bonk"]
+    + EMOJIS["aqua_pensive"]
+    + EMOJIS["aqua_fish"]
+    + EMOJIS["aqua_scared"]
+    + EMOJIS["aqua_shrug"]
+    + EMOJIS["aqua_smile"]
+    + EMOJIS["aqua_unamused"]
+    + EMOJIS["aqua_love"]
+    + EMOJIS["aqua_cool"]
+    + EMOJIS["aqua_blep"]
+    + "(https://peppoco.carrd.co/#)",
     inline=False,
 )
 CREDITS_EMBED.add_field(
@@ -196,10 +207,10 @@ class Informative(vbu.Cog):
                 )
                 fish_collections[fish["tank_fish"]].append(
                     f"**{fish['fish'].replace('_', ' ').title()}: \"{fish['fish_name']}\"**\n"
-                    f"<:__:886381017051586580>Alive: **{fish['fish_alive']}**\n"
-                    f"<:__:886381017051586580>Death Date: **{relative_time}**\n"
-                    f"<:__:886381017051586580>Level: **{fish['fish_level']}**\n"
-                    f"<:__:886381017051586580>XP: **{fish['fish_xp']}/{fish['fish_xp_max']}**"
+                    f"{EMOJIS['bar_empty']}Alive: **{fish['fish_alive']}**\n"
+                    f"{EMOJIS['bar_empty']}Death Date: **{relative_time}**\n"
+                    f"{EMOJIS['bar_empty']}Level: **{fish['fish_level']}**\n"
+                    f"{EMOJIS['bar_empty']}XP: **{fish['fish_xp']}/{fish['fish_xp_max']}**"
                 )
 
         if not tank_rows:
@@ -243,18 +254,18 @@ class Informative(vbu.Cog):
         n = "\n"
         t = "\t"
         items = {
-            "cfb": "<:common_fish_bag:877646166983053383>",
-            "ufb": "<:uncommon_fish_bag:877646167146651768>",
-            "rfb": "<:rare_fish_bag:877646167121489930>",
-            "ifb": "<:inverted_fish_bag:912057608863637545>",
-            "hlfb": "<:high_level_fish_bag:912057609496985690>",
-            "flakes": "<:fish_flakes:877646167188602880>",
-            "pellets": "<:fish_pellets:911465714412552212>",
-            "wafers": "<:fish_wafers:911465714395799574>",
-            "revival": "<:revival:878297091158474793>",
-            "feeding_potions": "<:feeding_potion:911465714379018261>",
-            "experience_potions": "<:experience_potion:911465714412568616>",
-            "mutation_potions": "<:mutation_potion:911465714420949072>",
+            "cfb": EMOJIS["common_fish_bag"],
+            "ufb": EMOJIS["uncommon_fish_bag"],
+            "rfb": EMOJIS["rare_fish_bag"],
+            "ifb": EMOJIS["inverted_fish_bag"],
+            "hlfb": EMOJIS["high_level_fish_bag"],
+            "flakes": EMOJIS["fish_flakes"],
+            "pellets": EMOJIS["fish_pellets"],
+            "wafers": EMOJIS["fish_wafers"],
+            "revival": EMOJIS["revival"],
+            "feeding_potions": EMOJIS["feeding_potion"],
+            "experience_potions": EMOJIS["experience_potion"],
+            "mutation_potions": EMOJIS["mutation_potion"],
         }
         fields_dict = {}
 
@@ -344,7 +355,13 @@ class Informative(vbu.Cog):
             if not balance:
                 balance_string = f"{n}{n}**Balance**{n}none"
             else:
-                balance_string = f'{n}{n}**Balance**{n}<:sand_dollar:877646167494762586>: x{balance[0]["balance"]}   <:doubloon:878297091057807400>: x{balance[0]["doubloon"]}{n}<:Casts:911465713938612235>: x{balance[0]["casts"]}   <:fish_points:911468089420427324>: x{balance[0]["extra_points"]}'
+                balance_string = (
+                    f"{n}{n}**Balance**{n}"
+                    f'{EMOJIS["sand_dollar"]}: x{balance[0]["balance"]}   '
+                    f'{EMOJIS["doubloon"]}: x{balance[0]["doubloon"]}{n}'
+                    f'{EMOJIS["casts"]}: x{balance[0]["casts"]}   '
+                    f'{EMOJIS["fish_points"]}: x{balance[0]["extra_points"]}'
+                )
             inventory_info = [
                 f"{inv_key}: x{inv_value}"
                 for inv_key, inv_value in inventory_number.items()
@@ -411,7 +428,7 @@ class Informative(vbu.Cog):
         )
         embed.add_field(
             name="Base Sell Price:",
-            value=f"{int(selected_fish['cost'])} <:sand_dollar:877646167494762586>",
+            value=f"{int(selected_fish['cost'])} {EMOJIS['sand_dollar']}",
             inline=False,
         )
         embed.add_field(
@@ -670,31 +687,28 @@ class Informative(vbu.Cog):
                     is True
                 ):
                     list_of_stars_per_achievement.append(
-                        "<:achievement_star:877646167087906816>"
+                        EMOJIS["achievement_star"]
                     )
                 elif (
                     milestone_value
                     < user_achievement_milestone_data[0][milestone]
                 ):
                     list_of_stars_per_achievement.append(
-                        "<:achievement_star:877646167087906816>"
+                        EMOJIS["achievement_star"]
                     )
                 elif milestone_value <= user_achievement_value:
                     list_of_stars_per_achievement.append(
-                        "<:achievement_star_new:877737712046702592>"
+                        EMOJIS["achievement_star_new"]
                     )
                 else:
                     list_of_stars_per_achievement.append(
-                        "<:achievement_star_no:877646167222141008>"
+                        EMOJIS["achievement_star_no"]
                     )
 
             # Grammar stuff and the number of stars said
             next_unclaimable_star = 0
             for single_star_per_star_list in list_of_stars_per_achievement:
-                if (
-                    single_star_per_star_list
-                    != "<:achievement_star:877646167087906816>"
-                ):
+                if single_star_per_star_list != EMOJIS["achievement_star"]:
                     next_unclaimable_star += 1
                     break
                 next_unclaimable_star += 1
@@ -833,7 +847,7 @@ class Informative(vbu.Cog):
 
         if pressed is True:
             await ctx.send(
-                f"Rewards claimed, you earned {amount_of_doubloons_earned} <:doubloon:878297091057807400>!"
+                f"Rewards claimed, you earned {amount_of_doubloons_earned} {EMOJIS['doubloon']}!"
             )
 
     @commands.command(aliases=["creds"])
