@@ -857,44 +857,53 @@ class Informative(vbu.Cog):
             await ctx.interaction.response.defer()
 
         async with ctx.typing():
-            user_info_unsorted = {}
-            user_info_sorted = {}
-            async with vbu.Database() as db:
-                user_info_rows = await db(
-                    """SELECT * FROM user_fish_inventory"""
-                )
-                user_extra_points = await db("""SELECT * FROM user_balance""")
-            for user_info in user_info_rows:
-                if user_info["fish_alive"] is True:
-                    if user_info["user_id"] not in user_info_unsorted.keys():
-                        user_info_unsorted[user_info["user_id"]] = []
-                        user_info_unsorted[user_info["user_id"]].append(
-                            user_info["fish"]
-                        )
-                    else:
-                        user_info_unsorted[user_info["user_id"]].append(
-                            user_info["fish"]
-                        )
-            rarity_points = {
-                "common": 1,
-                "uncommon": 3,
-                "rare": 15,
-                "epic": 75,
-                "legendary": 150,
-                "mythic": 1000,
-            }
+            leaderboard_type = await utils.create_select_menu(
+                self.bot, ctx, ["Balance", "Fish Points"], "type", "choose")
+            if leaderboard_type == "Balance":
+                user_points_unsorted = {}
+                async with vbu.Database() as db:
+                    user_balance_rows = await db("""SELECT * FROM user_balance""")
+                for user_info in user_balance_rows:
+                    user_points_unsorted[user_info["user_id"]
+                                         ] = user_info["balance"]
+            elif leaderboard_type == "Fish Points":
+                user_info_unsorted = {}
+                async with vbu.Database() as db:
+                    user_info_rows = await db(
+                        """SELECT * FROM user_fish_inventory"""
+                    )
+                    user_extra_points = await db("""SELECT * FROM user_balance""")
+                for user_info in user_info_rows:
+                    if user_info["fish_alive"] is True:
+                        if user_info["user_id"] not in user_info_unsorted.keys():
+                            user_info_unsorted[user_info["user_id"]] = []
+                            user_info_unsorted[user_info["user_id"]].append(
+                                user_info["fish"]
+                            )
+                        else:
+                            user_info_unsorted[user_info["user_id"]].append(
+                                user_info["fish"]
+                            )
+                rarity_points = {
+                    "common": 1,
+                    "uncommon": 3,
+                    "rare": 15,
+                    "epic": 75,
+                    "legendary": 150,
+                    "mythic": 1000,
+                }
 
-            user_points_unsorted = {}
-            for user, fish in user_info_unsorted.items():
-                user_points = 0
-                for rarity, fish_types in self.bot.fish.items():
-                    for fish_type in fish:
-                        if fish_type in fish_types:
-                            user_points += rarity_points[rarity]
-                for user_name in user_extra_points:
-                    if user_name["user_id"] == user:
-                        user_points += user_name["extra_points"]
-                user_points_unsorted[user] = user_points
+                user_points_unsorted = {}
+                for user, fish in user_info_unsorted.items():
+                    user_points = 0
+                    for rarity, fish_types in self.bot.fish.items():
+                        for fish_type in fish:
+                            if fish_type in fish_types:
+                                user_points += rarity_points[rarity]
+                    for user_name in user_extra_points:
+                        if user_name["user_id"] == user:
+                            user_points += user_name["extra_points"]
+                    user_points_unsorted[user] = user_points
             user_id_sorted = [
                 (user, points)
                 for user, points in sorted(

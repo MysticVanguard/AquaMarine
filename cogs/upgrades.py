@@ -121,7 +121,7 @@ class Upgrades(vbu.Cog):
                         description = unknown_str
                         name = unknown_str
                         cost_string = unknown_str
-                    start = f"{EMOJIS['empty']}{EMOJIS['straight_branch']}"
+                    start = f"{EMOJIS['bar_empty']}{EMOJIS['straight_branch']}"
                     emote = EMOJIS["bar_3"]
                     left_bar = EMOJIS["bar_L_straight"]
                     if tier == 3:
@@ -130,7 +130,7 @@ class Upgrades(vbu.Cog):
                             f"{EMOJIS['straight']}{EMOJIS['straight_branch']}"
                         )
                     else:
-                        start_two = f"{EMOJIS['empty']}{EMOJIS['straight']}"
+                        start_two = f"{EMOJIS['bar_empty']}{EMOJIS['straight']}"
                 elif tier in (4, 7):
                     cost_string = f"{self.UPGRADE_COST_LIST_THREE[int(level)]:,} {EMOJIS['sand_dollar']}"
                     if upgrades[0][parent_two] != 5:
@@ -143,8 +143,8 @@ class Upgrades(vbu.Cog):
                         start_two = f"{EMOJIS['straight']}{EMOJIS['straight']}"
                         start = f"{EMOJIS['straight']}{EMOJIS['branch']}"
                     else:
-                        start_two = f"{EMOJIS['empty']}{EMOJIS['straight']}"
-                        start = f"{EMOJIS['empty']}{EMOJIS['branch']}"
+                        start_two = f"{EMOJIS['bar_empty']}{EMOJIS['straight']}"
+                        start = f"{EMOJIS['bar_empty']}{EMOJIS['branch']}"
                 # If they're fully upgraded
                 if level == 5:
                     cost_string = "This Upgrade is fully upgraded."
@@ -233,13 +233,16 @@ class Upgrades(vbu.Cog):
             upgrade_cost_list_used = self.UPGRADE_COST_LIST
         elif upgrade in self.TIER_2:
             # Find parent tier and check if it's upgraded
-            parent = [key for key, val in self.TIER_1 if upgrade in val][0]
+
+            parent = [key for key, val in self.TIER_1.items()
+                      if upgrade in val][0]
             if not fully_leveled(upgrades[parent]):
                 return await ctx.send(upgrade_error(parent))
             upgrade_cost_list_used = self.UPGRADE_COST_LIST_TWO
         elif upgrade in self.TIER_3:
             # Find parent tier and check if it's upgraded
-            parent = [key for key, val in self.TIER_2 if upgrade in val][0]
+            parent = [key for key, val in self.TIER_2.items()
+                      if upgrade in val][0]
             if not fully_leveled(upgrades[parent]):
                 return await ctx.send(upgrade_error(parent))
             upgrade_cost_list_used = self.UPGRADE_COST_LIST_THREE

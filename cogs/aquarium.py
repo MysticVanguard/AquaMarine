@@ -82,7 +82,7 @@ class Aquarium(vbu.Cog):
 
     @vbu.command(aliases=["dep"])
     @commands.bot_has_permissions(send_messages=True)
-    async def deposit(self, ctx: commands.Context, *, fish_deposited: str):
+    async def deposit(self, ctx: commands.Context, *, fish_deposited: str = None):
         """
         This command deposits a specified fish into a tank.
         """

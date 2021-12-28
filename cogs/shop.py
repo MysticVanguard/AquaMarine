@@ -707,30 +707,32 @@ class Shop(vbu.Cog):
         This command gives the user a daily reward of 500 Sand Dollars.
         """
 
-        # Adds the money to the users balance
-        async with vbu.Database() as db:
-            await db(
-                """INSERT INTO user_balance (user_id, balance) VALUES ($1, 500)
-                ON CONFLICT (user_id) DO UPDATE SET balance = user_balance.balance + 500""",
-                ctx.author.id,
-            )
-            # Achievements
-            await db(
-                """INSERT INTO user_achievements (user_id, money_gained) VALUES ($1, 500)
-                ON CONFLICT (user_id) DO UPDATE SET money_gained = user_achievements.money_gained + 500""",
-                ctx.author.id,
-            )
-
-        # confirmation message
-        return await ctx.send(
-            f"Daily reward of 500 {EMOJIS['sand_dollar']} claimed!"
-        )
-
-        # if utils.get_user_voted(ctx.author.id) is False:
-        #     return await ctx.send(
-        #         "Please vote and then run this command to get the special daily reward for the event!"
+        # # Adds the money to the users balance
+        # async with vbu.Database() as db:
+        #     await db(
+        #         """INSERT INTO user_balance (user_id, balance) VALUES ($1, 500)
+        #         ON CONFLICT (user_id) DO UPDATE SET balance = user_balance.balance + 500""",
+        #         ctx.author.id,
+        #     )
+        #     # Achievements
+        #     await db(
+        #         """INSERT INTO user_achievements (user_id, money_gained) VALUES ($1, 500)
+        #         ON CONFLICT (user_id) DO UPDATE SET money_gained = user_achievements.money_gained + 500""",
+        #         ctx.author.id,
         #     )
 
+        # # confirmation message
+        # return await ctx.send(
+        #     f"Daily reward of 500 {EMOJIS['sand_dollar']} claimed!"
+        # )
+
+        if await utils.get_user_voted(self.bot, ctx.author.id) is False:
+            ctx.command.reset_cooldown(ctx)
+            return await ctx.send(
+                "Please vote and then run this command to get the special daily reward for the event!"
+            )
+
+        # print(await utils.get_user_voted(self.bot, ctx.author.id))
         # if ctx.author.id in utils.current_fishers:
         #     return await ctx.send(
         #         f"{ctx.author.display_name}, you're already fishing!"
@@ -748,6 +750,7 @@ class Shop(vbu.Cog):
         # embed.color = utils.RARITY_CULERS[rarity]
 
         # # Set the fish file to the fishes image
+        # print("test")
         # fish_file = discord.File(new_fish["image"], "new_fish.png")
         # await ctx.send(
         #     "On the first day of fishmas, fish santa gave to me\n\tA Gingerbread Axolotl",
@@ -772,13 +775,13 @@ class Shop(vbu.Cog):
         #     )
         # return await ctx.send("On the third day of fishmas, fish santa gave to me\n\tThree fish flakes\n\tTwo revivals\n\tAnd a Gingerbread Axolotl")
 
-        # async with vbu.Database() as db:
-        #     await db(
-        #         """INSERT INTO user_balance (user_id, casts) VALUES ($1, 1)
-        #         ON CONFLICT (user_id) DO UPDATE SET casts = user_balance.casts + 4""",
-        #         ctx.author.id
-        #     )
-        # return await ctx.send("On the fourth day of fishmas, fish santa gave to me\n\tFour fishing casts\n\tThree fish flakes\n\tTwo revivals\n\tAnd a Gingerbread Axolotl")
+        async with vbu.Database() as db:
+            await db(
+                """INSERT INTO user_balance (user_id, casts) VALUES ($1, 1)
+                ON CONFLICT (user_id) DO UPDATE SET casts = user_balance.casts + 4""",
+                ctx.author.id
+            )
+        return await ctx.send("On the fourth day of fishmas, fish santa gave to me\n\tFour fishing casts\n\tThree fish flakes\n\tTwo revivals\n\tAnd a Gingerbread Axolotl")
 
         # async with vbu.Database() as db:
         #     await db(
