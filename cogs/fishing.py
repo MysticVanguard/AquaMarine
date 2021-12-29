@@ -198,7 +198,8 @@ class Fishing(vbu.Cog):
             # Tell the user about the fish they caught
             owned_unowned = "Owned" if amount > 0 else "Unowned"
             embed = discord.Embed(
-                title=f"{EMOJIS['aqua_fish']} {ctx.author.display_name} caught {a_an} *{rarity}* {new_fish['size']} **{new_fish['name']}**!"
+                title=f"{EMOJIS['aqua_fish']} {ctx.author.display_name} caught {a_an} *{rarity}* {new_fish['size']} **{new_fish['name']}**!",
+                color=utils.RARITY_CULERS[rarity],
             )
             embed.add_field(
                 name=owned_unowned,
@@ -206,7 +207,6 @@ class Fishing(vbu.Cog):
                 inline=False,
             )
             embed.set_image(url="attachment://new_fish.png")
-            embed.color = utils.RARITY_CULERS[rarity]
 
             # Ask if they want to sell the fish they just caught or keep it
             await utils.ask_to_sell_fish(self.bot, ctx, new_fish, embed=embed)
