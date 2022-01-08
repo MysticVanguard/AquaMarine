@@ -521,21 +521,23 @@ async def create_select_menu(bot, ctx, option_list, type_noun, type_verb):
     return str(payload.values[0])
 
 
-async def create_modal(bot, ctx):
+async def create_modal(bot, Interaction, title, placeholder):
     """
     Modal
     """
 
     # Send a modal back to the user
-    await ctx.interaction.response.send_modal(
+    await Interaction.response.send_modal(
         (sent_modal := discord.ui.Modal(
-            title="Modal text",
+            title=title,
             components=[
                 discord.ui.ActionRow(
                     discord.ui.InputText(
                         label="Input text label",
                         style=discord.TextStyle.short,
-                        placeholder="Placeholder",
+                        placeholder=placeholder,
+                        min_length=1,
+                        max_length=32,
                     ),
                 ),
             ],

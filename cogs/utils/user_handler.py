@@ -1,6 +1,7 @@
 import asyncio
 import math
 import random
+from typing import Text
 
 import discord
 
@@ -298,7 +299,7 @@ async def ask_to_sell_fish_TEST(
     def button_check(payload):
         if payload.message.id != message.id:
             return False
-        bot.loop.create_task(payload.response.defer_update())
+        # bot.loop.create_task(payload.response.defer_update())
         return payload.user.id == ctx.author.id
         # Keep going...
 
@@ -393,55 +394,61 @@ async def ask_to_sell_fish_TEST(
                                 (user_fish_name, user_fish)
                             )
 
-            # They want to keep - ask what they want to name the fish
-            # await message.channel.send(
-            #     "What do you want to name your new fish? (32 character limit and cannot be named the same as another fish you own)"
-            # )
+            name = await create_modal(bot, chosen_button_payload, "Fish Kept", "Enter Your Fish's Name")
+            while name in fish_names:
+                # Add the buttons to the message
+                components = discord.ui.MessageComponents(
+                    discord.ui.ActionRow(
+                        discord.ui.Button(custom_id="Retry", label='Retry'),
+                    ),
+                )
+                try:
+                    message = await ctx.channel.send(
+                        "That name is already one of your other fish's names. Click the button to try again",
+                        components=components
+                    )
+                except discord.HTTPException:
+                    return
 
-            # def message_check(msg):
-            #     return (
-            #         msg.author == ctx.author
-            #         and msg.channel.id == message.channel.id
-            #         and len(msg.content) > 1
-            #         and len(msg.content) <= 32
-            #         and msg.content not in fish_names
-            #     )
-
-            name = await create_modal(bot, ctx)
+                try:
+                    chosen_button_payload = await bot.wait_for(
+                        "component_interaction", timeout=60.0, check=button_check
+                    )
+                except asyncio.TimeoutError:
+                    titles = [
+                        "Captain",
+                        "Mr.",
+                        "Mrs.",
+                        "Commander",
+                        "Sir",
+                        "Madam",
+                        "Skipper",
+                        "Crewmate",
+                    ]
+                    names = [
+                        "Nemo",
+                        "Bubbles",
+                        "Jack",
+                        "Finley",
+                        "Coral",
+                        "Fish",
+                        "Turtle",
+                        "Squid",
+                        "Sponge",
+                        "Starfish",
+                    ]
+                    name = f"{random.choice(titles)} {random.choice(names)}"
+                    while name in fish_names:
+                        name = f"{random.choice(titles)} {random.choice(names)}"
+                    await message.channel.send(
+                        f"Did you forget about me? I've been waiting for a while now! "
+                        f"I'll name the fish for you. "
+                        f"Let's call it **{name}** (Lvl. {level})"
+                    )
+                name = await create_modal(bot, chosen_button_payload, "Fish Kept", "Enter Your Fish's Name")
             await message.channel.send(
                 f"Your new fish **{name}** (Lvl. {level}) has been added to your bucket!"
             )
-            # except asyncio.TimeoutError:
-            #     titles = [
-            #         "Captain",
-            #         "Mr.",
-            #         "Mrs.",
-            #         "Commander",
-            #         "Sir",
-            #         "Madam",
-            #         "Skipper",
-            #         "Crewmate",
-            #     ]
-            #     names = [
-            #         "Nemo",
-            #         "Bubbles",
-            #         "Jack",
-            #         "Finley",
-            #         "Coral",
-            #         "Fish",
-            #         "Turtle",
-            #         "Squid",
-            #         "Sponge",
-            #         "Starfish",
-            #     ]
-            #     name = f"{random.choice(titles)} {random.choice(names)}"
-            #     while name in fish_names:
-            #         name = f"{random.choice(titles)} {random.choice(names)}"
-            #     await message.channel.send(
-            #         f"Did you forget about me? I've been waiting for a while now! "
-            #         f"I'll name the fish for you. "
-            #         f"Let's call it **{name}** (Lvl. {level})"
-            #     )
 
             # Save the fish name
             async with bot.database() as db:
