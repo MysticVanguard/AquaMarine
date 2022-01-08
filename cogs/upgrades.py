@@ -2,6 +2,10 @@ from discord.ext import commands, vbu
 
 from cogs import utils
 from cogs.utils import EMOJIS
+from PIL import Image
+import random
+import string
+import discord
 
 
 class Upgrades(vbu.Cog):
@@ -81,6 +85,32 @@ class Upgrades(vbu.Cog):
                     """INSERT INTO user_upgrades (user_id) VALUES ($1) RETURNING *""",
                     ctx.author.id,
                 )
+
+        positions = [(2140, 910), (1300, 1070), (1310, 1260), (1710, 1080), (2200, 1470),
+                     (1760, 1290), (2180, 1450), (2670,
+                                                  170), (240, 210), (840, 110),
+                     (550, 1460), (840, 750), (1930, 190), (1020, 1290)]
+        list_of_upgrades = [single for single in upgrades[0].keys()]
+        id = "".join(
+            random.choice(string.ascii_uppercase + string.digits)
+            for _ in range(10)
+        )
+        file_prefix = "C:/Users/JT/Pictures/Aqua/assets/images"
+        shadow = f"{file_prefix}/background/Room Walls/shadow-export.png"
+        file_name = f"{file_prefix}/background/Room Walls/Upgrades_Wall/User Walls/{id}user_upgrade_room.png"
+        shadow = Image.open(shadow).convert("RGBA")
+        background = Image.open(
+            f"{file_prefix}/background/Room Walls/Upgrade_Wall-export.png"
+        ).convert("RGBA")
+        new_background = background.copy()
+        for i, upgrade in enumerate(upgrades[0]):
+            added_upgrade = Image.open(
+                f"{file_prefix}/background/Room Walls/Upgrades_Wall/{list_of_upgrades[i]}_tier_{upgrades[0][list_of_upgrades[i]]+1}-export.png").convert("RGBA")
+            new_background.paste(added_upgrade, positions[i], added_upgrade)
+        new_background.paste(shadow, (0, 0), shadow)
+
+        new_background.save(file_name, format="PNG")
+        await ctx.send(file=discord.File(file_name))
 
         # Build out output strings
         tier = 0

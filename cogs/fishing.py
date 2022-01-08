@@ -3,6 +3,7 @@ import math
 import asyncio
 import discord
 from discord.ext import commands, tasks, vbu
+import string
 
 from cogs import utils
 from cogs.utils import EMOJIS
@@ -22,15 +23,16 @@ class Fishing(vbu.Cog):
     # Every hour, everyone gets a cast
     @tasks.loop(hours=1)
     async def user_cast_loop(self):
-        async with vbu.Database() as db:
-            casts = await db("""SELECT * FROM user_balance""")
-            for x in casts:
-                if x["casts"] >= 50:
-                    continue
-                await db(
-                    """UPDATE user_balance SET casts=casts+1 WHERE user_id = $1""",
-                    x["user_id"],
-                )
+        pass
+        # async with vbu.Database() as db:
+        #     casts = await db("""SELECT * FROM user_balance""")
+        #     for x in casts:
+        #         if x["casts"] >= 50:
+        #             continue
+        #         await db(
+        #             """UPDATE user_balance SET casts=casts+1 WHERE user_id = $1""",
+        #             x["user_id"],
+        #         )
 
     # Wait until the bot is on and ready and not just until the cog is on
     @user_cast_loop.before_loop
@@ -43,10 +45,6 @@ class Fishing(vbu.Cog):
         """
         This command catches a fish.
         """
-
-        # Slash command defer
-        if hasattr(ctx, "interaction"):
-            await ctx.interaction.response.defer()
 
         # Add their id to a list to make sure they can't fish twice
         if ctx.author.id in utils.current_fishers:
@@ -174,8 +172,8 @@ class Fishing(vbu.Cog):
                 # Give them a bonus based on the fish's cost and tell them they got it correct if they did
                 if message.title() == new_fish["name"]:
                     bonus = 15 + math.floor(int(new_fish["cost"]) / 10)
-                    await ctx.send(
-                        f"<@{ctx.author.id}> guessed correctly and recieved {bonus} bonus sand dollars {EMOJIS['sand_dollar:']}!"
+                    await ctx.channel.send(
+                        f"<@{ctx.author.id}> guessed correctly and recieved {bonus} bonus sand dollars {EMOJIS['sand_dollar']}!"
                     )
 
                     # Update the users balance with the bonus
@@ -188,7 +186,7 @@ class Fishing(vbu.Cog):
                         )
                 # Else tell them it was wrong
                 else:
-                    await ctx.send(
+                    await ctx.channel.send(
                         f"Incorrect <@{ctx.author.id}>, no bonus given."
                     )
             # If it times out tell them it did
@@ -198,7 +196,7 @@ class Fishing(vbu.Cog):
             # Tell the user about the fish they caught
             owned_unowned = "Owned" if amount > 0 else "Unowned"
             embed = discord.Embed(
-                title=f"{EMOJIS['aqua_fish:']} {ctx.author.display_name} caught {a_an} *{rarity}* {new_fish['size']} **{new_fish['name']}**!"
+                title=f"{EMOJIS['aqua_fish']} {ctx.author.display_name} caught {a_an} *{rarity}* {new_fish['size']} **{new_fish['name']}**!"
             )
             embed.add_field(
                 name=owned_unowned,
@@ -209,7 +207,10 @@ class Fishing(vbu.Cog):
             embed.color = utils.RARITY_CULERS[rarity]
 
             # Ask if they want to sell the fish they just caught or keep it
-            await utils.ask_to_sell_fish(self.bot, ctx, new_fish, embed=embed)
+            if ctx.author.id == 449966150898417664:
+                await utils.ask_to_sell_fish_TEST(self.bot, ctx, new_fish, embed=embed)
+            else:
+                await utils.ask_to_sell_fish(self.bot, ctx, new_fish, embed=embed)
 
         # Find if they catch a crate with the crate_chance_upgrade
         crate_catch = random.randint(
@@ -315,7 +316,7 @@ class Fishing(vbu.Cog):
                         crate_message += f"{nl}{amount_of_loot}x {display[type_of_loot]} recieved!"
 
                 # Send the message telling them they caught a crate and what was in it
-                await ctx.send(
+                await ctx.channel.send(
                     f"{ctx.author.display_name} caught a {crate[0]} crate containing: {crate_message}"
                 )
 

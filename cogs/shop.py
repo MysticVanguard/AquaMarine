@@ -578,13 +578,18 @@ class Shop(vbu.Cog):
                 fetched_info.append(value)
 
         items = [
-            "Common Fish Bag",
-            "Uncommon Fish Bag",
-            "Rare Fish Bag",
-            "Epic Fish Bag",
-            "Legendary Fish Bag",
-            "Fish Flake",
-            "Fish Revives",
+            f"{utils.EMOJIS['common_fish_bag']}Common Fish Bag",
+            f"{utils.EMOJIS['uncommon_fish_bag']}Uncommon Fish Bag",
+            f"{utils.EMOJIS['rare_fish_bag']}Rare Fish Bag",
+            f"{utils.EMOJIS['fish_flakes']}Fish Flake",
+            f"{utils.EMOJIS['revival']}Fish Revive",
+            f"{utils.EMOJIS['fish_pellets']}Fish Pellet",
+            f"{utils.EMOJIS['fish_wafers']}Fish Wafer",
+            f"{utils.EMOJIS['experience_potion']}Experience Potion",
+            f"{utils.EMOJIS['mutation_potion']}Mutation Potion",
+            f"{utils.EMOJIS['feeding_potion']}Feeding Potion",
+            f"{utils.EMOJIS['inverted_fish_bag']}Inverted Fish Bag",
+            f"{utils.EMOJIS['high_level_fish_bag']}High Level Fish Bag"
         ]
         embed = discord.Embed(title=f"{ctx.author.display_name}'s Inventory")
         for count, name in enumerate(items):
@@ -704,33 +709,33 @@ class Shop(vbu.Cog):
     @commands.bot_has_permissions(send_messages=True)
     async def daily(self, ctx: commands.Context):
         """
-        This command gives the user a daily reward of 500 Sand Dollars.
+        This command gives the user a daily reward of 1000 Sand Dollars.
         """
-
-        # # Adds the money to the users balance
-        # async with vbu.Database() as db:
-        #     await db(
-        #         """INSERT INTO user_balance (user_id, balance) VALUES ($1, 500)
-        #         ON CONFLICT (user_id) DO UPDATE SET balance = user_balance.balance + 500""",
-        #         ctx.author.id,
-        #     )
-        #     # Achievements
-        #     await db(
-        #         """INSERT INTO user_achievements (user_id, money_gained) VALUES ($1, 500)
-        #         ON CONFLICT (user_id) DO UPDATE SET money_gained = user_achievements.money_gained + 500""",
-        #         ctx.author.id,
-        #     )
-
-        # # confirmation message
-        # return await ctx.send(
-        #     f"Daily reward of 500 {EMOJIS['sand_dollar']} claimed!"
-        # )
 
         if await utils.get_user_voted(self.bot, ctx.author.id) is False:
             ctx.command.reset_cooldown(ctx)
             return await ctx.send(
-                "Please vote and then run this command to get the special daily reward for the event!"
+                "Please vote and then run this command to get the daily reward!"
             )
+
+        # Adds the money to the users balance
+        async with vbu.Database() as db:
+            await db(
+                """INSERT INTO user_balance (user_id, balance) VALUES ($1, 1000)
+                ON CONFLICT (user_id) DO UPDATE SET balance = user_balance.balance + 1000""",
+                ctx.author.id,
+            )
+            # Achievements
+            await db(
+                """INSERT INTO user_achievements (user_id, money_gained) VALUES ($1, 1000)
+                ON CONFLICT (user_id) DO UPDATE SET money_gained = user_achievements.money_gained + 1000""",
+                ctx.author.id,
+            )
+
+        # confirmation message
+        return await ctx.send(
+            f"Daily reward of 1,000 {EMOJIS['sand_dollar']} claimed!"
+        )
 
         # print(await utils.get_user_voted(self.bot, ctx.author.id))
         # if ctx.author.id in utils.current_fishers:
@@ -775,13 +780,13 @@ class Shop(vbu.Cog):
         #     )
         # return await ctx.send("On the third day of fishmas, fish santa gave to me\n\tThree fish flakes\n\tTwo revivals\n\tAnd a Gingerbread Axolotl")
 
-        async with vbu.Database() as db:
-            await db(
-                """INSERT INTO user_balance (user_id, casts) VALUES ($1, 1)
-                ON CONFLICT (user_id) DO UPDATE SET casts = user_balance.casts + 4""",
-                ctx.author.id
-            )
-        return await ctx.send("On the fourth day of fishmas, fish santa gave to me\n\tFour fishing casts\n\tThree fish flakes\n\tTwo revivals\n\tAnd a Gingerbread Axolotl")
+        # async with vbu.Database() as db:
+        #     await db(
+        #         """INSERT INTO user_balance (user_id, casts) VALUES ($1, 1)
+        #         ON CONFLICT (user_id) DO UPDATE SET casts = user_balance.casts + 4""",
+        #         ctx.author.id
+        #     )
+        # return await ctx.send("On the fourth day of fishmas, fish santa gave to me\n\tFour fishing casts\n\tThree fish flakes\n\tTwo revivals\n\tAnd a Gingerbread Axolotl")
 
         # async with vbu.Database() as db:
         #     await db(
@@ -817,19 +822,19 @@ class Shop(vbu.Cog):
         # return await ctx.send("On the seventh day of fishmas, fish santa gave to me:\n\tSeven thousand dollars\n\tSix rare bags of fish\n\tFive fish wafers\n\tFour fishing casts\n\tThree fish flakes\n\tTwo revivals\n\tAnd a Gingerbread Axolotl")
 
         # async with vbu.Database() as db:
-        #             await db(
-        #                 """INSERT INTO user_item_inventory (user_id, pellets) VALUES ($1, 8)
+        #     await db(
+        #         """INSERT INTO user_item_inventory (user_id, pellets) VALUES ($1, 8)
         #                 ON CONFLICT (user_id) DO UPDATE SET pellets = user_item_inventory.pellets + 8""",
-        #                 ctx.author.id
-        #             )
+        #         ctx.author.id
+        #     )
         # return await ctx.send("On the eighth day of fishmas, fish santa gave to me\n\tEight fish food pellets\n\tSeven thousand dollars\n\tSix rare bags of fish\n\tFive fish wafers\n\tFour fishing casts\n\tThree fish flakes\n\tTwo revivals\n\tAnd a Gingerbread Axolotl")
 
         # async with vbu.Database() as db:
-        #             await db(
-        #                 """INSERT INTO user_balance (user_id, extra_points) VALUES ($1, 9)
+        #     await db(
+        #         """INSERT INTO user_balance (user_id, extra_points) VALUES ($1, 9)
         #                 ON CONFLICT (user_id) DO UPDATE SET extra_points = user_balance.extra_points + 9""",
-        #                 ctx.author.id
-        #             )
+        #         ctx.author.id
+        #     )
         # return await ctx.send("On the ninth day of fishmas, fish santa gave to me\n\tNine leaderboard points\n\tEight fish food pellets\n\tSeven thousand dollars\n\tSix rare bags of fish\n\tFive fish wafers\n\tFour fishing casts\n\tThree fish flakes\n\tTwo revivals\n\tAnd a Gingerbread Axolotl")
 
         # async with vbu.Database() as db:
@@ -872,11 +877,10 @@ class Shop(vbu.Cog):
         )
 
     @commands.command()
-    @commands.cooldown(1, 30, commands.BucketType.user)
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def gamble(self, ctx: commands.Context):
         """
-        This command costs 50 sand dollars and will give a fish bag
+        This command costs 100 sand dollars and will give a fish bag
         """
         items = {
             "cfb": (
@@ -891,9 +895,9 @@ class Shop(vbu.Cog):
         }
 
         # See if the user has enough money
-        if not await utils.check_price(self.bot, ctx.author.id, 50, "balance"):
+        if not await utils.check_price(self.bot, ctx.author.id, 100, "balance"):
             return await ctx.send(
-                "You don't have enough sand dollars for this! (50)"
+                "You don't have enough sand dollars for this! (100)"
             )
 
         async with vbu.Database() as db:
@@ -905,25 +909,49 @@ class Shop(vbu.Cog):
             )
             # Remove money from the user
             await db(
-                """UPDATE user_balance SET balance=balance-50 WHERE user_id = $1""",
+                """UPDATE user_balance SET balance=balance-100 WHERE user_id = $1""",
                 ctx.author.id,
             )
 
         # Set up some vars for later
-        item_type = []  # The list of fish that they rolled
+        item_values = []  # The list of fish that they rolled
         emoji_id = []  # The list of fish emojis that they rolled
         emojis = [EMOJIS["roll"]] * 3
         picked_buttons = [False] * 3
 
         # Pick three fish names from their rarity
         for i in range(3):
-            item_type.append(
-                random.choices(["cfb", "ufb", "rfb"], [0.5, 0.3, 0.2])
+            item_values.append(
+                random.randint(1, 31)
             )
 
         # Get the emojis for the fish they rolled
-        for item in item_type:
-            emoji_id.append(items[item[0]][0])
+        for value in item_values:
+            if value <= 16:
+                emoji_id.append(EMOJIS["sand_dollar"])
+                type_of_balance = "balance"
+                amount = 300
+                emoji = EMOJIS["sand_dollar"]
+            elif value <= 24:
+                emoji_id.append(EMOJIS["sand_dollar_pile"])
+                type_of_balance = "balance"
+                amount = 600
+                emoji = EMOJIS["sand_dollar"]
+            elif value <= 28:
+                emoji_id.append(EMOJIS["sand_dollar_stack"])
+                type_of_balance = "balance"
+                amount = 1200
+                emoji = EMOJIS["sand_dollar"]
+            elif value <= 30:
+                emoji_id.append(EMOJIS["fish_points"])
+                type_of_balance = "extra_points"
+                amount = 5
+                emoji = EMOJIS["fish_points"]
+            elif value <= 31:
+                emoji_id.append(EMOJIS["doubloon"])
+                type_of_balance = "doubloon"
+                amount = 1
+                emoji = EMOJIS["doubloon"]
         embed = vbu.Embed(title=f"{ctx.author.display_name}'s roll")
         embed.add_field(
             name="Click the buttons to stop the rolls!", value="".join(emojis)
@@ -1000,23 +1028,44 @@ class Shop(vbu.Cog):
                 break
 
         # Sees if they won the fish they rolled
+        common_types = [EMOJIS["sand_dollar_stack"],
+                        EMOJIS["sand_dollar_pile"]]
         if (
             emojis[0] == emojis[1] == emojis[2]
             and EMOJIS["roll"] not in emojis
         ):
-            bag_won = item_type[0][0]
-            async with vbu.Database() as db:
-                await db(
-                    """INSERT INTO user_item_inventory (user_id, {0}) VALUES ($1, 1)
-                    ON CONFLICT (user_id) DO UPDATE SET {0} = user_item_inventory.{0} + 1""".format(
-                        bag_won
-                    ),
-                    ctx.author.id,
-                )
-            return await ctx.send(
-                f"{ctx.author.display_name} has won: {items[item_type[0][0]][1]}"
-            )
-        await ctx.send(f"{ctx.author.mention} lost!")
+            pass
+        elif (
+            emojis[0] in common_types
+            and emojis[1] in common_types
+            or emojis[0] in common_types
+            and emojis[2] in common_types
+            or emojis[1] in common_types
+            and emojis[2] in common_types
+        ):
+            amount = 50
+            type_of_balance = "balance"
+            emoji = EMOJIS["sand_dollar"]
+        elif (
+            emojis[0] == EMOJIS["fish_points"]
+            and emojis[1] == EMOJIS["fish_points"]
+            or emojis[0] == EMOJIS["fish_points"]
+            and emojis[2] == EMOJIS["fish_points"]
+            or emojis[1] == EMOJIS["fish_points"]
+            and emojis[2] == EMOJIS["fish_points"]
+        ):
+            amount = 1
+            type_of_balance = "extra_points"
+            emoji = EMOJIS["fish_points"]
+        else:
+            return await ctx.send(f"{ctx.author.mention} lost!")
+        async with vbu.Database() as db:
+            await db(
+                f"""INSERT INTO user_balance (user_id, {type_of_balance}) VALUES ($1, {amount})
+                ON CONFLICT (user_id) DO UPDATE SET {type_of_balance} = user_balance.{type_of_balance} + {amount}""", ctx.author.id)
+        return await ctx.send(
+            f"{ctx.author.display_name} has won: {amount:,} {emoji}"
+        )
 
     @gamble.error
     async def gamble_error(self, ctx, error):

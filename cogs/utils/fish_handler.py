@@ -324,6 +324,8 @@ EMOJIS = {
     "revival": "<:revival:878297091158474793>",
     "roll": "<a:roll:886068357378502717>",
     "sand_dollar": "<:sand_dollar:877646167494762586>",
+    "sand_dollar_pile": "<:sand_dollar_pile:925288312611172372>",
+    "sand_dollar_stack": "<:sand_dollar_stack:925288312418209853>",
     "sell": "<:sell:844594478392147968>",
     "straight": "<:straight:886377903879753728>",
     "straight_branch": "<:straight_branch:886377903837806602>",
@@ -517,6 +519,41 @@ async def create_select_menu(bot, ctx, option_list, type_noun, type_verb):
 
     # Return what they chose
     return str(payload.values[0])
+
+
+async def create_modal(bot, ctx):
+    """
+    Modal
+    """
+
+    # Send a modal back to the user
+    await ctx.interaction.response.send_modal(
+        (sent_modal := discord.ui.Modal(
+            title="Modal text",
+            components=[
+                discord.ui.ActionRow(
+                    discord.ui.InputText(
+                        label="Input text label",
+                        style=discord.TextStyle.short,
+                        placeholder="Placeholder",
+                    ),
+                ),
+            ],
+        ))
+    )
+
+    # Wait for an interaction to be given back
+    interaction: discord.Interaction = await bot.wait_for(
+        "modal_submit",
+        check=lambda i: i.data['custom_id'] == sent_modal.custom_id,
+    )
+
+    # Go through the response components and get the first (and only) value from the user
+    assert interaction.components
+    given_value = interaction.components[0].components[0].value
+
+    # Respond with what the user said
+    return given_value
 
 
 # This is a list of fish that are no longer able to be caught

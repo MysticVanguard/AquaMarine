@@ -67,78 +67,78 @@ class Informative(vbu.Cog):
         }
         position_glass = {
             "Fish Bowl": [
-                (39, 16),
-                (147, 16),
-                (251, 16),
-                (39, 64),
-                (147, 64),
-                (251, 64),
-                (95, 117),
-                (197, 117),
-                (95, 154),
-                (197, 154),
+                (390, 160),
+                (1470, 160),
+                (2510, 160),
+                (390, 640),
+                (1470, 640),
+                (2510, 640),
+                (950, 1170),
+                (1970, 1170),
+                (950, 1540),
+                (1970, 1540),
             ],
             "Small Tank": [
-                (35, 4),
-                (140, 4),
-                (245, 4),
-                (35, 52),
-                (140, 52),
-                (245, 52),
-                (89, 105),
-                (190, 105),
-                (89, 144),
-                (190, 144),
+                (350, 40),
+                (1400, 40),
+                (2450, 40),
+                (350, 520),
+                (1400, 520),
+                (2450, 520),
+                (890, 1050),
+                (1900, 1050),
+                (809, 1440),
+                (1900, 1440),
             ],
             "Medium Tank": [
-                (24, 4),
-                (129, 4),
-                (234, 4),
-                (24, 52),
-                (129, 52),
-                (234, 52),
-                (77, 105),
-                (178, 105),
-                (77, 144),
-                (178, 144),
+                (240, 40),
+                (1290, 40),
+                (2340, 40),
+                (240, 520),
+                (1290, 520),
+                (2340, 520),
+                (770, 1050),
+                (1780, 1050),
+                (770, 1440),
+                (1780, 1440),
             ],
         }
         position_theme = {
             "Fish Bowl": [
-                (39, 16),
-                (147, 16),
-                (251, 16),
-                (39, 64),
-                (147, 64),
-                (251, 64),
-                (95, 117),
-                (197, 117),
-                (95, 154),
-                (197, 154),
+                (390, 160),
+                (1470, 160),
+                (2510, 160),
+                (390, 640),
+                (1470, 640),
+                (2510, 640),
+                (950, 1170),
+                (1970, 1170),
+                (950, 1540),
+                (1970, 1540),
             ],
             "Small Tank": [
-                (36, 7),
-                (141, 7),
-                (246, 7),
-                (36, 55),
-                (141, 55),
-                (246, 55),
-                (90, 108),
-                (191, 108),
-                (90, 147),
-                (191, 147),
+                (360, 70),
+                (1410, 70),
+                (2460, 70),
+                (360, 550),
+                (1410, 550),
+                (2460, 550),
+                (900, 1080),
+                (1910, 1080),
+                (900, 1470),
+                (1910, 1470),
             ],
             "Medium Tank": [
-                (25, 7),
-                (130, 7),
-                (235, 7),
-                (25, 55),
-                (130, 55),
-                (235, 55),
-                (78, 108),
-                (179, 108),
-                (78, 147),
-                (179, 147),
+                (250, 70),
+                (1300, 70),
+                (2350, 70),
+                (250, 550),
+                (1300, 550),
+                (2350, 550),
+                (780, 1080),
+                (1790, 1080),
+                (780, 1470),
+                (1790, 1470),
             ],
         }
         id = "".join(
@@ -158,7 +158,7 @@ class Informative(vbu.Cog):
             )
 
         background = Image.open(
-            f"{file_prefix}/background/Room Walls/Tank_Wall.png"
+            f"{file_prefix}/background/Room Walls/Tank_Wall-export.png"
         ).convert("RGBA")
         new_background = background.copy()
         for slot, tank in enumerate(tank_rows[0]["tank_type"]):
@@ -177,10 +177,10 @@ class Informative(vbu.Cog):
             x_and_y_theme = position_theme[tank][slot]
             tank_theme = tank_rows[0]["tank_theme"][slot].replace(" ", "_")
             glass = Image.open(
-                f"{file_prefix}/background/Room Walls/Tanks_Wall/{start}Glass_{tank_type}.png"
+                f"{file_prefix}/background/Room Walls/Tanks_Wall/{start}Glass_{tank_type}-export.png"
             ).convert("RGBA")
             theme = Image.open(
-                f"{file_prefix}/background/Room Walls/Tanks_Wall/{tank_theme}_{tank_type}.png"
+                f"{file_prefix}/background/Room Walls/Tanks_Wall/{tank_theme}_{tank_type}-export.png"
             ).convert("RGBA")
             new_background.paste(
                 theme, (x_and_y_theme[0], x_and_y_theme[1]), theme
@@ -912,7 +912,7 @@ class Informative(vbu.Cog):
                     user_points = 0
                     for rarity, fish_types in self.bot.fish.items():
                         for fish_type in fish:
-                            if fish_type in fish_types:
+                            if ' '.join(fish_type.split('_')) in fish_types:
                                 user_points += rarity_points[rarity]
                     for user_name in user_extra_points:
                         if user_name["user_id"] == user:

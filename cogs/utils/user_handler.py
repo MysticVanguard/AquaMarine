@@ -6,6 +6,7 @@ import discord
 
 from cogs import utils
 from cogs.utils import EMOJIS
+from cogs.utils.fish_handler import create_modal
 
 
 current_fishers = []
@@ -202,6 +203,245 @@ async def ask_to_sell_fish(
                     f"I'll name the fish for you. "
                     f"Let's call it **{name}** (Lvl. {level})"
                 )
+
+            # Save the fish name
+            async with bot.database() as db:
+                await db(
+                    """INSERT INTO user_fish_inventory (user_id, fish, fish_name, fish_size, fish_level, fish_xp_max) VALUES ($1, $2, $3, $4, $5, $6)""",
+                    ctx.author.id,
+                    new_fish["raw_name"],
+                    name,
+                    new_fish["size"],
+                    level,
+                    xp_max,
+                )
+            return
+        if chosen_button == "sell":
+            # See if they want to sell the fish
+            vote_multiplier = 1
+            if await get_user_voted(bot, ctx.author.id):
+                vote_multiplier = 1.5
+                await message.channel.send(
+                    "You voted at <https://top.gg/bot/840956686743109652/vote> for a **1.5x** bonus"
+                )
+
+            level_multiplier = level / 20
+            money_earned = math.ceil(
+                (int(new_fish["cost"]))
+                * utils.ROD_UPGRADES[upgrades[0]["rod_upgrade"]]
+                * (1 + level_multiplier)
+                * vote_multiplier
+            )
+            async with bot.database() as db:
+                await db(
+                    """INSERT INTO user_balance (user_id, balance) VALUES ($1, $2)
+                    ON CONFLICT (user_id) DO UPDATE SET balance = user_balance.balance + $2""",
+                    ctx.author.id,
+                    money_earned,
+                )
+                # Achievements
+                await db(
+                    """INSERT INTO user_achievements (user_id, money_gained) VALUES ($1, $2)
+                    ON CONFLICT (user_id) DO UPDATE SET money_gained = user_achievements.money_gained + $2""",
+                    ctx.author.id,
+                    money_earned,
+                )
+            await message.channel.send(
+                f"Sold your **{new_fish['name']}** for **{money_earned}** "
+                f"{EMOJIS['sand_dollar']}!"
+            )
+            # Disable the given button
+            await message.edit(components=components.disable_components())
+            return
+
+
+async def ask_to_sell_fish_TEST(
+    bot, ctx, new_fish: dict, embed, level_inserted: int = 0
+):
+    """
+    Ask the user if they want to sell a fish they've been given.
+    """
+
+    # Add the buttons to the message
+    components = discord.ui.MessageComponents(
+        discord.ui.ActionRow(
+            discord.ui.Button(custom_id="keep", emoji=EMOJIS["keep"]),
+            discord.ui.Button(custom_id="sell", emoji=EMOJIS["sell"]),
+        ),
+    )
+    try:
+        message = await ctx.channel.send(embed=embed, components=components)
+    except discord.HTTPException:
+        return
+
+    async with bot.database() as db:
+        fish_rows = await db(
+            """SELECT * FROM user_fish_inventory WHERE user_id=$1""",
+            ctx.author.id,
+        )
+        upgrades = await db(
+            """SELECT rod_upgrade, weight_upgrade FROM user_upgrades WHERE user_id = $1""",
+            ctx.author.id,
+        )
+        if not upgrades:
+            await db(
+                """INSERT INTO user_upgrades (user_id) VALUES ($1)""",
+                ctx.author.id,
+            )
+            upgrades = await db(
+                """SELECT rod_upgrade, weight_upgrade FROM user_upgrades WHERE user_id = $1""",
+                ctx.author.id,
+            )
+
+    # See what reaction the user is adding to the message
+
+    def button_check(payload):
+        if payload.message.id != message.id:
+            return False
+        bot.loop.create_task(payload.response.defer_update())
+        return payload.user.id == ctx.author.id
+        # Keep going...
+
+    # Level variables
+    level = (
+        random.randint(
+            utils.WEIGHT_UPGRADES[upgrades[0]["weight_upgrade"]][0],
+            utils.WEIGHT_UPGRADES[upgrades[0]["weight_upgrade"]][1],
+        )
+        + level_inserted
+    )
+
+    while True:
+
+        # Wait for them to click a button
+        try:
+            chosen_button_payload = await bot.wait_for(
+                "component_interaction", timeout=60.0, check=button_check
+            )
+            chosen_button = chosen_button_payload.component.custom_id.lower()
+        except asyncio.TimeoutError:
+            await message.edit(components=components.disable_components())
+            await message.channel.send(
+                "Did you forget about me? I've been waiting for a while now! "
+                "I'll just assume you wanted to sell the fish."
+            )
+            # See if they want to sell the fish
+            vote_multiplier = 1
+            if await get_user_voted(bot, ctx.author.id):
+                vote_multiplier = 1.5
+                await message.channel.send(
+                    "You voted at <https://top.gg/bot/840956686743109652/vote> for a **1.5x** bonus"
+                )
+
+            level_multiplier = level / 20
+            money_earned = math.ceil(
+                (int(new_fish["cost"]))
+                * utils.ROD_UPGRADES[upgrades[0]["rod_upgrade"]]
+                * (1 + level_multiplier)
+                * vote_multiplier
+            )
+
+            async with bot.database() as db:
+                await db(
+                    """INSERT INTO user_balance (user_id, balance) VALUES ($1, $2)
+                    ON CONFLICT (user_id) DO UPDATE SET balance = user_balance.balance + $2""",
+                    ctx.author.id,
+                    money_earned,
+                )
+                # Achievements
+                await db(
+                    """INSERT INTO user_achievements (user_id, money_gained) VALUES ($1, $2)
+                    ON CONFLICT (user_id) DO UPDATE SET money_gained = user_achievements.money_gained + $2""",
+                    ctx.author.id,
+                    money_earned,
+                )
+            await message.channel.send(
+                f"Sold your **{new_fish['name']}** for **{money_earned}** "
+                f"{EMOJIS['sand_dollar']}!"
+            )
+            # Disable the given button
+            await message.edit(components=components.disable_components())
+            return
+
+        # Update the displayed emoji
+        if chosen_button == "keep":
+            # Disable the given button
+            await message.edit(components=components.disable_components())
+            # Get their current fish names
+            fish_names = [i["fish_name"] for i in fish_rows]
+            fish_list = [(i["fish_name"], i["fish"]) for i in fish_rows]
+            fish_list = sorted(fish_list, key=lambda x: x[1])
+            xp_max = math.floor(25 * level ** 1.5)
+            sorted_fish = {
+                "common": [],
+                "uncommon": [],
+                "rare": [],
+                "epic": [],
+                "legendary": [],
+                "mythic": [],
+            }
+
+            # Sorted Fish will become a dictionary of {rarity: [list of fish names of fish in that category]} if the fish is in the user's inventory
+            for rarity, fish_types in bot.fish.items():
+                for _, fish_detail in fish_types.items():
+                    raw_name = fish_detail["raw_name"]
+                    for user_fish_name, user_fish in fish_list:
+                        # If the fish in the user's list matches the name of a fish in the rarity catgeory
+                        if raw_name == utils.get_normal_name(user_fish):
+                            # Append to the dictionary
+                            sorted_fish[rarity].append(
+                                (user_fish_name, user_fish)
+                            )
+
+            # They want to keep - ask what they want to name the fish
+            # await message.channel.send(
+            #     "What do you want to name your new fish? (32 character limit and cannot be named the same as another fish you own)"
+            # )
+
+            # def message_check(msg):
+            #     return (
+            #         msg.author == ctx.author
+            #         and msg.channel.id == message.channel.id
+            #         and len(msg.content) > 1
+            #         and len(msg.content) <= 32
+            #         and msg.content not in fish_names
+            #     )
+
+            name = await create_modal(bot, ctx)
+            await message.channel.send(
+                f"Your new fish **{name}** (Lvl. {level}) has been added to your bucket!"
+            )
+            # except asyncio.TimeoutError:
+            #     titles = [
+            #         "Captain",
+            #         "Mr.",
+            #         "Mrs.",
+            #         "Commander",
+            #         "Sir",
+            #         "Madam",
+            #         "Skipper",
+            #         "Crewmate",
+            #     ]
+            #     names = [
+            #         "Nemo",
+            #         "Bubbles",
+            #         "Jack",
+            #         "Finley",
+            #         "Coral",
+            #         "Fish",
+            #         "Turtle",
+            #         "Squid",
+            #         "Sponge",
+            #         "Starfish",
+            #     ]
+            #     name = f"{random.choice(titles)} {random.choice(names)}"
+            #     while name in fish_names:
+            #         name = f"{random.choice(titles)} {random.choice(names)}"
+            #     await message.channel.send(
+            #         f"Did you forget about me? I've been waiting for a while now! "
+            #         f"I'll name the fish for you. "
+            #         f"Let's call it **{name}** (Lvl. {level})"
+            #     )
 
             # Save the fish name
             async with bot.database() as db:
