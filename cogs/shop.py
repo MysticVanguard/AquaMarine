@@ -5,6 +5,7 @@ from datetime import datetime as dt, timedelta
 import discord
 from discord.ext import commands
 import voxelbotutils as vbu
+import math
 
 from cogs import utils
 from cogs.utils.fish_handler import DAYLIGHT_SAVINGS
@@ -878,26 +879,18 @@ class Shop(vbu.Cog):
 
     @commands.command()
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
-    async def gamble(self, ctx: commands.Context):
+    async def gamble(self, ctx: commands.Context, amount: int):
         """
-        This command costs 100 sand dollars and will give a fish bag
+        This command gambles sand dollars for more sand dollars
         """
-        items = {
-            "cfb": (
-                EMOJIS["common_fish_bag"],
-                "Common Fish Bag",
-            ),
-            "ufb": (
-                EMOJIS["uncommon_fish_bag"],
-                "Uncommon Fish Bag",
-            ),
-            "rfb": (EMOJIS["rare_fish_bag"], "Rare Fish Bag"),
-        }
 
         # See if the user has enough money
-        if not await utils.check_price(self.bot, ctx.author.id, 100, "balance"):
+        if amount % 100 != 0:
+            return await ctx.send("Please enter an amount divisible by 100")
+
+        if not await utils.check_price(self.bot, ctx.author.id, amount, "balance"):
             return await ctx.send(
-                "You don't have enough sand dollars for this! (100)"
+                f"You don't have enough sand dollars for this! ({amount})"
             )
 
         async with vbu.Database() as db:
@@ -909,8 +902,8 @@ class Shop(vbu.Cog):
             )
             # Remove money from the user
             await db(
-                """UPDATE user_balance SET balance=balance-100 WHERE user_id = $1""",
-                ctx.author.id,
+                """UPDATE user_balance SET balance=balance-$2 WHERE user_id = $1""",
+                ctx.author.id, amount
             )
 
         # Set up some vars for later
@@ -930,27 +923,27 @@ class Shop(vbu.Cog):
             if value <= 16:
                 emoji_id.append(EMOJIS["sand_dollar"])
                 type_of_balance = "balance"
-                amount = 300
+                amount_won = amount * 3
                 emoji = EMOJIS["sand_dollar"]
             elif value <= 24:
                 emoji_id.append(EMOJIS["sand_dollar_pile"])
                 type_of_balance = "balance"
-                amount = 600
+                amount_won = amount * 6
                 emoji = EMOJIS["sand_dollar"]
             elif value <= 28:
                 emoji_id.append(EMOJIS["sand_dollar_stack"])
                 type_of_balance = "balance"
-                amount = 1200
+                amount_won = amount * 12
                 emoji = EMOJIS["sand_dollar"]
             elif value <= 30:
                 emoji_id.append(EMOJIS["fish_points"])
                 type_of_balance = "extra_points"
-                amount = 5
+                amount_won = amount / 20
                 emoji = EMOJIS["fish_points"]
             elif value <= 31:
                 emoji_id.append(EMOJIS["doubloon"])
                 type_of_balance = "doubloon"
-                amount = 1
+                amount_won = amount / 100
                 emoji = EMOJIS["doubloon"]
         embed = vbu.Embed(title=f"{ctx.author.display_name}'s roll")
         embed.add_field(
@@ -1043,7 +1036,7 @@ class Shop(vbu.Cog):
             or emojis[1] in common_types
             and emojis[2] in common_types
         ):
-            amount = 50
+            amount_won = amount / 2
             type_of_balance = "balance"
             emoji = EMOJIS["sand_dollar"]
         elif (
@@ -1054,17 +1047,17 @@ class Shop(vbu.Cog):
             or emojis[1] == EMOJIS["fish_points"]
             and emojis[2] == EMOJIS["fish_points"]
         ):
-            amount = 1
+            amount_won = amount / 100
             type_of_balance = "extra_points"
             emoji = EMOJIS["fish_points"]
         else:
             return await ctx.send(f"{ctx.author.mention} lost!")
         async with vbu.Database() as db:
             await db(
-                f"""INSERT INTO user_balance (user_id, {type_of_balance}) VALUES ($1, {amount})
-                ON CONFLICT (user_id) DO UPDATE SET {type_of_balance} = user_balance.{type_of_balance} + {amount}""", ctx.author.id)
+                f"""INSERT INTO user_balance (user_id, {type_of_balance}) VALUES ($1, {amount_won})
+                ON CONFLICT (user_id) DO UPDATE SET {type_of_balance} = user_balance.{type_of_balance} + {amount_won}""", ctx.author.id)
         return await ctx.send(
-            f"{ctx.author.display_name} has won: {amount:,} {emoji}"
+            f"{ctx.author.display_name} has won: {int(amount_won):,} {emoji}"
         )
 
     @gamble.error

@@ -225,6 +225,96 @@ FEEDING_UPGRADES = {
     5: (4, 6),
 }
 
+'''
+Trash stuff idk
+
+    Collectibles:
+        - Bottle Cap
+            Chance: 15
+        - Plastic Bottle
+            Chance: 15
+        - Plastic Bag
+            Chance: 15
+        - Seaweed
+            Chance: 15
+        - Fishing Net
+            Chance: 10
+        - Flip Flop
+            Chance: 10
+        - Straw
+            Chance: 10
+        - Old Boot
+            Chance: 5
+        - Tire
+            Chance: 5
+
+    Craftable:
+        - DIY Cast
+            Chance:
+                1 in 60 casts
+            Cost:
+                3 Fishing Nets
+            Gives:
+                1 Cast
+
+        - DIY Fish Bag
+            Chance:
+                1 on 160 casts
+            Cost:
+                5 Plastic Bags
+                5 Straws
+            Gives:
+                1 Random Fish Bag
+
+        - Fishing Boots
+            Chance:
+                1 in 200 casts
+            Cost:
+                2 Old Boots
+                2 Flip Flops
+                4 Fishing Nets
+            Gives:
+                5% chance of earning 2 casts instead of 1
+                (Stacks, capping at 10)
+
+        - Fish Mosaic
+            Chance:
+                1 in 336 casts
+            Cost:
+                20 Bottle Caps
+                3 Straws
+                3 Seaweed
+            Gives:
+                1.5x bonus to everything having to do with that fish
+                (cleaning money, xp earned, sell when caught money)
+                (Stacks, capping at 6)
+
+        - DIY Toys
+            Chance:
+                1 in 408 casts
+            Cost:
+                2 Tires
+                2 Old Boots
+                2 Flip Flops
+                5 Plastic Bottles
+                5 Straws
+                4 Seaweed
+            Gives:
+                1.50x bonus to xp earned from entertaining
+                (Stacks, capping at 5)
+
+        - Plastic Bottle Aquarium
+            Chance:
+                1 in 480 casts
+            Cost:
+                25 Plastic Bottles
+                10 Seaweed
+                5 Plastic Bags
+            Gives:
+                +1 Size Slots to all tanks when bought
+                (stacks, capping at 5)
+'''
+
 
 def special_percentage_finder(upgrade_level):
     """

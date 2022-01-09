@@ -1,6 +1,7 @@
 import random
 import math
 import asyncio
+from PIL.Image import new
 import discord
 from discord.ext import commands, tasks, vbu
 import string
@@ -23,16 +24,15 @@ class Fishing(vbu.Cog):
     # Every hour, everyone gets a cast
     @tasks.loop(hours=1)
     async def user_cast_loop(self):
-        pass
-        # async with vbu.Database() as db:
-        #     casts = await db("""SELECT * FROM user_balance""")
-        #     for x in casts:
-        #         if x["casts"] >= 50:
-        #             continue
-        #         await db(
-        #             """UPDATE user_balance SET casts=casts+1 WHERE user_id = $1""",
-        #             x["user_id"],
-        #         )
+        async with vbu.Database() as db:
+            casts = await db("""SELECT * FROM user_balance""")
+            for x in casts:
+                if x["casts"] >= 50:
+                    continue
+                await db(
+                    """UPDATE user_balance SET casts=casts+1 WHERE user_id = $1""",
+                    x["user_id"],
+                )
 
     # Wait until the bot is on and ready and not just until the cog is on
     @user_cast_loop.before_loop
@@ -149,49 +149,89 @@ class Fishing(vbu.Cog):
 
             # Set the fish file to the fishes image
             fish_file = discord.File(new_fish["image"], "new_fish.png")
+            choices = [new_fish['name']]
+            for i in range(3):
+                random_rarity = random.choices(
+                    *utils.rarity_percentage_finder(upgrades[0]["bait_upgrade"])
+                )[0]
+                random_fish = random.choice(
+                    list(self.bot.fish[random_rarity].values())
+                ).copy()
+                while random_fish['name'] in choices:
+                    random_rarity = random.choices(
+                        *utils.rarity_percentage_finder(upgrades[0]["bait_upgrade"])
+                    )[0]
+                    random_fish = random.choice(
+                        list(self.bot.fish[random_rarity].values())
+                    ).copy()
+                choices.append(random_fish['name'])
 
-            # Guessing game where they have to guess the fish name
-            await ctx.send(
-                f"Guess the name of this fish <@{ctx.author.id}>",
-                file=fish_file,
+            random.shuffle(choices)
+
+            # And send the message
+            components = discord.ui.MessageComponents(
+                discord.ui.ActionRow(
+                    discord.ui.Button(
+                        label=choices[0], custom_id=choices[0]
+                    ),
+                    discord.ui.Button(
+                        label=choices[1], custom_id=choices[1]
+                    ),
+                    discord.ui.Button(
+                        label=choices[2], custom_id=choices[2]
+                    ),
+                    discord.ui.Button(
+                        label=choices[3], custom_id=choices[3]
+                    ),
+                ),
             )
 
-            # Check for guessing game
-            def check(guess):
-                return (
-                    guess.author == ctx.author and guess.channel == ctx.channel
-                )
+            guess_message = await ctx.send("Guess the name of this fish:", file=fish_file, components=components)
 
-            # If the respond...
+            # Make the button check
+            def button_check(payload):
+                if payload.message.id != guess_message.id:
+                    return False
+                self.bot.loop.create_task(payload.response.defer_update())
+                return payload.user.id == ctx.author.id
+
+            # Wait for them to click a button
             try:
-                message_given = await ctx.bot.wait_for(
-                    "message", timeout=60.0, check=check
+                chosen_button_payload = await self.bot.wait_for(
+                    "component_interaction", timeout=60.0, check=button_check
                 )
-                message = message_given.content
-
-                # Give them a bonus based on the fish's cost and tell them they got it correct if they did
-                if message.title() == new_fish["name"]:
-                    bonus = 15 + math.floor(int(new_fish["cost"]) / 10)
-                    await ctx.channel.send(
-                        f"<@{ctx.author.id}> guessed correctly and recieved {bonus} bonus sand dollars {EMOJIS['sand_dollar']}!"
-                    )
-
-                    # Update the users balance with the bonus
-                    async with vbu.Database() as db:
-                        await db(
-                            """INSERT INTO user_balance (user_id, balance) VALUES ($1, $2)
-                            ON CONFLICT (user_id) DO UPDATE SET balance = user_balance.balance + $2""",
-                            ctx.author.id,
-                            bonus,
-                        )
-                # Else tell them it was wrong
-                else:
-                    await ctx.channel.send(
-                        f"Incorrect <@{ctx.author.id}>, no bonus given."
-                    )
-            # If it times out tell them it did
+                chosen_button = (
+                    chosen_button_payload.component.custom_id
+                )
             except asyncio.TimeoutError:
+                await guess_message.edit(
+                    components=components.disable_components()
+                )
                 await ctx.send("Timed out asking for guess.")
+                chosen_button = "AAAAAAAAAAAAAA"
+
+            # Give them a bonus based on the fish's cost and tell them they got it correct if they did
+
+            if chosen_button == new_fish["name"]:
+                bonus = 15 + math.floor(int(new_fish["cost"]) / 10)
+                await ctx.channel.send(
+                    f"<@{ctx.author.id}> guessed correctly and recieved {bonus} bonus sand dollars {EMOJIS['sand_dollar']}!"
+                )
+
+                # Update the users balance with the bonus
+                async with vbu.Database() as db:
+                    await db(
+                        """INSERT INTO user_balance (user_id, balance) VALUES ($1, $2)
+                        ON CONFLICT (user_id) DO UPDATE SET balance = user_balance.balance + $2""",
+                        ctx.author.id,
+                        bonus,
+                    )
+
+            # Else tell them it was wrong
+            else:
+                await ctx.channel.send(
+                    f"Incorrect <@{ctx.author.id}>, no bonus given."
+                )
 
             # Tell the user about the fish they caught
             owned_unowned = "Owned" if amount > 0 else "Unowned"
@@ -207,10 +247,7 @@ class Fishing(vbu.Cog):
             embed.color = utils.RARITY_CULERS[rarity]
 
             # Ask if they want to sell the fish they just caught or keep it
-            if ctx.author.id == 449966150898417664:
-                await utils.ask_to_sell_fish_TEST(self.bot, ctx, new_fish, embed=embed)
-            else:
-                await utils.ask_to_sell_fish(self.bot, ctx, new_fish, embed=embed)
+            await utils.ask_to_sell_fish(self.bot, ctx, new_fish, embed=embed)
 
         # Find if they catch a crate with the crate_chance_upgrade
         crate_catch = random.randint(
