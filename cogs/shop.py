@@ -2,10 +2,10 @@ import random
 import asyncio
 from datetime import datetime as dt, timedelta
 
+import textwrap
 import discord
 from discord.ext import commands
 import voxelbotutils as vbu
-import math
 
 from cogs import utils
 from cogs.utils.fish_handler import DAYLIGHT_SAVINGS
@@ -34,13 +34,13 @@ SHOP_FIELDS = [
     (
         f"{EMOJIS['amfc']} __AquaMarine Fish Corps State Issued Resources__ {EMOJIS['amfc']}\n"
         f"These are resources bought from the AMFC company.",
-        f"**Fish Flakes {EMOJIS['fish_flakes']}**\n"
+        f"**Fish Flakes {EMOJIS['fish_flake']}**\n"
         f"Fish flakes to feed a fish that is level 1-20, keeping them alive \n"
         f" __200 {EMOJIS['sand_dollar']}__\n"
-        f"**Fish Pellets {EMOJIS['fish_pellets']}**\n"
+        f"**Fish Pellets {EMOJIS['fish_pellet']}**\n"
         f"Fish pellets to feed a fish that is level 21-50, keeping them alive \n"
         f" __500 {EMOJIS['sand_dollar']}__\n"
-        f"**Fish Wafers {EMOJIS['fish_wafers']}**\n"
+        f"**Fish Wafers {EMOJIS['fish_wafer']}**\n"
         f"Fish wafers to feed a fish that is level 51+, keeping them alive \n"
         f" __1000 {EMOJIS['sand_dollar']}__\n"
         f"**Fish Bowl**\n"
@@ -572,31 +572,46 @@ class Shop(vbu.Cog):
         if not fetched:
             return await ctx.send("You have no items in your inventory!")
 
-        for row in fetched:
-            for key, value in row.items():
-                if key == "user_id":
-                    continue
-                fetched_info.append(value)
-
         items = [
-            f"{utils.EMOJIS['common_fish_bag']}Common Fish Bag",
-            f"{utils.EMOJIS['uncommon_fish_bag']}Uncommon Fish Bag",
-            f"{utils.EMOJIS['rare_fish_bag']}Rare Fish Bag",
-            f"{utils.EMOJIS['fish_flakes']}Fish Flake",
-            f"{utils.EMOJIS['revival']}Fish Revive",
-            f"{utils.EMOJIS['fish_pellets']}Fish Pellet",
-            f"{utils.EMOJIS['fish_wafers']}Fish Wafer",
-            f"{utils.EMOJIS['experience_potion']}Experience Potion",
-            f"{utils.EMOJIS['mutation_potion']}Mutation Potion",
-            f"{utils.EMOJIS['feeding_potion']}Feeding Potion",
-            f"{utils.EMOJIS['inverted_fish_bag']}Inverted Fish Bag",
-            f"{utils.EMOJIS['high_level_fish_bag']}High Level Fish Bag"
+            ("Common Fish Bag", "cfb"),
+            ("High Level Fish Bag", "hlfb"),
+            ("Uncommon Fish Bag", "ufb"),
+            ("Inverted Fish Bag", "ifb"),
+            ("Rare Fish Bag", "rfb"),
+            ("Fish Flake", "flakes"),
+            ("Fish Pellet", "pellets"),
+            ("Mutation Potion", "mutation_potions"),
+            ("Fish Wafer", "wafers"),
+            ("Experience Potion", "experience_potions"),
+            ("Revival", "revival"),
+            ("Feeding Potion", "feeding_potions"),
+            ("Pile Of Bottle Caps", "pile_of_bottle_caps"),
+            ("Plastic Bottle", "plastic_bottle"),
+            ("Plastic Bag", "plastic_bag"),
+            ("Seaweed Scraps", "seaweed_scraps"),
+            ("Broken Fishing Net", "broken_fishing_net"),
+            ("Halfeaten Flip Flop", "halfeaten_flip_flop"),
+            ("Pile Of Straws", "pile_of_straws"),
+            ("Old Boot", "old_boot"),
+            ("Old Tire", "old_tire"),
         ]
+
         embed = discord.Embed(title=f"{ctx.author.display_name}'s Inventory")
-        for count, name in enumerate(items):
-            embed.add_field(
-                name=f"{name}s", value=fetched_info[count], inline=True
-            )
+        title_value = []
+        for name in items:
+            emoji = f"{'_'.join(name[0].split(' ')).lower()}"
+            if "Bag" in name[0]:
+                name = (name[0].replace(' Fish', ''), name[1])
+            if fetched[0][name[1]] > 1:
+                name = (name[0]+'s', name[1])
+            title_value.append(
+                f"{utils.EMOJIS[emoji]} {name[0]} : {fetched[0][name[1]]}")
+            if len(title_value) == 2:
+                embed.add_field(
+                    name=title_value[0], value=title_value[1], inline=True
+                )
+                title_value = []
+
         await ctx.send(embed=embed)
 
     @commands.command(aliases=["bal"])
@@ -633,12 +648,7 @@ class Shop(vbu.Cog):
                 amount_three = "no"
             else:
                 amount_three = f"{fetched[0]['casts']:,}"
-        await ctx.send(
-            f"""{other_or_self} {amount_one} Sand Dollars {EMOJIS["sand_dollar"]}!
-            {other_or_self} {amount_two} Doubloons {EMOJIS["doubloon"]}!
-            {other_or_self} {amount_three} Casts {EMOJIS["casts"]}!
-            """
-        )
+        await ctx.send(f"""{other_or_self} {amount_one} Sand Dollars {EMOJIS["sand_dollar"]}!\n{other_or_self} {amount_two} Doubloons {EMOJIS["doubloon"]}!\n{other_or_self} {amount_three} Casts {EMOJIS["casts"]}!""")
 
     @commands.command()
     @commands.bot_has_permissions(send_messages=True)

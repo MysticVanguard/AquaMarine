@@ -466,7 +466,7 @@ class FishCare(vbu.Cog):
             "legendary": 1.8,
             "mythic": 2.0,
         }
-        size_values = {"small": 1, "medium": 3, "large": 15}
+        size_values = {"small": 0, "medium": 2, "large": 14}
 
         # Randomly pick the effort extra
         effort_extra = random.choices([0, 15, 30], [0.6, 0.3, 0.1])
@@ -511,25 +511,18 @@ class FishCare(vbu.Cog):
 
             # The money added for each fish is the level * the rarity * the size
             money_gained += (
-                fish["fish_level"] * rarity_multiplier * size_multiplier
+                fish["fish_level"] * (rarity_multiplier + size_multiplier)
             )
 
-        vote_multiplier = 1
+        vote_multiplier = 0
         if await utils.get_user_voted(self.bot, ctx.author.id) == True:
-            vote_multiplier = 1.5
+            vote_multiplier = .5
             await ctx.send(
-                "You voted at <https://top.gg/bot/840956686743109652/vote> for a **1.5x** bonus"
+                "You voted at <https://top.gg/bot/840956686743109652/vote> for a **1.5x** bonus to money earned"
             )
         # After all the fish the new money is the total * upgrade multipliers + the effort rounded down
-        money_gained = math.floor(
-            (
-                money_gained
-                * (utils.BLEACH_UPGRADE[upgrades[0]["bleach_upgrade"]])
-                * multiplier
-                + effort_extra[0]
-            )
-            * vote_multiplier
-        )
+        money_gained = math.floor(money_gained * (utils.BLEACH_UPGRADE[upgrades[0]["bleach_upgrade"]] + (
+            multiplier - 1) + vote_multiplier) + effort_extra[0])
 
         # Add the money gained to the database, and add the achievements
         async with vbu.Database() as db:

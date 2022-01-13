@@ -401,10 +401,10 @@ EMOJIS = {
     "doubloon": "<:doubloon:878297091057807400>",
     "experience_potion": "<:experience_potion:911465714412568616>",
     "feeding_potion": "<:feeding_potion:911465714379018261>",
-    "fish_flakes": "<:fish_flakes:877646167188602880>",
-    "fish_pellets": "<:fish_pellets:911465714412552212>",
+    "fish_flake": "<:fish_flakes:877646167188602880>",
+    "fish_pellet": "<:fish_pellets:911465714412552212>",
     "fish_points": "<:fish_points:911468089420427324>",
-    "fish_wafers": "<:fish_wafers:911465714395799574>",
+    "fish_wafer": "<:fish_wafers:911465714395799574>",
     "gfu": "<:GFU:913680729517469716>",
     "high_level_fish_bag": "<:high_level_fish_bag:912057609496985690>",
     "inverted_fish_bag": "<:inverted_fish_bag:912057608863637545>",
@@ -420,6 +420,15 @@ EMOJIS = {
     "straight": "<:straight:886377903879753728>",
     "straight_branch": "<:straight_branch:886377903837806602>",
     "uncommon_fish_bag": "<:uncommon_fish_bag:877646167146651768>",
+    "pile_of_bottle_caps": "<:AquaSmile:877939115994255383>",
+    "plastic_bottle": "<:AquaSmile:877939115994255383>",
+    "plastic_bag": "<:AquaSmile:877939115994255383>",
+    "seaweed_scraps": "<:AquaSmile:877939115994255383>",
+    "broken_fishing_net": "<:AquaSmile:877939115994255383>",
+    "halfeaten_flip_flop": "<:AquaSmile:877939115994255383>",
+    "pile_of_straws": "<:AquaSmile:877939115994255383>",
+    "old_boot": "<:AquaSmile:877939115994255383>",
+    "old_tire": "<:AquaSmile:877939115994255383>"
 }
 
 # List of names for tank themes

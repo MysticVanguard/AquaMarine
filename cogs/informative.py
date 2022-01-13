@@ -259,9 +259,9 @@ class Informative(vbu.Cog):
             "rfb": EMOJIS["rare_fish_bag"],
             "ifb": EMOJIS["inverted_fish_bag"],
             "hlfb": EMOJIS["high_level_fish_bag"],
-            "flakes": EMOJIS["fish_flakes"],
-            "pellets": EMOJIS["fish_pellets"],
-            "wafers": EMOJIS["fish_wafers"],
+            "flakes": EMOJIS["fish_flake"],
+            "pellets": EMOJIS["fish_pellet"],
+            "wafers": EMOJIS["fish_wafer"],
             "revival": EMOJIS["revival"],
             "feeding_potions": EMOJIS["feeding_potion"],
             "experience_potions": EMOJIS["experience_potion"],
@@ -391,11 +391,22 @@ class Informative(vbu.Cog):
             fields = []
             embed = discord.Embed(title="All Fish")
             for rarity, fish_types in self.bot.fish.items():
-                fish_string = [
-                    f"**{' '.join(fish_type.split('_')).title()}**"
-                    for fish_type, fish_info in fish_types.items()
-                ]
-                fields.append((rarity.title(), "\n".join(fish_string)))
+                fish_fields = []
+                fish_string = ""
+                for count, fish_type in enumerate(fish_types.keys()):
+                    if count % 2 == 0:
+                        fish_string += f" | **{' '.join(fish_type.split('_')).title()}**"
+                    else:
+                        fish_string += f" | `{' '.join(fish_type.split('_')).title()}`"
+                    if (count + 1) % 3 == 0:
+                        fish_fields.append(fish_string)
+                        fish_string = ""
+                    if (count + 1) == len(fish_types.keys()):
+                        fish_fields.append(fish_string)
+                field = (rarity.title(), "\n".join(fish_fields))
+                print(field)
+                [fields.append(i) for i in utils.get_fixed_field(field)]
+                print(fields)
             return await utils.paginate(
                 ctx, fields, ctx.author, "**Bestiary**\n"
             )
@@ -424,15 +435,15 @@ class Informative(vbu.Cog):
         embed = discord.Embed(title=selected_fish["name"])
         embed.set_image(url="attachment://new_fish.png")
         embed.add_field(
-            name="Rarity:", value=f"{selected_fish['rarity']}", inline=False
+            name="Rarity:", value=f"{selected_fish['rarity']}", inline=True
         )
         embed.add_field(
             name="Base Sell Price:",
             value=f"{int(selected_fish['cost'])} {EMOJIS['sand_dollar']}",
-            inline=False,
+            inline=True,
         )
         embed.add_field(
-            name="Size:", value=f"{selected_fish['size']}", inline=False
+            name="Size:", value=f"{selected_fish['size']}", inline=True
         )
         embed.color = {
             "common": 0xFFFFFE,  # White - FFFFFF doesn't work with Discord

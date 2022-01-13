@@ -84,20 +84,16 @@ async def ask_to_sell_fish(
                 "I'll just assume you wanted to sell the fish."
             )
             # See if they want to sell the fish
-            vote_multiplier = 1
+            vote_multiplier = 0
             if await get_user_voted(bot, ctx.author.id):
-                vote_multiplier = 1.5
+                vote_multiplier = .5
                 await message.channel.send(
                     "You voted at <https://top.gg/bot/840956686743109652/vote> for a **1.5x** bonus"
                 )
 
             level_multiplier = level / 20
-            money_earned = math.ceil(
-                (int(new_fish["cost"]))
-                * utils.ROD_UPGRADES[upgrades[0]["rod_upgrade"]]
-                * (1 + level_multiplier)
-                * vote_multiplier
-            )
+            money_earned = math.ceil((int(new_fish["cost"])) * (
+                utils.ROD_UPGRADES[upgrades[0]["rod_upgrade"]] + level_multiplier + vote_multiplier))
 
             async with bot.database() as db:
                 await db(
@@ -219,20 +215,16 @@ async def ask_to_sell_fish(
             return
         if chosen_button == "sell":
             # See if they want to sell the fish
-            vote_multiplier = 1
+            vote_multiplier = 0
             if await get_user_voted(bot, ctx.author.id):
-                vote_multiplier = 1.5
+                vote_multiplier = .5
                 await message.channel.send(
                     "You voted at <https://top.gg/bot/840956686743109652/vote> for a **1.5x** bonus"
                 )
 
             level_multiplier = level / 20
-            money_earned = math.ceil(
-                (int(new_fish["cost"]))
-                * utils.ROD_UPGRADES[upgrades[0]["rod_upgrade"]]
-                * (1 + level_multiplier)
-                * vote_multiplier
-            )
+            money_earned = math.ceil((int(new_fish["cost"])) * (
+                utils.ROD_UPGRADES[upgrades[0]["rod_upgrade"]] + level_multiplier + vote_multiplier))
             async with bot.database() as db:
                 await db(
                     """INSERT INTO user_balance (user_id, balance) VALUES ($1, $2)
