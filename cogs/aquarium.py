@@ -52,10 +52,11 @@ class Aquarium(vbu.Cog):
                     message.content != "none",
                 ]
             )
-
         await ctx.send(
             'What do you want to name your first tank? *(32 character limit and cannot be "none")*'
         )
+
+        # Get user input for what they want to name their tank
         try:
             name_message = await self.bot.wait_for(
                 "message", timeout=60.0, check=check
@@ -65,6 +66,8 @@ class Aquarium(vbu.Cog):
                 f"You have your new tank, **{name}**!",
                 allowed_mentions=discord.AllowedMentions.none(),
             )
+
+        # If they don't respond name it for them
         except asyncio.TimeoutError:
             name = "Starter Tank"
             await ctx.send(
@@ -160,12 +163,16 @@ class Aquarium(vbu.Cog):
                 tank_name,
                 (dt.utcnow() + timedelta(days=3)),
             )
+
+        # find the timestamp in relative time of when the fish will die
         relative_time = discord.utils.format_dt(
             dt.utcnow()
             + timedelta(days=3)
             - timedelta(hours=DAYLIGHT_SAVINGS),
             style="R",
         )
+
+        # Confirmation message
         return await ctx.send(
             f"Fish has been deposited and will die {relative_time}!"
         )
@@ -195,12 +202,12 @@ class Aquarium(vbu.Cog):
                 fish_removed,
             )
 
+        # Check to see if they have that fish in a tank or if they're on cooldown
         if not fish_row:
             return await ctx.send(
                 f"You have no fish named **{fish_removed}** in a tank!",
                 allowed_mentions=discord.AllowedMentions.none(),
             )
-
         if fish_row[0]["fish_remove_time"]:
             if (
                 fish_row[0]["fish_remove_time"] + timedelta(days=5)
@@ -228,9 +235,10 @@ class Aquarium(vbu.Cog):
                 break
             tank_slot += 1
 
-        # dumb
+        # Change between sql arrays and python arrays
         tank_slot += 1
 
+        # Update the fish being removed and the tank's room
         async with vbu.Database() as db:
             await db(
                 """UPDATE user_fish_inventory SET tank_fish = '', death_time = NULL, fish_remove_time = $3 WHERE user_id = $1 AND fish_name = $2""",
@@ -244,6 +252,8 @@ class Aquarium(vbu.Cog):
                 int(size_values[fish_row[0]["fish_size"]]),
                 tank_slot,
             )
+
+        # Confirmation message
         return await ctx.send(
             f"**{fish_removed}** removed from **{tank_name}**!",
             allowed_mentions=discord.AllowedMentions.none(),
@@ -253,7 +263,7 @@ class Aquarium(vbu.Cog):
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def show(self, ctx: commands.Context, *, tank_name: str):
         """
-        This command produces a gif of the specified tank. DO NOT USE SLASH COMMANDS
+        This command produces a gif of the specified tank.
         """
 
         # Slash command defer
@@ -331,7 +341,10 @@ class Aquarium(vbu.Cog):
                     selected_fish_types["fish_alive"]
                 ]
 
+            # For each fish in the tank...
             for name, info in fishes.items():
+
+                # Make sure the fish is normal but the bot knows its different
                 if "golden" in name:
                     fishes[name].append(name.lstrip("golden_"))
                     name = name.lstrip("golden_")
@@ -342,6 +355,8 @@ class Aquarium(vbu.Cog):
                     golden_inverted_normal = "inverted"
                 else:
                     fishes[name].append(name)
+
+                # check to find what type of fish it is and where it should start, also finding if its dead
                 for _, fish_types in self.bot.fish.items():
                     for fish_data in fish_types.values():
                         if info[1] == fish_data["raw_name"]:
@@ -391,7 +406,7 @@ class Aquarium(vbu.Cog):
                 # Add a fish to the background image
                 this_background = background.copy()
 
-                # adds multiple fish and a midground if its a fishbowl
+                # adds multiple fish and moves them if they are alive
                 for x in range(0, len(im)):
                     if dead_alive[x] is False:
                         this_background.paste(
@@ -407,6 +422,7 @@ class Aquarium(vbu.Cog):
                         if move_x[x] > min_max_x[tank_info][1]:
                             move_x[x] = min_max_x[tank_info][0]
 
+                # Pastes the backgrounds
                 this_background.paste(midground, (0, 0), midground)
                 this_background.paste(foreground, (0, 0), foreground)
 
@@ -436,27 +452,37 @@ class Aquarium(vbu.Cog):
         """
         Previews a tank theme
         """
+
+        # Makes sure what they enter is in titlecase
         theme = theme.title()
+
+        # Check if that tank theme exists
         if theme not in utils.TANK_THEMES:
             return await ctx.send("That is not a valid tank theme!")
 
+        # Find which tank theme they want
         tank_themes = [(utils.PLANT_LIFE_NAMES, "Plant_Life")]
         for themes in tank_themes:
             if theme in themes[0]:
                 theme_chosen = themes[1]
+
+        # Dict of all the tank types
         tank_types = {
             "Fish Bowl": "fishbowl",
             "Small Tank": "Small_Tank_2D",
             "Medium Tank": "Medium_Tank_2D",
         }
 
+        # Create a select meny for the tank types
         tank_type = await utils.create_select_menu(
             self.bot, ctx, tank_types.keys(), "tank type", "choose"
         )
 
+        # Set up the image
         file_prefix = "C:/Users/JT/Pictures/Aqua/assets/images"
         image = f"{file_prefix}/background/tank_theme_previews/{theme_chosen}_{tank_types[tank_type]}_preview.png"
 
+        # Display the chosen theme on the chosen tank type
         await ctx.send(file=discord.File(image))
 
 

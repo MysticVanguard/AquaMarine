@@ -10,8 +10,11 @@ class Misc(vbu.Cog):
         This command has a fish stab a user.
         """
 
+        # Make it so you can't stab yourself
         if user.id == ctx.author.id:
             return await ctx.send("Your fish is too loyal to stab you!")
+
+        # Send the gif and the say they stabbed the person
         await ctx.send(
             f"Your fish stabs {user.mention} with a knife, nice!",
             file=discord.File(
@@ -26,14 +29,21 @@ class Misc(vbu.Cog):
         This command sends a bug report to the support server.
         """
 
+        # Set the user to the person using the command
         user = ctx.author
+
+        # Set the message to send to
         channel: discord.TextChannel = self.bot.get_channel(
             877446487087415337
-        )  # type: ignore
+        )
+
+        # Send the bug they reported to that channel with their user
         await channel.send(
             f"From: {user.mention}\n**{command}**: {info}",
             allowed_mentions=discord.AllowedMentions.none(),
         )
+
+        # let them know the bug report was sent
         await ctx.send("Bug report sent!")
 
     @commands.command()
@@ -43,6 +53,7 @@ class Misc(vbu.Cog):
         This command sends the server link to the support server.
         """
 
+        # Sends the link for the support server
         await ctx.send("https://discord.gg/FUyr8QmrD8")
 
 

@@ -65,6 +65,15 @@ CREATE TABLE IF NOT EXISTS user_item_inventory (
     experience_potions INT NOT NULL DEFAULT 0,
     mutation_potions INT NOT NULL DEFAULT 0,
     feeding_potions INT NOT NULL DEFAULT 0,
+    pile_of_bottle_caps INT NOT NULL DEFAULT 0,
+    plastic_bottle INT NOT NULL DEFAULT 0,
+    plastic_bag INT NOT NULL DEFAULT 0,
+    seaweed_scraps INT NOT NULL DEFAULT 0,
+    broken_fishing_net INT NOT NULL DEFAULT 0,
+    halfeaten_flip_flop INT NOT NULL DEFAULT 0,
+    pile_of_straws INT NOT NULL DEFAULT 0,
+    old_boot INT NOT NULL DEFAULT 0,
+    old_tire INT NOT NULL DEFAULT 0,
     PRIMARY KEY (user_id)
 );
 

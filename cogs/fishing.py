@@ -21,7 +21,7 @@ class Fishing(vbu.Cog):
     def cog_unload(self):
         self.user_cast_loop.cancel()
 
-    # Every hour, everyone gets a cast
+    # Every hour, everyone gets a cast as long as they have less than 50
     @tasks.loop(hours=1)
     async def user_cast_loop(self):
         async with vbu.Database() as db:
@@ -91,7 +91,9 @@ class Fishing(vbu.Cog):
         # For each fish caught...
         for _ in range(caught_fish):
 
+            # If they didn't catch trash
             if random.randint(1, 12) != 12:
+
                 # Use upgrades for chances of rarity and mutation, and choose one with weighted randomness
                 rarity = random.choices(
                     *utils.rarity_percentage_finder(upgrades[0]["bait_upgrade"])
@@ -99,6 +101,7 @@ class Fishing(vbu.Cog):
                 special = random.choices(
                     *utils.special_percentage_finder(upgrades[0]["lure_upgrade"])
                 )[0]
+
                 # Disable golden for now...
                 if special == "golden":
                     special = "inverted"
@@ -111,6 +114,7 @@ class Fishing(vbu.Cog):
                     new_fish = random.choice(
                         list(self.bot.fish[rarity].values())
                     ).copy()
+
                 # See if we want to make the fish mutated based on what the modifier is
                 special_functions = {
                     "inverted": utils.make_inverted(new_fish.copy()),
@@ -151,14 +155,22 @@ class Fishing(vbu.Cog):
 
                 # Set the fish file to the fishes image
                 fish_file = discord.File(new_fish["image"], "new_fish.png")
+
+                # Add the fish caught's name to the choices
                 choices = [new_fish['name']]
+
+                # For three other fish...
                 for i in range(3):
+
+                    # Get a random other fish
                     random_rarity = random.choices(
                         *utils.rarity_percentage_finder(upgrades[0]["bait_upgrade"])
                     )[0]
                     random_fish = random.choice(
                         list(self.bot.fish[random_rarity].values())
                     ).copy()
+
+                    # If it's already a choice find a new one
                     while random_fish['name'] in choices:
                         random_rarity = random.choices(
                             *utils.rarity_percentage_finder(upgrades[0]["bait_upgrade"])
@@ -166,11 +178,14 @@ class Fishing(vbu.Cog):
                         random_fish = random.choice(
                             list(self.bot.fish[random_rarity].values())
                         ).copy()
+
+                    # Add that fish to the choices
                     choices.append(random_fish['name'])
 
+                # Shuffle the choices so they're radom
                 random.shuffle(choices)
 
-                # And send the message
+                # And send the choices as buttons
                 components = discord.ui.MessageComponents(
                     discord.ui.ActionRow(
                         discord.ui.Button(
@@ -188,6 +203,7 @@ class Fishing(vbu.Cog):
                     ),
                 )
 
+                # Sends the message with the pic of fish and buttons
                 guess_message = await ctx.send("Guess the name of this fish:", file=fish_file, components=components)
 
                 # Make the button check
@@ -213,7 +229,6 @@ class Fishing(vbu.Cog):
                     chosen_button = "AAAAAAAAAAAAAA"
 
                 # Give them a bonus based on the fish's cost and tell them they got it correct if they did
-
                 if chosen_button == new_fish["name"]:
                     bonus = 15 + math.floor(int(new_fish["cost"]) / 10)
                     await ctx.channel.send(
@@ -361,15 +376,25 @@ class Fishing(vbu.Cog):
                         await ctx.channel.send(
                             f"{ctx.author.display_name} caught a {crate[0]} crate containing: {crate_message}"
                         )
+
+            # Else if they catch trash...
             else:
+
+                # Still use up a cast
                 async with vbu.Database() as db:
                     await db(
                         """UPDATE user_balance SET casts = casts-1 WHERE user_id = $1""",
                         ctx.author.id,
                     )
+
+                # Initiate the trash dict and string
                 trash_dict = {}
                 trash_string = ""
+
+                # For each trash caught (1-6)...
                 for i in range(random.randint(1, 6)):
+
+                    # They catch a random weighted trash
                     caught = random.choices(
                         (
                             "Pile Of Bottle Caps",
@@ -395,20 +420,27 @@ class Fishing(vbu.Cog):
                         )
                     )[0]
 
+                    # If its not already in the dict add it with a 1, else add 1 to it
                     if caught not in trash_dict.keys():
                         trash_dict[caught] = 1
                     else:
                         trash_dict[caught] += 1
 
+                # for each type of trash...
                 for trash, amount in trash_dict.items():
+
+                    # Add that trash to a string
                     trash_string += "\n" + \
                         f"{utils.EMOJIS[trash.replace(' ', '_').lower()]}{trash}: {amount}"
+
+                    # Add the trash to their inventory
                     async with vbu.Database() as db:
                         await db(
                             f"""UPDATE user_item_inventory SET {trash.replace(' ', '_').lower()} = {trash.replace(' ', '_').lower()}+ {amount} WHERE user_id = $1""",
                             ctx.author.id,
                         )
 
+                # Tell them they caught trash and how much of what types
                 await ctx.send(f"You caught trash!{trash_string}")
 
         # And now they should be allowed to fish again
@@ -474,6 +506,7 @@ class Fishing(vbu.Cog):
                     f"Congratulations, you have renamed **{old}** to **{new}**!",
                     allowed_mentions=discord.AllowedMentions.none(),
                 )
+
         # Tell them if there is no fish or tank with the old name
         if not spot_of_old:
             if not fish_row:

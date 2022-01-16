@@ -75,8 +75,11 @@ class FishCare(vbu.Cog):
                 )
 
         await ctx.trigger_typing()
+
+        # If they didnt specify a tank to entertain...
         if not tank_entertained:
 
+            # If the user has no tanks return
             if not tank_rows:
                 return await ctx.send("There is no tank with that name")
 
@@ -248,6 +251,7 @@ class FishCare(vbu.Cog):
                 ctx.author.id,
             )
 
+        # Checks for if the user owns fish or tanks
         await ctx.trigger_typing()
         if not fish_rows:
             return await ctx.send("There is no fish with that name")
@@ -271,14 +275,17 @@ class FishCare(vbu.Cog):
                         tank_chosen,
                     )
 
+            # For each fish in the selected fish rows add them to a list
             fish_in_tank = []
             for fish in fish_rows:
                 fish_in_tank.append(fish["fish_name"])
 
+            # Create a select menu of those fish
             fish_fed = await utils.create_select_menu(
                 self.bot, ctx, fish_in_tank, "fish", "feed"
             )
 
+        # Find the fish row of the selected fish
         async with vbu.Database() as db:
             fish_row = await db(
                 """SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2 AND tank_fish != ''""",
@@ -290,13 +297,15 @@ class FishCare(vbu.Cog):
         if not fish_row:
             return await ctx.send("You have no fish in a tank named that!")
 
-        # See if the user has fish flakes
+        # See if the user has fish food for it
         if fish_row[0]["fish_level"] <= 20:
             type_of_food = "flakes"
         elif fish_row[0]["fish_level"] <= 50:
             type_of_food = "pellets"
         else:
             type_of_food = "wafers"
+
+        # If they dont, tell them they have none
         user_food_count = item_rows[0][type_of_food]
         if not item_rows or not user_food_count:
             return await ctx.send(f"You have no {type_of_food}!")
@@ -394,9 +403,11 @@ class FishCare(vbu.Cog):
                 ctx.author.id,
             )
 
+        # If they dont own a tank tell them
         if not tank_rows:
             return await ctx.send("There is no tank with that name")
 
+        # If they dont input a specific tank
         if not tank_cleaned:
 
             # Creates a select menu of all the tanks and returns the users choice
@@ -404,6 +415,7 @@ class FishCare(vbu.Cog):
                 self.bot, ctx, tank_rows[0]["tank_name"], "tank", "clean"
             )
 
+        # Find the fish rows of all the fish in that tank
         async with vbu.Database() as db:
             fish_rows = await db(
                 """SELECT * FROM user_fish_inventory WHERE user_id = $1 AND tank_fish = $2 AND fish_alive = TRUE""",
@@ -485,6 +497,7 @@ class FishCare(vbu.Cog):
             mutate = random.randint(
                 1, utils.MUTATION_UPGRADE[upgrades[0]["mutation_upgrade"]]
             )
+
             if mutate == 1 and fish_name == fish["fish"]:
                 async with vbu.Database() as db:
                     mutated = "inverted_" + fish["fish"]
@@ -514,12 +527,14 @@ class FishCare(vbu.Cog):
                 fish["fish_level"] * (rarity_multiplier + size_multiplier)
             )
 
+        # See if they voted, and if so add a .5 to the multipliers
         vote_multiplier = 0
         if await utils.get_user_voted(self.bot, ctx.author.id) == True:
             vote_multiplier = .5
             await ctx.send(
                 "You voted at <https://top.gg/bot/840956686743109652/vote> for a **1.5x** bonus to money earned"
             )
+
         # After all the fish the new money is the total * upgrade multipliers + the effort rounded down
         money_gained = math.floor(money_gained * (utils.BLEACH_UPGRADE[upgrades[0]["bleach_upgrade"]] + (
             multiplier - 1) + vote_multiplier) + effort_extra[0])
@@ -579,19 +594,22 @@ class FishCare(vbu.Cog):
                 ctx.author.id,
             )
 
+        # If they dont have a fish with the specified name tell them
         if not fish_row:
-
             return await ctx.send(
                 f"You have no fish named {fish}!",
                 allowed_mentions=discord.AllowedMentions.none(),
             )
 
+        # If they dont give a fish
         if not fish:
 
+            # Make a list of all their fish
             fish_in_tank = []
             for fish in fish_rows:
                 fish_in_tank.append(fish["fish_name"])
 
+            # Create a select menu with their fish being choices
             fish = await utils.create_select_menu(
                 self.bot, ctx, fish_in_tank, "dead fish", "revive"
             )
@@ -600,8 +618,6 @@ class FishCare(vbu.Cog):
         if fish_row[0]["fish_alive"] is True:
             return await ctx.send("That fish is alive!")
         if not revival_count:
-            return await ctx.send("You have no revivals!")
-        if revival_count == 0:
             return await ctx.send("You have no revivals!")
 
         # If the fish isn't in a tank, it has no death timer, but if it is it's set to three days
