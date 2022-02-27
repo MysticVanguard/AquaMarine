@@ -1,12 +1,14 @@
 import math
 import asyncio
 import typing
+from cogs import utils
 
 import discord
 from discord.ext import vbu
 
-
 # Finds out what level and xp each fish will be
+
+
 async def xp_finder_adder(
     user: typing.Union[discord.User, discord.Member],
     played_with_fish: str,
@@ -140,7 +142,7 @@ def get_fixed_field(field):
 
 
 def create_bucket_embed(
-    user, field: tuple[str, str], custom_title: str = None
+    user, field: tuple[str, str], page: int, custom_title: str = None,
 ):
     """
     Creates the embed for the pagination page for the fishbucket
@@ -154,6 +156,7 @@ def create_bucket_embed(
 
     # Sets the name of the field to the first part of the given field, then the value to the second part
     embed.add_field(name=f"__{field[0]}__", value=field[1], inline=False)
+    embed.set_footer(text=f"Page {page}")
 
     # Returns the field
     return embed
@@ -171,7 +174,7 @@ async def paginate(ctx, fields, user, custom_str=None):
     # Sets the current field to be the first field
     curr_field = fields[curr_index - 1]
     # Creates the first embed
-    embed = create_bucket_embed(user, curr_field, custom_str)
+    embed = create_bucket_embed(user, curr_field, curr_index, custom_str)
 
     # Set up the buttons for pagination
     left = discord.ui.Button(
@@ -252,7 +255,8 @@ async def paginate(ctx, fields, user, custom_str=None):
             curr_field = fields[curr_index - 1]
             # Edit the embed with the new page
             await fish_message.edit(
-                embed=create_bucket_embed(user, curr_field, custom_str)
+                embed=create_bucket_embed(
+                    user, curr_field, curr_index, custom_str)
             )
 
         # If the button is stop...
@@ -267,23 +271,10 @@ async def paginate(ctx, fields, user, custom_str=None):
         elif chosen_button == "numbers" and len(fields) > 1:
 
             # Ask the user what page they want to go to
-            number_message = await ctx.send(
-                f"What page would you like to go to? (1-{len(fields)}) "
-            )
+            pages_string = f"go to? (1-{len(fields)})"
+            page_selected = await utils.create_select_menu(bot, ctx, range(1, len(fields)+1), "page", pages_string)
 
-            # Check to make sure...
-            def message_check(message):
-                # It is the correct author, channel, and the message is a number
-                return (
-                    message.author == ctx.author
-                    and message.channel == fish_message.channel
-                    and message.content.isdigit()
-                )
-
-            # If all those conditions are met user_message is that message
-            user_message = await bot.wait_for("message", check=message_check)
-            # Get the int value of the contents
-            user_input = int(user_message.content)
+            user_input = int(page_selected)
 
             # Set the current index to be the one the user says
             curr_index = min(len(fields), max(1, user_input))
@@ -294,7 +285,3 @@ async def paginate(ctx, fields, user, custom_str=None):
             await fish_message.edit(
                 embed=create_bucket_embed(user, curr_field, custom_str)
             )
-            # Delete the message asking for the page number
-            await number_message.delete()
-            # Delete the message of the user responding
-            await user_message.delete()

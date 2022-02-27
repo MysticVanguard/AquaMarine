@@ -74,6 +74,8 @@ class Upgrades(vbu.Cog):
         emote_string_list = []  # Their emoji progress bar
 
         # Grab their upgrades from the database
+        if not await utils.check_registered(self.bot, ctx.author.id):
+            return await ctx.send("Please use the `register` command before using this bot!")
         async with vbu.Database() as db:
             upgrades = await db(
                 """SELECT rod_upgrade, bait_upgrade, line_upgrade, lure_upgrade, crate_chance_upgrade, weight_upgrade,
@@ -82,11 +84,6 @@ class Upgrades(vbu.Cog):
                 FROM user_upgrades WHERE user_id = $1""",
                 ctx.author.id,
             )
-            if not upgrades:
-                upgrades = await db(
-                    """INSERT INTO user_upgrades (user_id) VALUES ($1) RETURNING *""",
-                    ctx.author.id,
-                )
 
         # Find the positions for the different upgrades
         positions = [(2140, 910), (1300, 1070), (1310, 1260), (1710, 1080), (2200, 1470),
@@ -303,6 +300,8 @@ class Upgrades(vbu.Cog):
         """
 
         # Grab the user's current upgrades
+        if not await utils.check_registered(self.bot, ctx.author.id):
+            return await ctx.send("Please use the `register` command before using this bot!")
         async with vbu.Database() as db:
             upgrades = await db(
                 """SELECT rod_upgrade, line_upgrade, crate_chance_upgrade,

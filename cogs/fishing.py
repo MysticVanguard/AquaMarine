@@ -29,9 +29,16 @@ class Fishing(vbu.Cog):
             for x in casts:
                 if x["casts"] >= 50:
                     continue
+                amount_of_crafted = await db("""SELECT fishing_boots FROM user_item_inventory WHERE user_id = $1""", x["user_id"])
+                if amount_of_crafted:
+                    boot_multiplier = amount_of_crafted[0]['fishing_boots']
+                else:
+                    boot_multiplier = 0
+                amount = random.choices(
+                    [1, 2], [(1 - (.04 * boot_multiplier)), (.04 * boot_multiplier)])[0]
                 await db(
-                    """UPDATE user_balance SET casts=casts+1 WHERE user_id = $1""",
-                    x["user_id"],
+                    """UPDATE user_balance SET casts=casts+$2 WHERE user_id = $1""",
+                    x["user_id"], amount
                 )
 
     # Wait until the bot is on and ready and not just until the cog is on
@@ -47,6 +54,8 @@ class Fishing(vbu.Cog):
         """
 
         # Add their id to a list to make sure they can't fish twice
+        if not await utils.check_registered(self.bot, ctx.author.id):
+            return await ctx.send("Please use the `register` command before using this bot!")
         if ctx.author.id in utils.current_fishers:
             return await ctx.send(
                 f"**{ctx.author.display_name}**, you're already fishing!"
@@ -63,16 +72,6 @@ class Fishing(vbu.Cog):
                 """SELECT casts FROM user_balance WHERE user_id = $1""",
                 ctx.author.id,
             )
-            if not upgrades:
-                upgrades = await db(
-                    """INSERT INTO user_upgrades (user_id) VALUES ($1) RETURNING *""",
-                    ctx.author.id,
-                )
-            if not casts:
-                casts = await db(
-                    """INSERT INTO user_balance (user_id, casts) VALUES ($1, 6) RETURNING casts""",
-                    ctx.author.id,
-                )
 
         # If they have no casts tell them they can't fish and remove them from currrent fishers
         if casts[0]["casts"] <= 0:
@@ -98,30 +97,24 @@ class Fishing(vbu.Cog):
                 rarity = random.choices(
                     *utils.rarity_percentage_finder(upgrades[0]["bait_upgrade"])
                 )[0]
-                special = random.choices(
-                    *utils.special_percentage_finder(upgrades[0]["lure_upgrade"])
-                )[0]
-
-                # Disable golden for now...
-                if special == "golden":
-                    special = "inverted"
+                special = random.choices(("normal", "skinned"),
+                                         (1-utils.LURE_UPGRADES[upgrades[0]["lure_upgrade"]],
+                                          utils.LURE_UPGRADES[upgrades[0]["lure_upgrade"]])
+                                         )[0]
 
                 # See which fish they caught by taking a random fish from the chosen rarity
-                new_fish = random.choice(
-                    list(self.bot.fish[rarity].values())
-                ).copy()
-                while new_fish["raw_name"] in utils.past_fish:
-                    new_fish = random.choice(
-                        list(self.bot.fish[rarity].values())
-                    ).copy()
+                chosen_fish = random.choice(
+                    utils.FishSpecies.get_rarity(rarity))
 
-                # See if we want to make the fish mutated based on what the modifier is
-                special_functions = {
-                    "inverted": utils.make_inverted(new_fish.copy()),
-                    "golden": utils.make_golden(new_fish.copy()),
-                }
-                if special in special_functions:
-                    new_fish = special_functions[special]
+                while chosen_fish.name in utils.past_fish:
+                    chosen_fish = random.choice(
+                        utils.FishSpecies.get_rarity(rarity))
+
+                # find if its skinned
+
+                fish_skin = ""
+                if special == "skinned":
+                    fish_skin = random.choice(chosen_fish.skins)
 
                 # Grammar
                 a_an = (
@@ -138,8 +131,7 @@ class Fishing(vbu.Cog):
 
                     # Achievements
                     await db(
-                        """INSERT INTO user_achievements (user_id, times_caught) VALUES ($1, 1)
-                        ON CONFLICT (user_id) DO UPDATE SET times_caught = user_achievements.times_caught + 1""",
+                        """UPDATE user_achievements SET times_caught = times_caught + 1 WHERE user_id = $1""",
                         ctx.author.id,
                     )
                     await db(
@@ -150,37 +142,39 @@ class Fishing(vbu.Cog):
                 # Find out how many of those fish they caught previously
                 amount = 0
                 for row in user_inventory:
-                    if row["fish"] == new_fish["raw_name"]:
+                    if row["fish"] == chosen_fish.name:
                         amount += 1
 
                 # Set the fish file to the fishes image
-                fish_file = discord.File(new_fish["image"], "new_fish.png")
+                if fish_skin != "":
+                    fish_file = discord.File(
+                        f"{chosen_fish.image[:40]}{fish_skin}_{chosen_fish.image[40:]}", "new_fish.png")
+                else:
+                    fish_file = discord.File(chosen_fish.image, "new_fish.png")
 
                 # Add the fish caught's name to the choices
-                choices = [new_fish['name']]
+                choices = [chosen_fish.name.replace('_', ' ').title()]
 
                 # For three other fish...
-                for i in range(3):
+                for _ in range(3):
 
                     # Get a random other fish
                     random_rarity = random.choices(
                         *utils.rarity_percentage_finder(upgrades[0]["bait_upgrade"])
                     )[0]
                     random_fish = random.choice(
-                        list(self.bot.fish[random_rarity].values())
-                    ).copy()
+                        utils.FishSpecies.get_rarity(random_rarity))
 
                     # If it's already a choice find a new one
-                    while random_fish['name'] in choices:
+                    while random_fish.name.replace('_', ' ').title() in choices:
                         random_rarity = random.choices(
                             *utils.rarity_percentage_finder(upgrades[0]["bait_upgrade"])
                         )[0]
                         random_fish = random.choice(
-                            list(self.bot.fish[random_rarity].values())
-                        ).copy()
+                            utils.FishSpecies.get_rarity(random_rarity))
 
                     # Add that fish to the choices
-                    choices.append(random_fish['name'])
+                    choices.append(random_fish.name.replace('_', ' ').title())
 
                 # Shuffle the choices so they're radom
                 random.shuffle(choices)
@@ -229,8 +223,8 @@ class Fishing(vbu.Cog):
                     chosen_button = "AAAAAAAAAAAAAA"
 
                 # Give them a bonus based on the fish's cost and tell them they got it correct if they did
-                if chosen_button == new_fish["name"]:
-                    bonus = 15 + math.floor(int(new_fish["cost"]) / 10)
+                if chosen_button == chosen_fish.name.replace('_', ' ').title():
+                    bonus = 15 + math.floor(int(chosen_fish.cost) / 10)
                     await ctx.channel.send(
                         f"<@{ctx.author.id}> guessed correctly and recieved {bonus} bonus sand dollars {EMOJIS['sand_dollar']}!"
                     )
@@ -238,8 +232,7 @@ class Fishing(vbu.Cog):
                     # Update the users balance with the bonus
                     async with vbu.Database() as db:
                         await db(
-                            """INSERT INTO user_balance (user_id, balance) VALUES ($1, $2)
-                            ON CONFLICT (user_id) DO UPDATE SET balance = user_balance.balance + $2""",
+                            """UPDATE user_balance SET balance = balance + $2 WHERE user_id = $1""",
                             ctx.author.id,
                             bonus,
                         )
@@ -252,19 +245,23 @@ class Fishing(vbu.Cog):
 
                 # Tell the user about the fish they caught
                 owned_unowned = "Owned" if amount > 0 else "Unowned"
+                if fish_skin != "":
+                    fish_skin_underlined = f"__{fish_skin}__"
+                else:
+                    fish_skin_underlined = ""
                 embed = discord.Embed(
-                    title=f"{EMOJIS['aqua_fish']} {ctx.author.display_name} caught {a_an} *{rarity}* {new_fish['size']} **{new_fish['name']}**!"
+                    title=f"{EMOJIS['aqua_fish']} {ctx.author.display_name} caught {a_an} *{rarity}* {fish_skin_underlined} {chosen_fish.size} **{chosen_fish.name.replace('_', ' ').title()}**!"
                 )
                 embed.add_field(
                     name=owned_unowned,
-                    value=f"You have {amount} **{new_fish['name']}**",
+                    value=f"You have {amount} **{chosen_fish.name.replace('_', ' ').title()}**",
                     inline=False,
                 )
                 embed.set_image(url="attachment://new_fish.png")
                 embed.color = utils.RARITY_CULERS[rarity]
 
                 # Ask if they want to sell the fish they just caught or keep it
-                await utils.ask_to_sell_fish(self.bot, ctx, new_fish, embed=embed)
+                await utils.ask_to_sell_fish(self.bot, ctx, chosen_fish, fish_skin, embed=embed)
 
                 # Find if they catch a crate with the crate_chance_upgrade
                 crate_catch = random.randint(
@@ -362,8 +359,7 @@ class Fishing(vbu.Cog):
                             # If the type isn't "none" and there is an amount insert the loot into their database
                             if type_of_loot != "none" and amount_of_loot != 0:
                                 await db(
-                                    """INSERT INTO {0} (user_id, {1}) VALUES ($1, $2)
-                                            ON CONFLICT (user_id) DO UPDATE SET {1} = {0}.{1} + $2""".format(
+                                    """UPDATE {0} SET {1} = {1} + $2 WHERE user_id = $1""".format(
                                         table_of_loot, type_of_loot
                                     ),
                                     ctx.author.id,
@@ -454,6 +450,8 @@ class Fishing(vbu.Cog):
         """
 
         # Get the user's fish with the old name, all their fish, and all their tanks
+        if not await utils.check_registered(self.bot, ctx.author.id):
+            return await ctx.send("Please use the `register` command before using this bot!")
         async with vbu.Database() as db:
             fish_row = await db(
                 """SELECT fish_name FROM user_fish_inventory WHERE fish_name=$1 and user_id=$2""",
@@ -537,6 +535,70 @@ class Fishing(vbu.Cog):
             f"Congratulations, you have renamed **{old}** to **{new}**!",
             allowed_mentions=discord.AllowedMentions.none(),
         )
+
+    @commands.command()
+    @commands.bot_has_permissions(send_messages=True, embed_links=True)
+    async def craft(self, ctx: commands.Context, *, crafted: str = None):
+        '''
+        Crafts inputted item, gives a list of what to craft and what it costs if not
+        '''
+
+        if not await utils.check_registered(self.bot, ctx.author.id):
+            return await ctx.send("Please use the `register` command before using this bot!")
+        # Let them enter the lowercase of the item if they want to
+        if crafted:
+            crafted = crafted.title()
+
+        # Set up the menu for what is craftable and how much they cost
+        crafting_menu_message = ""
+        for craftable, needed in utils.items_required.items():
+            crafting_menu_message += f"\n**{craftable}**"
+            for item, amount in needed[0].items():
+                crafting_menu_message += f"\n{utils.EMOJIS['bar_empty']}{item.replace('_', ' ').title()}: {amount}"
+            crafting_menu_message += f"\n{utils.EMOJIS['bar_empty']}{utils.EMOJIS['bar_empty']}{needed[1]}"
+        crafting_menu_message += "\n*Specify what you want to craft with* `craft Item Name`"
+
+        # If they don't enter a craftable item or don't enter anything give the craftable menu
+        if not crafted or crafted not in utils.items_required.keys():
+            return await ctx.send(crafting_menu_message)
+
+        # If they enter one of the stacking items, check that they don't have the max
+        if crafted in ["Fishing Boots", "Trash Toys"]:
+            async with vbu.Database() as db:
+                amount_of_crafted = await db(f"""SELECT {crafted.replace(' ', '_').lower()} FROM user_item_inventory WHERE user_id = $1""", ctx.author.id)
+            if amount_of_crafted == 5:
+                return await ctx.send("You have the max amount of this item!")
+
+        # If they don't have the items to craft, let them know
+        if not await utils.enough_to_craft(crafted, ctx.author.id):
+            return await ctx.send("You do not have the required items to craft this.")
+
+        async with vbu.Database() as db:
+
+            # Get rid of the items taken to craft
+            for item, required in utils.items_required[crafted][0].items():
+                await db(f"""UPDATE user_item_inventory SET {item} = {item} - {required} WHERE user_id = $1""", ctx.author.id)
+
+            # If its a fish bag pick a random bag to craft, else use crafted for the db
+            if crafted == "Fish Bag":
+                db_crafted = random.choice(["cfb", "ufb", "rfb"])
+                if db_crafted.title() in utils.COMMON_BAG_NAMES:
+                    crafted = utils.COMMON_BAG_NAMES[0]
+                elif db_crafted.title() in utils.UNCOMMON_BAG_NAMES:
+                    crafted = utils.UNCOMMON_BAG_NAMES[0]
+                elif db_crafted.title() in utils.RARE_BAG_NAMES:
+                    crafted = utils.RARE_BAG_NAMES[0]
+            else:
+                db_crafted = crafted.replace(" ", "_").lower()
+
+            # If they get a cast go to the user_balance table, else use the item inventory, and add 1 to the amount
+            if db_crafted == "cast":
+                await db(f"""UPDATE user_balance SET casts = casts + 1 WHERE user_id = $1""", ctx.author.id)
+            else:
+                await db(f"""UPDATE user_item_inventory SET {db_crafted} = {db_crafted} + 1 WHERE user_id = $1""", ctx.author.id)
+
+        # Let them know it was crafted
+        return await ctx.send(f"{crafted} has been crafted!")
 
 
 def setup(bot):

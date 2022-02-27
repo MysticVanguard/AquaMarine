@@ -9,9 +9,92 @@ import discord
 from discord.ext import commands, vbu
 
 from cogs import utils
-from cogs.utils.fish_handler import DAYLIGHT_SAVINGS
+from cogs.utils.fish_handler import DAYLIGHT_SAVINGS, FishSpecies
+from cogs.utils.fish_handler import Fish
 from cogs.utils import EMOJIS
 
+GUIDE_FIELDS = [
+    (
+        "Table of Contents",
+        "Fishing - page 2\n"
+        "Aquariums and Fish Care - page 5\n"
+    ),
+    (
+        "Guide to Fishing",
+        "When you fish, various things can occur. The most likely thing that will happen "
+        "is you will catch a fish. This fish will be a certain rarity (common, uncommon, rare, "
+        "epic, legendary, mythic), a certain size (small, medium, large), a certain type of fish "
+        "(100+ different types) and skinned (purely cosmetic part). \nThe rarity determines how rare "
+        "the fish is to catch, and the base cost it sells for (5, 15, 75, 375, 750, 5000). Rarer fish "
+        "will also give more when the tank they are in is cleaned, which will be talked about more later. "
+        "\nThe size of the fish determines how many size points it takes up (1, 5, 25) in a tank, which will "
+        "also be talked about more later. It also determines the multiplier to the base cost (1x, 2x, 3x). "
+        "This means that a small common fish will sell for 5, while a large common fish would sell for 15. "
+        "\nThe type of fish is just what kind of fish your getting, and the type has a set rarity and size. "
+        "The skin is just cosmetic and there is a small chance of getting a skinned fish, almost like a shiny. "
+        "\n\tWhen you use the `fish` command, a picture of what fish you caught will pop up as well as 4 buttons, "
+        "each with the name of a different fish in the bot. If you choose the correct button that matches with the "
+        "shown fish, you'll get bonus money (15 + (base rarity / 10).\n\tNow when you catch a fish, you can choose "
+        "to either keep or sell this fish. Keeping the fish will pull up a form and you would enter what you want to "
+        "name the fish, and adds it to your bucket, while selling the fish will instead get rid of it, and add money "
+        "to your balance (base rarity * (size multiplier + rod upgrade multiplier + vote multiplier) is the equation). "
+        "You'll also be shown some other information in the format of: \n\"User caught a/an *rarity* __skin__ size **fish name**!\" "
+        "\n**owned/unowned** (tells you if you own atleast one of the fish)\nYou have x **fish name** (tells you how many "
+        "(x) exactly of that fish you have)\nIf you don't respond with keep or sell it will automatically sell the fish, "
+        "and if you don't respond with a fish name after keeping, it will give it a random generated name (which can "
+        "later be renamed with the `rename` command).\n\n\tThe next thing you can get while fishing is trash. "
+        "Trash is pretty useful to be honest, as it can be crafted into different things using the `craft` command. "
+        "Trash has a 1 in 12 chance of appearing on a cast, and you can catch between 1 and 6 pieces.\n\n\tThe last "
+        "thing you can catch is a crate, which can only be caught in addition to a fish. This crate can contain "
+        "many different things depending on the crate tier upgrade, but the things it could contain are "
+        "sand dollars, casts, fish bags, food, and potions."
+    ),
+    (
+        "Guide to Aquariums and Fish Care",
+        "The first part of having aquariums is geting your first one. To get an aquarium, simply run "
+        "`firsttank` command, which will give you your first tank for free. There are currently three "
+        "tiers of tanks (fish bowl, small tank, medium tank), and they each have different size point "
+        "values (1, 5, 25), which should be taken into consideration based on the fish you want to "
+        "put into them, as the fish have certain size points they take up. \nTo deposit a fish "
+        "simply use the \"`deposit` fish name\" command, where fish name is the name of the fish "
+        "you want to deposit, and it will bring up a select menu with all of your tanks. Choose "
+        "the tank you want to deposit it in and then your set, except the fish will die in three days. "
+        "\n\nDon't worry, as this timer can be extended by feeding your fish. There are three types "
+        "of fish food, flakes, pellets, and wafers. These each feed a different level of fish, "
+        "and have increasing costs, making it more expensive to feed higher level fish. Each food type "
+        "adds 3 days to a fish's lifespan when they are fed, which will stack. You can also buy a "
+        "feeding potion, which will give your fish 30 days added. \nNow that you know how to keep "
+        "your fish alive, you can focus on making money from it. The main way to make money from "
+        "tanks is to clean them, which is has a couple factors going into the pay. First there is "
+        "the effort bonus which will add either 0, 15, or 30 to the total cost (weighted randomness). "
+        "Then the rest is based off of the fish in the tank, and for each fish it takes their level "
+        "* (rarity multiplier (common - 1.0, uncommon - 1.2, rare -1.4, epic - 1.6, "
+        "legendary - 1.8, mythic - 2.0) + size multiplier (small - 0, medium - 2, large - 14)) and adds "
+        "them all together. Then it takes that value * (bleach upgrade multiplier + vote multiplier + "
+        "hygeinic upgrade multiplier) and then adds the effort bonus. Out of all this, the big takeaway "
+        "is that the fish's level and rarity are important factors, and the higher they are, the more "
+        "you will get from cleaning tanks. \nThe last of the three fish care topics is entertaining. "
+        "You can entertain all the fish in a specific tank, and it will take a set amount of xp (based "
+        "off of your toys upgrade), and then split that between every fish in the tank. This is set up "
+        "in a way so that you can funnel a lot more xp into a single fish if you choose to, but you end "
+        "up with 24 lost size points if its small (bigger fish give less money when cleaned helping make "
+        "this funneling not as advantagous). If you're just a casual player and just want to collect fish, "
+        "you probably would just want to go at things normally with whatever fish you want in your tanks. "
+        "\n\nAs mentioned previously, there is a `deposit` command which will add a specified fish to a tank. "
+        "There is also a `remove` command which will remove a specified fish from whatever tank it is in. "
+        "Removing a fish sets its death timer to nothing, meaning that you could get out of feeding that fish "
+        "by removing it right before it needed fed. Because of this, now you must feed your fish right before "
+        "removing it, no matter the death timer.\nIf you want to see your tank and what fish are in it you "
+        "can use the `show` command and it will produce a gif (might take a few seconds). You also may "
+        "notice there are tank themes for sale, which when bought, a tank is specified and it's basically "
+        "a skin for your tank, and is purely cosmetic. You can preview any of these themes by using the "
+        "`preview` command with the name of the theme, and it will produce a drop down where you can pick "
+        "the type of tank.\nThe last thing I will mention in this section is the `revive` command, which "
+        "simple enough, revives one of your dead fish. You have to have a revival, which can be bought "
+        "from the store. "
+    )
+
+]
 # Set up the credits embed
 CREDITS_EMBED = discord.Embed(
     title="Credits to all the people who have helped make this bot what it is!"
@@ -169,6 +252,10 @@ class Informative(vbu.Cog):
                 ctx.author.id,
             )
 
+        # Check for if they have no tanks
+        if not tank_rows:
+            return await ctx.send("You have no tanks! Please use the `firsttank` command!")
+
         # Open the background image for tanks to be pasted onto and copy it
         background = Image.open(
             f"{file_prefix}/background/Room Walls/Tank_Wall-export.png"
@@ -245,15 +332,12 @@ class Informative(vbu.Cog):
                 # Find all the relevant data for the fish
                 fish_collections[fish["tank_fish"]].append(
                     f"**{fish['fish'].replace('_', ' ').title()}: \"{fish['fish_name']}\"**\n"
+                    f"{EMOJIS['bar_empty']}Skin: **{fish['fish_skin']}**\n"
                     f"{EMOJIS['bar_empty']}Alive: **{fish['fish_alive']}**\n"
                     f"{EMOJIS['bar_empty']}Death Date: **{relative_time}**\n"
                     f"{EMOJIS['bar_empty']}Level: **{fish['fish_level']}**\n"
                     f"{EMOJIS['bar_empty']}XP: **{fish['fish_xp']}/{fish['fish_xp_max']}**"
                 )
-
-        # Check for if they have no tanks
-        if not tank_rows:
-            return await ctx.send("You have no tanks!")
 
         # Set up the fields
         field = []
@@ -301,6 +385,87 @@ class Informative(vbu.Cog):
             ctx, fields, ctx.author, f"{ctx.author.display_name}'s tanks"
         )
 
+    # @commands.command()
+    # @commands.bot_has_permissions(send_messages=True, embed_links=True)
+    # async def factions(self, ctx: commands.Context):
+    #     '''
+    #     Shows standings with factions.
+    #     '''
+    #     descriptions = {
+    #         "<:amfc_one:914857074775691275>": "gain leaderboard points equal to the number of times entertained",
+    #         "<:amfc_two:914857075174146108>": "If you have more than 25 fish in tanks, gain a 2x bonus for entertain xp",
+    #         "<:amfc_three:914857075107061820>": "If you have all 10 tanks, get an improved effort cleaning bonus",
+    #         "<:amfc_four:914857075077693450>": "increase your chance for the mutation upgrade by 5 for each fish in a tank",
+    #         "<:amfc_five:914857075048325130>": "Gain +.01x bonus multiplier to cleaning for each 5 times cleaned (max +2x)",
+    #         "<:__:886381017051586580>": "",
+    #         "<:gfu_one:914858051834609665>": "Every fish gives an additional 1 leaderboard point",
+    #         "<:gfu_two:914858052132413440>": "If you have less than 10 casts, gain a 1.5x multiplier for selling caught fish",
+    #         "<:gfu_three:914858052145004585>": "If you have less than 2 casts, increase your chance to catch 2 fish in one catch drasticaly",
+    #         "<:gfu_four:914858052090478612>": "Gain a bonus to the guessing game reward",
+    #         "<:gfu_five:914858052056924180>": "Gain +.01x bonus multiplier to selling owned fish for each owned fish (max +2x)"
+    #     }
+    #     # Gets the users faction points
+    #     async with vbu.Database() as db:
+    #         balance = await db("""SELECT * FROM user_balance WHERE user_id = $1""", ctx.author.id)
+    #     AMFC_points = balance[0]['amfc_points']
+    #     GFU_points = balance[0]['gfu_points']
+    #     fields = []
+    #     Emoji_String = []
+    #     AMFC_levels = 0
+    #     while AMFC_points >= 100000:
+    #         AMFC_levels += 1
+    #         AMFC_points -= 100000
+    #     GFU_levels = 0
+    #     while GFU_points >= 100000:
+    #         GFU_levels += 1
+    #         GFU_points -= 100000
+    #     for i in range(AMFC_levels):
+    #         if i == 0:
+    #             Emoji_String.append("<:AMFC_first_full:914357358010986516>")
+    #         elif i == 4:
+    #             Emoji_String.append("<:AMFC_end_full:914357357763502091>")
+    #         else:
+    #             Emoji_String.append("<:AMFC_middle_full:914357357927071816>")
+    #     while len(Emoji_String) < 5:
+    #         if len(Emoji_String) < 1:
+    #             Emoji_String.append("<:AMFC_first_empty:914357358023553064>")
+    #         elif len(Emoji_String) == 4:
+    #             Emoji_String.append("<:AMFC_end_empty:914357357998383124>")
+    #         else:
+    #             Emoji_String.append("<:AMFC_middle_empty:914357358086479922>")
+    #     Emoji_String.append("$")
+    #     Emoji_String.append(f"{ctx.author.display_name}'s Faction Standings")
+    #     Emoji_String.reverse()
+    #     Emoji_String.append("<:faction_midpiece:914358049521692754>")
+    #     for i in range(GFU_levels):
+    #         if i == 6:
+    #             Emoji_String.append("<:GFU_first_full:914357358082277376>")
+    #         elif i == 10:
+    #             Emoji_String.append("<:GFU_last_full:914357357931278357>")
+    #         else:
+    #             Emoji_String.append("<:GFU_middle_full:914357358099050516>")
+    #     while len(Emoji_String) < 13:
+    #         if len(Emoji_String) < 9:
+    #             Emoji_String.append("<:GFU_first_empty:914357357679616022>")
+    #         elif len(Emoji_String) == 12:
+    #             Emoji_String.append("<:GFU_last_empty:914357358132600903>")
+    #         else:
+    #             Emoji_String.append("<:GFU_middle_empty:914357357864161331>")
+    #     n = "\n"
+    #     Emoji_String.append("\n")
+    #     for emoji in descriptions.keys():
+    #         Emoji_String.append(emoji)
+    #     fields.append(("".join(Emoji_String).split(
+    #         "$")[0], "".join(Emoji_String).split("$")[1]))
+    #     for emoji, description in descriptions.items():
+    #         if description == "":
+    #             continue
+    #         fields.append((f"{emoji}:", description))
+    #     Embed = vbu.Embed()
+    #     for field_name, field_value in fields:
+    #         Embed.add_field(name=field_name, value=field_value, inline=False)
+    #     await ctx.send(embed=Embed)
+
     @commands.command()
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def profile(self, ctx: commands.Context):
@@ -334,6 +499,8 @@ class Informative(vbu.Cog):
             "pile_of_straws": EMOJIS["pile_of_straws"],
             "old_boot": EMOJIS["old_boot"],
             "old_tire": EMOJIS["old_tire"],
+            "fishing_boots": EMOJIS["fishing_boots"],
+            "trash_toys": EMOJIS['trash_toys']
         }
 
         # Set up the default values
@@ -344,6 +511,8 @@ class Informative(vbu.Cog):
         items_string = "none"
 
         # Get the user's inventory from the database
+        if not await utils.check_registered(self.bot, ctx.author.id):
+            return await ctx.send("Please use the `register` command before using this bot!")
         async with vbu.Database() as db:
             fish_row = await db(
                 """SELECT * FROM user_fish_inventory WHERE user_id = $1""",
@@ -375,10 +544,8 @@ class Informative(vbu.Cog):
         if fish_row:
 
             # Get a list of the user's fish types and levels
-            user_fish = []
             user_fish_info = []
             for row in fish_row:
-                user_fish.append(row["fish"])
                 user_fish_info.append(row["fish_level"])
 
             # Work out the user's highest level fish
@@ -388,20 +555,22 @@ class Informative(vbu.Cog):
 
             # Find each fish type the user has and create the collection data list
             collection_data = []
-            user_fish_types = {i["fish"] for i in fish_row}
+            user_fish_types = {FishSpecies.get_fish(
+                i['fish']) for i in fish_row}
 
             # For eaach rarity...
-            for rarity, fish in self.bot.fish.items():
+            for rarity in utils.rarity_values.keys():
 
                 # Find the amount of fish in that rarity
-                rarity_fish_count = len(fish)
+                rarity_fish_count = len(FishSpecies.get_rarity(rarity=rarity))
 
                 # Set the user's count to 0
                 user_rarity_fish_count = 0
 
                 # For each fish if the user owns one add 1 to the count
-                for info in fish.values():
-                    if info["raw_name"] in user_fish_types:
+                fish_in_rarity = FishSpecies.get_rarity(rarity=rarity)
+                for fish_type in user_fish_types:
+                    if fish_type in fish_in_rarity:
                         user_rarity_fish_count += 1
 
                 # Add that data to the collection data list
@@ -448,7 +617,6 @@ class Informative(vbu.Cog):
         # format the user's balance if it exists
         if balance:
             balance_string = (
-                f"{n}{n}**Balance**{n}"
                 f'{EMOJIS["sand_dollar"]}: x{balance[0]["balance"]}   '
                 f'{EMOJIS["doubloon"]}: x{balance[0]["doubloon"]}{n}'
                 f'{EMOJIS["casts"]}: x{balance[0]["casts"]}   '
@@ -459,7 +627,8 @@ class Informative(vbu.Cog):
         fields_dict = {
             "Highest Level Fish": (highest_level_fish_string, False),
             "Collection": (collection_string + tank_string, True),
-            "Items": (items_string + balance_string, True),
+            "Items": (items_string, True),
+            "Balance": (balance_string, False)
         }
 
         # Create and format the embed
@@ -483,20 +652,20 @@ class Informative(vbu.Cog):
             fields = []
 
             # For each rarity
-            for rarity, fish_types in self.bot.fish.items():
+            for rarity in utils.rarity_values.keys():
 
                 # Set up the field and string for that rarity
                 fish_lines = []
                 fish_string = ""
 
                 # For each fish in the types
-                for count, fish_type in enumerate(fish_types.keys()):
+                for count, fish_type in enumerate(FishSpecies.get_rarity(rarity=rarity)):
 
                     # Every other fish either bold or codeblock the text for contrast
                     if count % 2 == 0:
-                        fish_string += f" | **{' '.join(fish_type.split('_')).title()}**"
+                        fish_string += f" | **{' '.join(fish_type.name.split('_')).title()}**"
                     else:
-                        fish_string += f" | `{' '.join(fish_type.split('_')).title()}`"
+                        fish_string += f" | `{' '.join(fish_type.name.split('_')).title()}`"
 
                     # Every three append it to the lines and reset the string
                     if (count + 1) % 3 == 0:
@@ -504,7 +673,7 @@ class Informative(vbu.Cog):
                         fish_string = ""
 
                     # If its the last one and not filled up to three append anyways
-                    if (count + 1) == len(fish_types.keys()):
+                    if (count + 1) == len(FishSpecies.get_rarity(rarity=rarity)):
                         fish_lines.append(fish_string)
 
                 # set the field to equal the lines joined by newlines and fix the fields up
@@ -518,43 +687,28 @@ class Informative(vbu.Cog):
 
         # If a fish is specified...
 
-        # If they specified inverted, replace it and set the check to true
-        inverted = False
-        if "inverted" in fish_name.lower():
-            fish_name = fish_name.replace("inverted ", "")
-            inverted = True
-
         # Find the info of the fish they selected
-        selected_fish = None
-        for rarity, fish_types in self.bot.fish.items():
-            for _, fish_info in fish_types.items():
-                if fish_info["name"] == str(fish_name.title()):
-                    selected_fish = fish_info
-                    break
-            if selected_fish:
-                break
+        try:
+            selected_fish = FishSpecies.get_fish(name=fish_name)
 
         # If it doesnt exist tell them
-        else:
+        except KeyError:
             return await ctx.send("That fish doesn't exist.")
 
-        # If its inverted change the fish's info to be inverted
-        if inverted is True:
-            utils.make_inverted(selected_fish)
-
         # Set up the embed with all the needed data
-        embed = discord.Embed(title=selected_fish["name"])
+        embed = discord.Embed(
+            title=selected_fish.name.replace('_', ' ').title())
         embed.set_image(url="attachment://new_fish.png")
         embed.add_field(
-            name="Rarity:", value=f"{selected_fish['rarity']}", inline=True
+            name="Rarity:", value=f"{selected_fish.rarity}", inline=True
         )
         embed.add_field(
             name="Base Sell Price:",
-            value=f"{int(selected_fish['cost'])} {EMOJIS['sand_dollar']}",
+            value=f"{int(selected_fish.cost)} {EMOJIS['sand_dollar']}",
             inline=True,
         )
         embed.add_field(
-            name="Size:", value=f"{selected_fish['size']}", inline=True
+            name="Size:", value=f"{selected_fish.size}", inline=True
         )
         embed.color = {
             "common": 0xFFFFFE,  # White - FFFFFF doesn't work with Discord
@@ -563,8 +717,8 @@ class Informative(vbu.Cog):
             "epic": 0xE379FF,  # Light Purple
             "legendary": 0xFFE80D,  # Gold
             "mythic": 0xFF0090,  # Hot Pink
-        }[selected_fish["rarity"]]
-        fish_file = discord.File(selected_fish["image"], "new_fish.png")
+        }[selected_fish.rarity]
+        fish_file = discord.File(selected_fish.image, "new_fish.png")
 
         # Send the embed
         await ctx.send(file=fish_file, embed=embed)
@@ -602,9 +756,9 @@ class Informative(vbu.Cog):
 
         # Find the fish's data in a list of tuples sorted
         fish_list = [
-            (i["fish_name"], i["fish"], i["fish_alive"]) for i in fish_rows
+            Fish(name=i['fish_name'], level=i['fish_level'], current_xp=i['fish_xp'], max_xp=i['fish_xp_max'], alive=i['fish_alive'], species=FishSpecies.get_fish(i['fish']), location_caught=i['fish_location'], skin=i['fish_skin']) for i in fish_rows
         ]
-        fish_list = sorted(fish_list, key=lambda x: x[1])
+        fish_list = sorted(fish_list, key=lambda x: x.species.name)
 
         # The "pages" that the user can scroll through are the different rarity levels
         fields = (
@@ -621,37 +775,17 @@ class Informative(vbu.Cog):
             "mythic": [],
         }
 
-        # Sorted Fish will become a dictionary of {rarity: [list of fish names of fish in that category]} if the fish is in the user's inventory
-        for (
-            rarity,
-            fish_types,
-        ) in self.bot.fish.items():  # For each rarity level
-            for (
-                _,
-                fish_detail,
-            ) in fish_types.items():  # For each fish in that level
-                raw_name = fish_detail["raw_name"]
-                for user_fish_name, user_fish, alive in fish_list:
-
-                    # If the fish in the user's list matches the name of a fish in the rarity catgeory
-                    if raw_name == utils.get_normal_name(user_fish):
-
-                        # Append to the dictionary
-                        sorted_fish[rarity].append(
-                            (
-                                user_fish_name,
-                                user_fish,
-                                fish_detail["size"],
-                                alive,
-                            )
-                        )
+        for rarity in utils.rarity_values.keys():
+            for fish in fish_list:
+                if fish.species.rarity == rarity:
+                    sorted_fish[rarity].append(fish)
 
         # Get the display string for each field
         for rarity, fish_list in sorted_fish.items():
             if fish_list:
                 fish_string = [
-                    f"\"{fish_name}\": **{' '.join(fish_type.split('_')).title()}** (Size: {fish_size.title()}, Alive: {alive})"
-                    for fish_name, fish_type, fish_size, alive in fish_list
+                    f"\"{fish.name}\": **{' '.join(fish.species.name.split('_')).title()}** (Size: {fish.species.size.title()}, Alive: {fish.alive}, Skin: {fish.skin})"
+                    for fish in fish_list
                 ]
                 field = (rarity.title(), "\n".join(fish_string))
                 [fields.append(i) for i in utils.get_fixed_field(field)]
@@ -744,6 +878,8 @@ class Informative(vbu.Cog):
         }
 
         # Database variables
+        if not await utils.check_registered(self.bot, ctx.author.id):
+            return await ctx.send("Please use the `register` command before using this bot!")
         async with vbu.Database() as db:
             user_achievement_milestone_data = await db(
                 """SELECT * FROM user_achievements_milestones WHERE user_id = $1""",
@@ -757,16 +893,6 @@ class Informative(vbu.Cog):
                 """SELECT tank FROM user_tank_inventory WHERE user_id = $1""",
                 ctx.author.id,
             )
-            if not user_achievement_data:
-                user_achievement_data = await db(
-                    """INSERT INTO user_achievements (user_id) VALUES ($1) RETURNING *""",
-                    ctx.author.id,
-                )
-            if not user_achievement_milestone_data:
-                user_achievement_milestone_data = await db(
-                    """INSERT INTO user_achievements_milestones (user_id) VALUES ($1) RETURNING *""",
-                    ctx.author.id,
-                )
 
         # Getting the users data into a dictionary for the embed and ease of access
         user_achievement_data_dict = {}
@@ -968,8 +1094,7 @@ class Informative(vbu.Cog):
             # Give the user their reward balance
             async with vbu.Database() as db:
                 await db(
-                    """INSERT INTO user_balance (user_id, doubloon) VALUES ($1, $2)
-                    ON CONFLICT (user_id) DO UPDATE SET doubloon = user_balance.doubloon + $2""",
+                    """UPDATE user_balance SET doubloon = doubloon + $2 WHERE user_id = $1""",
                     ctx.author.id,
                     amount_of_doubloons_earned,
                 )
@@ -1047,13 +1172,13 @@ class Informative(vbu.Cog):
                             # Add the user_id with a list to to the dict then add that fish to the list
                             user_info_unsorted[user_info["user_id"]] = []
                             user_info_unsorted[user_info["user_id"]].append(
-                                user_info["fish"]
+                                FishSpecies.get_fish(user_info["fish"])
                             )
 
                         # Else just add the fish to the list
                         else:
                             user_info_unsorted[user_info["user_id"]].append(
-                                user_info["fish"]
+                                FishSpecies.get_fish(user_info["fish"])
                             )
 
                 # Setup for the rarity points
@@ -1076,15 +1201,14 @@ class Informative(vbu.Cog):
                     user_points = 0
 
                     # Find out what rarity each fish in the list is and add that many points
-                    for rarity, fish_types in self.bot.fish.items():
-                        for fish_type in fish:
-                            if ' '.join(fish_type.split('_')) in fish_types:
-                                user_points += rarity_points[rarity]
+                    for fish_type in fish:
+                        user_points += rarity_points[fish_type.rarity]
 
                     # for each user if its the correct user add the extra points as well
                     for user_name in user_extra_points:
                         if user_name["user_id"] == user:
                             user_points += user_name["extra_points"]
+                            break
 
                     # Set the user equal to their points
                     user_points_unsorted[user] = user_points
@@ -1107,6 +1231,86 @@ class Informative(vbu.Cog):
                 output.append(f"<@{user_id}> ({points:,})")
 
         # Make a Paginator with 10 results per page
+        menu = vbu.Paginator(
+            output,
+            per_page=10,
+            formatter=vbu.Paginator.default_ranked_list_formatter,
+        )
+
+        # Return the embed
+        return await menu.start(ctx)
+
+    @commands.command()
+    @commands.bot_has_permissions(send_messages=True, embed_links=True)
+    async def register(self, ctx: commands.Context):
+        """
+        This command is needed to be ran in order for a user to use the bot.
+        """
+
+        start_message = (f"Welcome to AquaMarine! This command helps me get you into the bot, while also displaying some information I think will prove good to have."
+                         f" First things first, I want to mention that there is an in-bot guide for if you get confused on anything that should be able to explain most"
+                         f" things, and it can be accessed with the `guide` command. If you're still confused on anything you can use the `support` command to get the"
+                         f" link to the support server.")
+
+        async with vbu.Database() as db:
+            user_balance_info = await db("""SELECT * FROM user_balance WHERE user_id = $1""", ctx.author.id)
+            user_item_inventory_info = await db("""SELECT * FROM user_item_inventory WHERE user_id = $1""", ctx.author.id)
+            user_achievements_milestones_info = await db("""SELECT * FROM user_achievements_milestones WHERE user_id = $1""", ctx.author.id)
+            user_achievements_info = await db("""SELECT * FROM user_achievements WHERE user_id = $1""", ctx.author.id)
+            user_upgrades_info = await db("""SELECT * FROM user_upgrades WHERE user_id = $1""", ctx.author.id)
+        if user_balance_info and user_upgrades_info and user_item_inventory_info and user_achievements_milestones_info and user_achievements_info:
+            return await ctx.send("You've already started using the bot, if you need help use the `guide` command!")
+
+        await ctx.send(start_message)
+
+        async with vbu.Database() as db:
+            if not user_balance_info:
+                await db("""INSERT INTO user_balance (user_id, casts) VALUES ($1, 6)""", ctx.author.id)
+            if not user_upgrades_info:
+                await db("""INSERT INTO user_upgrades (user_id) VALUES ($1)""", ctx.author.id)
+            if not user_item_inventory_info:
+                await db("""INSERT INTO user_item_inventory (user_id) VALUES ($1)""", ctx.author.id)
+            if not user_achievements_milestones_info:
+                await db("""INSERT INTO user_achievements_milestones (user_id) VALUES ($1)""", ctx.author.id)
+            if not user_achievements_info:
+                await db("""INSERT INTO user_achievements (user_id) VALUES ($1)""", ctx.author.id)
+
+    @commands.command()
+    @commands.bot_has_permissions(send_messages=True, embed_links=True)
+    async def guide(self, ctx: commands.Context):
+
+        # Check the size of the fields and make sure they're correct
+        fields = []
+        for field in GUIDE_FIELDS:
+            [fields.append(i) for i in utils.get_fixed_field(field)]
+
+        # Send the correct fields paginated
+        await utils.paginate(ctx, fields, ctx.author)
+
+    @commands.command()
+    @commands.bot_has_permissions(send_messages=True)
+    async def totalfish(self, ctx: commands.Context, *, tank_cleaned: str = None):
+        fish_dict = {}
+        async with vbu.Database() as db:
+            fish = await db("""SELECT fish FROM user_fish_inventory""")
+        for single_fish in fish:
+            single_fish = single_fish['fish']
+            if single_fish not in fish_dict.keys():
+                fish_dict[single_fish] = 1
+            else:
+                fish_dict[single_fish] += 1
+
+        fish_dict_sorted = {
+            fish: points
+            for fish, points in sorted(
+                fish_dict.items(),
+                key=lambda item: item[1],
+                reverse=True,
+            )
+        }
+        output = []
+        for fish_type, count in fish_dict_sorted.items():
+            output.append(f"{fish_type.replace('_', ' ').title()}: {count}")
         menu = vbu.Paginator(
             output,
             per_page=10,

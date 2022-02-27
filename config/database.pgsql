@@ -74,6 +74,8 @@ CREATE TABLE IF NOT EXISTS user_item_inventory (
     pile_of_straws INT NOT NULL DEFAULT 0,
     old_boot INT NOT NULL DEFAULT 0,
     old_tire INT NOT NULL DEFAULT 0,
+    fishing_boots INT NOT NULL DEFAULT 0,
+    trash_toys INT NOT NULL DEFAULT 0,
     PRIMARY KEY (user_id)
 );
 

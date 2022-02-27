@@ -6,7 +6,7 @@ from discord.ext import commands, tasks, vbu
 import discord
 
 from cogs import utils
-from cogs.utils.fish_handler import DAYLIGHT_SAVINGS
+from cogs.utils.fish_handler import DAYLIGHT_SAVINGS, FishSpecies
 
 
 class FishCare(vbu.Cog):
@@ -55,6 +55,8 @@ class FishCare(vbu.Cog):
         """
 
         # fetches needed rows
+        if not await utils.check_registered(self.bot, ctx.author.id):
+            return await ctx.send("Please use the `register` command before using this bot!")
         async with vbu.Database() as db:
             tank_rows = await db(
                 """SELECT * FROM user_tank_inventory WHERE user_id = $1""",
@@ -64,24 +66,15 @@ class FishCare(vbu.Cog):
                 """SELECT toys_upgrade, amazement_upgrade FROM user_upgrades WHERE user_id = $1""",
                 ctx.author.id,
             )
-            if not upgrades:
-                await db(
-                    """INSERT INTO user_upgrades (user_id) VALUES ($1)""",
-                    ctx.author.id,
-                )
-                upgrades = await db(
-                    """SELECT toys_upgrade, amazement_upgrade FROM user_upgrades WHERE user_id = $1""",
-                    ctx.author.id,
-                )
 
         await ctx.trigger_typing()
 
+        # If the user has no tanks return
+        if not tank_rows:
+            return await ctx.send("You have no tanks! Please use the `firsttank` command!")
+
         # If they didnt specify a tank to entertain...
         if not tank_entertained:
-
-            # If the user has no tanks return
-            if not tank_rows:
-                return await ctx.send("There is no tank with that name")
 
             # Create a select menu with the tanks as options
             tank_entertained = await utils.create_select_menu(
@@ -95,12 +88,19 @@ class FishCare(vbu.Cog):
                 ctx.author.id,
                 tank_entertained,
             )
+            amount_of_crafted = await db(f"""SELECT fishing_boots FROM user_item_inventory WHERE user_id = $1""", ctx.author.id)
 
         # Finds how much xp will be added, and if an extra level will be added
         total_xp_to_add = random.randint(
             utils.TOYS_UPGRADE[upgrades[0]["toys_upgrade"]][0],
             utils.TOYS_UPGRADE[upgrades[0]["toys_upgrade"]][1],
         )
+
+        if amount_of_crafted:
+            boot_multiplier = .5 * amount_of_crafted[0]['fishing_boots']
+        else:
+            boot_multiplier = 0
+        total_xp_to_add * (1 + (boot_multiplier))
         extra_level = random.randint(
             1, utils.AMAZEMENT_UPGRADE[upgrades[0]["amazement_upgrade"]]
         )
@@ -112,8 +112,8 @@ class FishCare(vbu.Cog):
             new_level = False
 
         # Checks to see if there is no tank
-        if tank_entertained not in tank_rows[0]["tank_name"] or not tank_rows:
-            return await ctx.send("There is no tank with that name")
+        if tank_entertained not in tank_rows[0]["tank_name"]:
+            return await ctx.send("There is no tank with that name! (If you don't own a tank use the `firsttank` command)")
 
         # Work out which slot the tank is in
         tank_slot = 0
@@ -195,8 +195,7 @@ class FishCare(vbu.Cog):
 
                 # Achievement added
                 await db(
-                    """INSERT INTO user_achievements (user_id, times_entertained) VALUES ($1, 1)
-                    ON CONFLICT (user_id) DO UPDATE SET times_entertained = user_achievements.times_entertained + 1""",
+                    """UPDATE user_achievements SET times_entertained = times_entertained + 1 WHERE user_id = $1""",
                     ctx.author.id,
                 )
 
@@ -224,20 +223,13 @@ class FishCare(vbu.Cog):
         await ctx.trigger_typing()
 
         # Fetches needed rows and gets the users amount of food
+        if not await utils.check_registered(self.bot, ctx.author.id):
+            return await ctx.send("Please use the `register` command before using this bot!")
         async with vbu.Database() as db:
             upgrades = await db(
                 """SELECT feeding_upgrade, big_servings_upgrade FROM user_upgrades WHERE user_id = $1""",
                 ctx.author.id,
             )
-            if not upgrades:
-                await db(
-                    """INSERT INTO user_upgrades (user_id) VALUES ($1)""",
-                    ctx.author.id,
-                )
-                upgrades = await db(
-                    """SELECT feeding_upgrade, big_servings_upgrade FROM user_upgrades WHERE user_id = $1""",
-                    ctx.author.id,
-                )
             fish_rows = await db(
                 """SELECT * FROM user_fish_inventory WHERE user_id = $1 AND tank_fish != ''""",
                 ctx.author.id,
@@ -254,9 +246,9 @@ class FishCare(vbu.Cog):
         # Checks for if the user owns fish or tanks
         await ctx.trigger_typing()
         if not fish_rows:
-            return await ctx.send("There is no fish with that name")
+            return await ctx.send("You have no fish in a tank!")
         if not tank_rows:
-            return await ctx.send("There is no tank with that name")
+            return await ctx.send("You have no tanks! Please use the `firsttank` command!")
         if not fish_fed:
 
             # If they own more than 25 fish...
@@ -306,8 +298,7 @@ class FishCare(vbu.Cog):
             type_of_food = "wafers"
 
         # If they dont, tell them they have none
-        user_food_count = item_rows[0][type_of_food]
-        if not item_rows or not user_food_count:
+        if not item_rows[0][type_of_food]:
             return await ctx.send(f"You have no {type_of_food}!")
 
         # Make sure the fish is able to be fed
@@ -366,8 +357,7 @@ class FishCare(vbu.Cog):
 
             # Achievements
             await db(
-                """INSERT INTO user_achievements (user_id, times_fed) VALUES ($1, 1)
-                ON CONFLICT (user_id) DO UPDATE SET times_fed = user_achievements.times_fed + 1""",
+                """UPDATE user_achievements SET times_fed = times_fed + 1 WHERE user_id = $1""",
                 ctx.author.id,
             )
 
@@ -384,20 +374,13 @@ class FishCare(vbu.Cog):
         """
 
         # Get the fish, upgrades, and tank data from the database
+        if not await utils.check_registered(self.bot, ctx.author.id):
+            return await ctx.send("Please use the `register` command before using this bot!")
         async with vbu.Database() as db:
             upgrades = await db(
                 """SELECT bleach_upgrade, hygienic_upgrade, mutation_upgrade FROM user_upgrades WHERE user_id = $1""",
                 ctx.author.id,
             )
-            if not upgrades:
-                await db(
-                    """INSERT INTO user_upgrades (user_id) VALUES ($1)""",
-                    ctx.author.id,
-                )
-                upgrades = await db(
-                    """SELECT bleach_upgrade, hygienic_upgrade, mutation_upgrade FROM user_upgrades WHERE user_id = $1""",
-                    ctx.author.id,
-                )
             tank_rows = await db(
                 """SELECT * FROM user_tank_inventory WHERE user_id = $1""",
                 ctx.author.id,
@@ -405,7 +388,7 @@ class FishCare(vbu.Cog):
 
         # If they dont own a tank tell them
         if not tank_rows:
-            return await ctx.send("There is no tank with that name")
+            return await ctx.send("You have no tanks! Please use the `firsttank` command!")
 
         # If they dont input a specific tank
         if not tank_cleaned:
@@ -491,36 +474,25 @@ class FishCare(vbu.Cog):
         # For each fish in the tank...
         for fish in fish_rows:
 
-            fish_name = utils.get_normal_name(fish["fish"])
-
             # See if they mutate with the mutate upgrade
             mutate = random.randint(
                 1, utils.MUTATION_UPGRADE[upgrades[0]["mutation_upgrade"]]
             )
 
-            if mutate == 1 and fish_name == fish["fish"]:
+            if mutate == 1:
                 async with vbu.Database() as db:
-                    mutated = "inverted_" + fish["fish"]
                     await db(
-                        """UPDATE user_fish_inventory SET fish = $1 where user_id = $2 AND fish = $3""",
-                        mutated,
+                        """UPDATE user_fish_inventory SET fish_skin = $1 where user_id = $2 AND fish = $3""",
+                        "inverted",
                         ctx.author.id,
                         fish["fish"],
                     )
                     nl = "\n"
-                    extra += f"{nl}{fish['fish']}looks kind of strange now..."
+                    extra += f"{nl}{fish['fish']} looks kind of strange now..."
 
-            # For each rarity of fish in the bot if the current fish is in it...
-            for rarity, fish_types in self.bot.fish.items():
-                if " ".join(fish_name.split("_")) in fish_types.keys():
-
-                    # Grab the size of the fish
-                    size_multiplier = size_values[
-                        fish_types[" ".join(fish_name.split("_"))]["size"]
-                    ]
-
-                    # Grab the rarity of the fish
-                    rarity_multiplier = rarity_values[rarity]
+            fish_species = FishSpecies.get_fish(fish['fish'])
+            size_multiplier = size_values[fish_species.size]
+            rarity_multiplier = rarity_values[fish_species.rarity]
 
             # The money added for each fish is the level * the rarity * the size
             money_gained += (
@@ -548,20 +520,17 @@ class FishCare(vbu.Cog):
                 dt.utcnow(),
             )
             await db(
-                """INSERT INTO user_balance (user_id, balance) VALUES ($1, $2)
-                ON CONFLICT (user_id) DO UPDATE SET balance = user_balance.balance + $2""",
+                """UPDATE user_balance SET balance = balance + $2 WHERE user_id = $1""",
                 ctx.author.id,
                 int(money_gained),
             )
             # Achievements
             await db(
-                """INSERT INTO user_achievements (user_id, times_cleaned) VALUES ($1, 1)
-                ON CONFLICT (user_id) DO UPDATE SET times_cleaned = user_achievements.times_cleaned + 1""",
+                """UPDATE user_achievements SET times_cleaned = times_cleaned + 1 WHERE user_id = $1""",
                 ctx.author.id,
             )
             await db(
-                """INSERT INTO user_achievements (user_id, money_gained) VALUES ($1, $2)
-                ON CONFLICT (user_id) DO UPDATE SET money_gained = user_achievements.money_gained + $2""",
+                """UPDATE user_achievements SET money_gained = money_gained + $2 WHERE user_id = $1""",
                 ctx.author.id,
                 int(money_gained),
             )
@@ -579,26 +548,16 @@ class FishCare(vbu.Cog):
         """
 
         # Get database vars
+        if not await utils.check_registered(self.bot, ctx.author.id):
+            return await ctx.send("Please use the `register` command before using this bot!")
         async with vbu.Database() as db:
             fish_rows = await db(
                 """SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_alive = FALSE""",
                 ctx.author.id,
             )
-            fish_row = await db(
-                """SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2""",
-                ctx.author.id,
-                fish,
-            )
             revival_count = await db(
                 """SELECT revival FROM user_item_inventory WHERE user_id = $1""",
                 ctx.author.id,
-            )
-
-        # If they dont have a fish with the specified name tell them
-        if not fish_row:
-            return await ctx.send(
-                f"You have no fish named {fish}!",
-                allowed_mentions=discord.AllowedMentions.none(),
             )
 
         # If they dont give a fish
@@ -609,9 +568,26 @@ class FishCare(vbu.Cog):
             for fish in fish_rows:
                 fish_in_tank.append(fish["fish_name"])
 
+            if len(fish_in_tank) > 25:
+                return await ctx.send("Please specify a fish")
+
             # Create a select menu with their fish being choices
             fish = await utils.create_select_menu(
                 self.bot, ctx, fish_in_tank, "dead fish", "revive"
+            )
+
+        async with vbu.Database() as db:
+            fish_row = await db(
+                """SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2""",
+                ctx.author.id,
+                fish,
+            )
+
+        # If they dont have a fish with the specified name tell them
+        if not fish_row:
+            return await ctx.send(
+                f"You have no fish named {fish}!",
+                allowed_mentions=discord.AllowedMentions.none(),
             )
 
         # Checks that error

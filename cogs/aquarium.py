@@ -9,7 +9,7 @@ import discord
 from discord.ext import commands, vbu
 
 from cogs import utils
-from cogs.utils.fish_handler import DAYLIGHT_SAVINGS
+from cogs.utils.fish_handler import DAYLIGHT_SAVINGS, Fish, FishSpecies
 
 
 class Aquarium(vbu.Cog):
@@ -41,39 +41,54 @@ class Aquarium(vbu.Cog):
                 ctx.author.id,
             )
 
-        # Ask the user what they want to name their tank
-        def check(message):
-            return all(
-                [
-                    message.author == ctx.author,
-                    message.channel == ctx.channel,
-                    message.content,
-                    len(message.content) <= 32,
-                    message.content != "none",
-                ]
-            )
-        await ctx.send(
-            'What do you want to name your first tank? *(32 character limit and cannot be "none")*'
+        def button_check(payload):
+            if payload.message.id != message.id:
+                return False
+            return payload.user.id == ctx.author.id
+
+        # Add the buttons to the message
+        components = discord.ui.MessageComponents(
+            discord.ui.ActionRow(
+                discord.ui.Button(emoji=utils.EMOJIS["aqua_smile"]),
+            ),
+        )
+        # Asks what to name the new tank and makes sure it matches the check
+        message = await ctx.send(
+            "What would you like to name this tank? "
+            "(must be a different name from your other tanks, "
+            'less than 32 characters, and cannot be "none")',
+            components=components
         )
 
-        # Get user input for what they want to name their tank
+        # Wait for them to click a button
         try:
-            name_message = await self.bot.wait_for(
-                "message", timeout=60.0, check=check
+            chosen_button_payload = await self.bot.wait_for(
+                "component_interaction", timeout=60.0, check=button_check
             )
-            name = name_message.content
-            await ctx.send(
-                f"You have your new tank, **{name}**!",
-                allowed_mentions=discord.AllowedMentions.none(),
-            )
-
-        # If they don't respond name it for them
         except asyncio.TimeoutError:
             name = "Starter Tank"
             await ctx.send(
                 f"Did you forget about me {ctx.author.mention}? I've been waiting for a while "
                 f"now! I'll name the tank for you. Let's call it **{name}**."
             )
+
+        try:
+            name, interaction2 = await utils.create_modal(self.bot, chosen_button_payload, "Tank Name", "Enter your new tank's name")
+            await interaction2.response.defer()
+        except TypeError:
+            name = None
+
+        if not name:
+            name = "Starter Tank"
+            await ctx.send(
+                f"Did you forget about me {ctx.author.mention}? I've been waiting for a while "
+                f"now! I'll name the tank for you. Let's call it **{name}**."
+            )
+
+        await ctx.send(
+            f"You have your new tank, **{name}**!",
+            allowed_mentions=discord.AllowedMentions.none(),
+        )
 
         # Save their tank name
         async with vbu.Database() as db:
@@ -94,6 +109,8 @@ class Aquarium(vbu.Cog):
         size_values = {"small": 1, "medium": 5, "large": 25}
 
         # fetches the two needed rows from the database
+        if not await utils.check_registered(self.bot, ctx.author.id):
+            return await ctx.send("Please use the `register` command before using this bot!")
         async with vbu.Database() as db:
             fish_row = await db(
                 """SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2""",
@@ -117,7 +134,7 @@ class Aquarium(vbu.Cog):
                 allowed_mentions=discord.AllowedMentions.none(),
             )
         if not tank_row or True not in tank_row[0]["tank"]:
-            return await ctx.send("You have no tanks!")
+            return await ctx.send("You have no tanks (use the `firsttank` command)!")
         if tank_name not in tank_row[0]["tank_name"]:
             return await ctx.send(
                 f"You have no tank named **{tank_name}**!",
@@ -185,48 +202,47 @@ class Aquarium(vbu.Cog):
         """
 
         # variables for size value and the slot the tank is in
-        size_values = {"small": 1, "medium": 5, "large": 10}
+        size_values = {"small": 1, "medium": 5, "large": 25}
         tank_slot = 0
 
         # fetches the two needed rows from the database
+        if not await utils.check_registered(self.bot, ctx.author.id):
+            return await ctx.send("Please use the `register` command before using this bot!")
         async with vbu.Database() as db:
             tank_row = await db(
                 """SELECT * FROM user_tank_inventory WHERE user_id =$1""",
                 ctx.author.id,
             )
-
-        async with vbu.Database() as db:
             fish_row = await db(
                 """SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2 AND tank_fish != ''""",
                 ctx.author.id,
                 fish_removed,
             )
+            item_rows = await db(
+                """SELECT * FROM user_item_inventory WHERE user_id = $1""",
+                ctx.author.id,
+            )
 
         # Check to see if they have that fish in a tank or if they're on cooldown
+        if not tank_row:
+            return await ctx.send("You have no tanks (use the `firsttank` command)!")
         if not fish_row:
             return await ctx.send(
                 f"You have no fish named **{fish_removed}** in a tank!",
                 allowed_mentions=discord.AllowedMentions.none(),
             )
-        if fish_row[0]["fish_remove_time"]:
-            if (
-                fish_row[0]["fish_remove_time"] + timedelta(days=5)
-                > dt.utcnow()
-            ):
-                time_left = timedelta(
-                    seconds=(
-                        fish_row[0]["fish_remove_time"] - dt.utcnow()
-                    ).total_seconds()
-                )
-                relative_time = discord.utils.format_dt(
-                    dt.utcnow()
-                    + time_left
-                    - timedelta(hours=DAYLIGHT_SAVINGS),
-                    style="R",
-                )
-                return await ctx.send(
-                    f"This fish is resting, please try again {relative_time}."
-                )
+
+        # See if the user has fish food for it
+        if fish_row[0]["fish_level"] <= 20:
+            type_of_food = "flakes"
+        elif fish_row[0]["fish_level"] <= 50:
+            type_of_food = "pellets"
+        else:
+            type_of_food = "wafers"
+
+        # If they dont, tell them they have none
+        if not item_rows[0][type_of_food]:
+            return await ctx.send(f"You must have a piece of {type_of_food} before you can remove this fish so it doesn't go hungry! (after getting food run this command again)")
 
         # finds the tank slot the tank in question is at
         tank_name = fish_row[0]['tank_fish']
@@ -240,6 +256,12 @@ class Aquarium(vbu.Cog):
 
         # Update the fish being removed and the tank's room
         async with vbu.Database() as db:
+            await db(
+                """UPDATE user_item_inventory SET {0}={0}-1 WHERE user_id=$1""".format(
+                    type_of_food
+                ),
+                ctx.author.id,
+            )
             await db(
                 """UPDATE user_fish_inventory SET tank_fish = '', death_time = NULL, fish_remove_time = $3 WHERE user_id = $1 AND fish_name = $2""",
                 ctx.author.id,
@@ -291,11 +313,10 @@ class Aquarium(vbu.Cog):
                 "Medium Tank": 25,
             }
             im = []
-            fishes = {}
+            fishes = []
             fish_y_value = []
             files = []
             dead_alive = []
-            golden_inverted_normal = "normal"
             fish_selections = []
             gif_name = random.randint(1, 1000)
             tank_types = {
@@ -306,6 +327,8 @@ class Aquarium(vbu.Cog):
             tank_slot = 0
 
             # gets database info for tank
+            if not await utils.check_registered(self.bot, ctx.author.id):
+                return await ctx.send("Please use the `register` command before using this bot!")
             async with vbu.Database() as db:
                 selected_fish = await db(
                     """SELECT * FROM user_fish_inventory WHERE user_id = $1 AND tank_fish = $2""",
@@ -337,48 +360,28 @@ class Aquarium(vbu.Cog):
 
             # finds what type of fish it is, then adds the paths to a list, as well as finding the fish's random starting position
             for selected_fish_types in selected_fish:
-                fishes[selected_fish_types["fish"]] = [
-                    selected_fish_types["fish_alive"]
-                ]
+                fishes.append(Fish(name=selected_fish_types['fish_name'], level=selected_fish_types['fish_level'], current_xp=selected_fish_types['fish_xp'], max_xp=selected_fish_types['fish_xp_max'],
+                                   alive=selected_fish_types['fish_alive'], species=FishSpecies.get_fish(selected_fish_types['fish']), location_caught=selected_fish_types['fish_location'], skin=selected_fish_types['fish_skin']))
 
             # For each fish in the tank...
-            for name, info in fishes.items():
+            for fish_object in fishes:
 
-                # Make sure the fish is normal but the bot knows its different
-                if "golden" in name:
-                    fishes[name].append(name.lstrip("golden_"))
-                    name = name.lstrip("golden_")
-                    golden_inverted_normal = "golden"
-                if "inverted" in name:
-                    fishes[name].append(name.replace("inverted_", ""))
-                    name = name.replace("inverted_", "")
-                    golden_inverted_normal = "inverted"
-                else:
-                    fishes[name].append(name)
+                move_x.append(
+                    random.randint(
+                        min_max_x[tank_info][0],
+                        min_max_x[tank_info][1],
+                    )
+                )
+                fish_y_value.append(
+                    random.randint(
+                        min_max_y[tank_info][0],
+                        min_max_y[tank_info][1],
+                    )
+                )
+                fish_selections.append(
+                    utils.get_normal_size_image(fish_object))
 
-                # check to find what type of fish it is and where it should start, also finding if its dead
-                for _, fish_types in self.bot.fish.items():
-                    for fish_data in fish_types.values():
-                        if info[1] == fish_data["raw_name"]:
-                            move_x.append(
-                                random.randint(
-                                    min_max_x[tank_info][0],
-                                    min_max_x[tank_info][1],
-                                )
-                            )
-                            fish_y_value.append(
-                                random.randint(
-                                    min_max_y[tank_info][0],
-                                    min_max_y[tank_info][1],
-                                )
-                            )
-                            fish_selections.append(
-                                f"C:/Users/JT/Pictures/Aqua/assets/images/{golden_inverted_normal}_fish_size{fish_data['image'][44:]}"
-                            )
-                            if info[0] is True:
-                                dead_alive.append(True)
-                            else:
-                                dead_alive.append(False)
+                dead_alive.append(fish_object.alive)
 
             # gif variables
             file_prefix = "C:/Users/JT/Pictures/Aqua/assets/images"

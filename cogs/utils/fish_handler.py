@@ -1,8 +1,11 @@
 from os import walk
 import asyncio
+from tokenize import _all_string_prefixes
+import random
+from datetime import datetime as dt, timedelta
 
 import discord
-
+from discord.ext import vbu
 
 """
 The following utils are for upgrades used in various commands
@@ -82,12 +85,12 @@ LINE_UPGRADES = {
 
 # Lure upgrades to give users a better chance at special fish
 LURE_UPGRADES = {
-    0: [("normal", 0.1000), ("inverted", 0.0000), ("golden", 0.0000)],
-    1: [("normal", 0.9989), ("inverted", 0.0010), ("golden", 0.0001)],
-    2: [("normal", 0.9978), ("inverted", 0.0020), ("golden", 0.0002)],
-    3: [("normal", 0.9967), ("inverted", 0.0030), ("golden", 0.0003)],
-    4: [("normal", 0.9956), ("inverted", 0.0040), ("golden", 0.0004)],
-    5: [("normal", 0.9945), ("inverted", 0.0050), ("golden", 0.0005)],
+    0: 0.0010,
+    1: 0.0020,
+    2: 0.0040,
+    3: 0.0080,
+    4: 0.0150,
+    5: 0.0300,
 }
 
 # Crate chance upgrade that increases the chance of catching a crate
@@ -225,96 +228,6 @@ FEEDING_UPGRADES = {
     5: (4, 6),
 }
 
-'''
-Trash stuff idk
-
-    Collectibles:
-        - Bottle Cap
-            Chance: 15
-        - Plastic Bottle
-            Chance: 15
-        - Plastic Bag
-            Chance: 15
-        - Seaweed
-            Chance: 15
-        - Fishing Net
-            Chance: 10
-        - Flip Flop
-            Chance: 10
-        - Straw
-            Chance: 10
-        - Old Boot
-            Chance: 5
-        - Tire
-            Chance: 5
-
-    Craftable:
-        - DIY Cast
-            Chance:
-                1 in 60 casts
-            Cost:
-                3 Fishing Nets
-            Gives:
-                1 Cast
-
-        - DIY Fish Bag
-            Chance:
-                1 on 160 casts
-            Cost:
-                5 Plastic Bags
-                5 Straws
-            Gives:
-                1 Random Fish Bag
-
-        - Fishing Boots
-            Chance:
-                1 in 200 casts
-            Cost:
-                2 Old Boots
-                2 Flip Flops
-                4 Fishing Nets
-            Gives:
-                5% chance of earning 2 casts instead of 1
-                (Stacks, capping at 10)
-
-        - Fish Mosaic
-            Chance:
-                1 in 336 casts
-            Cost:
-                20 Bottle Caps
-                3 Straws
-                3 Seaweed
-            Gives:
-                1.5x bonus to everything having to do with that fish
-                (cleaning money, xp earned, sell when caught money)
-                (Stacks, capping at 6)
-
-        - DIY Toys
-            Chance:
-                1 in 408 casts
-            Cost:
-                2 Tires
-                2 Old Boots
-                2 Flip Flops
-                5 Plastic Bottles
-                5 Straws
-                4 Seaweed
-            Gives:
-                1.50x bonus to xp earned from entertaining
-                (Stacks, capping at 5)
-
-        - Plastic Bottle Aquarium
-            Chance:
-                1 in 480 casts
-            Cost:
-                25 Plastic Bottles
-                10 Seaweed
-                5 Plastic Bags
-            Gives:
-                +1 Size Slots to all tanks when bought
-                (stacks, capping at 5)
-'''
-
 
 def special_percentage_finder(upgrade_level):
     """
@@ -420,15 +333,17 @@ EMOJIS = {
     "straight": "<:straight:886377903879753728>",
     "straight_branch": "<:straight_branch:886377903837806602>",
     "uncommon_fish_bag": "<:uncommon_fish_bag:877646167146651768>",
-    "pile_of_bottle_caps": "<:AquaSmile:877939115994255383>",
-    "plastic_bottle": "<:AquaSmile:877939115994255383>",
-    "plastic_bag": "<:AquaSmile:877939115994255383>",
-    "seaweed_scraps": "<:AquaSmile:877939115994255383>",
-    "broken_fishing_net": "<:AquaSmile:877939115994255383>",
-    "halfeaten_flip_flop": "<:AquaSmile:877939115994255383>",
-    "pile_of_straws": "<:AquaSmile:877939115994255383>",
-    "old_boot": "<:AquaSmile:877939115994255383>",
-    "old_tire": "<:AquaSmile:877939115994255383>"
+    "pile_of_bottle_caps": "<:pile_of_bottle_caps:934600170274951188>",
+    "plastic_bottle": "<:plastic_bottle:934600322305912904>",
+    "plastic_bag": "<:plastic_bag:934600170228817930>",
+    "seaweed_scraps": "<:seaweed_scraps:934604323399303239>",
+    "broken_fishing_net": "<:broken_fishing_net:934600170346283038>",
+    "halfeaten_flip_flop": "<:halfeaten_flipflop:934600169834577921>",
+    "pile_of_straws": "<:pile_of_straws:934600169872306227>",
+    "old_boot": "<:old_boot:934600170161717360>",
+    "old_tire": "<:old_tire:934600169918439446>",
+    "fishing_boots": "<:AquaBlep:878248090400870401>",
+    "trash_toys": "<:AquaBonk:877722771935883265>",
 }
 
 # List of names for tank themes
@@ -450,6 +365,91 @@ RARITY_CULERS = {
 }
 
 
+rarity_values = {
+    "common": 5,
+    "uncommon": 15,
+    "rare": 75,
+    "epic": 375,
+    "legendary": 750,
+    "mythic": 5000,
+}
+size_values = {
+    "small": 1,
+    "medium": 2,
+    "large": 3,
+}
+skin_type_dict = {
+    'ignited': ['neon_tetra_school', 'red_betta', 'koi', 'moon_jellyfish', 'sea_bunny', 'surge_wrasse'],
+    'golden': ['clownfish', 'goldfish', 'guppies', 'headshield_slug', 'blue_maomao', 'bottlenose_dolphin',
+               'pufferfish', 'starfish', 'tuna', 'anglerfish', 'bobtail_squid', 'blobfish',
+               'cuttlefish', 'starfish_with_pants', 'dumbo_octopus', 'flowerhorn_cichlid', 'narwhal', 'smalltooth_sawfish'],
+}
+location_list = []
+
+
+class FishSpecies:
+
+    all_species_by_name = {}
+    all_species_by_rarity = {}
+    all_fish_skins = {}
+
+    def __init__(self, *, name: str, size: int, rarity: str, image: str, locations: list):
+        self.name = name
+        self.size = size
+        self.rarity = rarity
+        self.image = image
+        self.locations = locations
+        self.all_fish_skins[name] = ["inverted"]
+        for skin_name, fish in skin_type_dict.items():
+            if name in fish:
+                self.all_fish_skins[name].append(skin_name)
+        self.all_species_by_name[name] = self
+        self.skins = self.all_fish_skins[name]
+        if rarity not in self.all_species_by_rarity.keys():
+            self.all_species_by_rarity[rarity] = [self]
+        else:
+            self.all_species_by_rarity[rarity].append(self)
+
+    @classmethod
+    def get_fish(cls, name: str):
+        return cls.all_species_by_name[name]
+
+    @classmethod
+    def get_rarity(cls, rarity: str):
+        return cls.all_species_by_rarity[rarity]
+
+    @property
+    def cost(self) -> int:
+        return rarity_values[self.rarity] * size_values[self.size]
+
+
+class Fish:
+
+    def __init__(self, *, name: str, level: int, current_xp: int, max_xp: int, alive: bool, species: FishSpecies, location_caught: str, skin: str):
+        self.name = name
+        self.level = level
+        self.current_xp = current_xp
+        self.max_xp = max_xp
+        self.alive = alive
+        self.species = species
+        self.location = location_caught
+        self.skin = skin if skin else ""
+
+
+def get_image(fish: Fish):
+    if fish.skin != "":
+        return f"{fish.species.image[:40]}{fish.skin}_{fish.species.image[40:]}"
+    else:
+        return fish.species.image
+
+
+def get_normal_size_image(fish: Fish):
+    if fish.skin != "":
+        return f"{fish.species.image[:40]}{fish.skin}_fish_size{fish.species.image[44:]}"
+    else:
+        return f"{fish.species.image[:40]}normal_fish_size{fish.species.image[44:]}"
+
+
 def parse_fish_filename(filename: str) -> dict:
     """
     Parse a given fish filename into a dict of `modifier`, `rarity`, `cost`,
@@ -458,34 +458,12 @@ def parse_fish_filename(filename: str) -> dict:
 
     # Initial filename splitterboi
     filename = filename[:-4]  # Remove file extension
-    modifier = None
+
     # Splits the formatted file name into its parts
     rarity, cost, size, *raw_name = filename.split("_")
 
-    # See if our fish name has a modifier on it
-    # If rarity is actually the modifier...
-    if rarity in ["inverted", "golden"]:
-        # Change the variables to what they actually should be
-        modifier, rarity, cost, size, raw_name = (
-            rarity,
-            cost,
-            size,
-            raw_name[0],
-            raw_name[1:],
-        )
-    # Make sure the raw name is the name with underscores joining
-    raw_name = "_".join(raw_name)
-
     # Return the parts of the filename in a dict of the stats
-    return {
-        "modifier": modifier,
-        "rarity": rarity,
-        "cost": cost,
-        "size": size,
-        "raw_name": raw_name,
-        # make the name "Example Text" instead of "example_text"
-        "name": raw_name.replace("_", " ").title(),
-    }
+    return rarity, size, "_".join(raw_name)
 
 
 def fetch_fish(directory: str) -> dict:
@@ -494,14 +472,7 @@ def fetch_fish(directory: str) -> dict:
     """
 
     # Set up a dict of fish the we want to append/return to
-    fetched_fish = {
-        "common": {},
-        "uncommon": {},
-        "rare": {},
-        "epic": {},
-        "legendary": {},
-        "mythic": {},
-    }
+    fetched_fish = []
 
     # Grab all the filenames from the given directory
     _, _, fish_filenames = next(walk(directory))
@@ -510,50 +481,107 @@ def fetch_fish(directory: str) -> dict:
     for filename in fish_filenames:
 
         # Add the fish to the dict
-        fish_data = parse_fish_filename(filename)
-        if fish_data["modifier"]:
-            continue  # We don't care about inverted/golden fish here
-        fetched_fish[fish_data["rarity"]][fish_data["name"].lower()] = {
-            "image": f"{directory}/{filename}",
-            **fish_data,
-        }
+        rarity, size, name = parse_fish_filename(filename)
+        image = f"{directory}/{filename}"
+        fetched_fish.append(
+            FishSpecies(name=name, size=size, rarity=rarity, image=image, locations=location_list))
 
     return fetched_fish
 
 
-def make_golden(fish: dict) -> dict:
-    """
-    Take the given fish and change the dict to make it golden.
-    """
+'''
+Trash stuff idk
 
-    # Adds the modifier to the raw name
-    fish["raw_name"] = f"golden_{fish['raw_name']}"
-    # Adds the modifier to the name
-    fish["name"] = f"Golden {fish['name']}"
-    # Adds the modifier to the image folder path in the correct place
-    fish["image"] = fish["image"][:40] + "golden_" + fish["image"][40:]
-    return fish
+    Collectibles:
+        - Bottle Cap
+            Chance: 15
+        - Plastic Bottle
+            Chance: 15
+        - Plastic Bag
+            Chance: 15
+        - Seaweed
+            Chance: 15
+        - Fishing Net
+            Chance: 10
+        - Flip Flop
+            Chance: 10
+        - Straw
+            Chance: 10
+        - Old Boot
+            Chance: 5
+        - Tire
+            Chance: 5
+
+    Craftable:
+        - DIY Cast
+            Chance:
+                1 in 80 casts
+            Cost:
+                2 Fishing Nets
+            Gives:
+                1 Cast
+
+        - DIY Fish Bag
+            Chance:
+                1 on 88 casts
+            Cost:
+                2 Plastic Bags
+                1 Straws
+            Gives:
+                1 Random Fish Bag
+
+        - Fishing Boots
+            Chance:
+                1 in 280 casts
+            Cost:
+                2 Old Boots
+                3 Fishing Nets
+            Gives:
+                5% chance of earning 2 casts instead of 1
+                (Stacks, capping at 10)
+
+        - DIY Toys
+            Chance:
+                1 in 456 casts
+            Cost:
+                2 Tires
+                2 Flip Flops
+                5 Plastic Bottles
+                4 Seaweed
+            Gives:
+                1.50x bonus to xp earned from entertaining
+                (Stacks, capping at 5)
+
+'''
+
+items_required = {
+    "Cast": ({
+        "broken_fishing_net": 2
+    }, "Gives you one cast."),
+    "Fish Bag": ({
+        "plastic_bag": 2,
+        "pile_of_straws": 1
+    }, "Gives you one fish bag. (Either common, uncommon, or rare)"),
+    "Fishing Boots": ({
+        "old_boot": 2,
+        "broken_fishing_net": 3
+    }, "Gives you a 5% chance to get 2 casts instead of 1 each hour. (stacks up to 5)"),
+    "Trash Toys": ({
+        "old_tire": 2,
+        "halfeaten_flip_flop": 2,
+        "plastic_bottle": 5,
+        "seaweed_scraps": 4
+    }, "Gives you a 50% bonus to xp gotten from entertaining. (stacks up to 5)")
+}
 
 
-def make_inverted(fish: dict) -> dict:
-    """
-    Take the given fish and change the dict to make it inverted.
-    """
-
-    # Adds the modifier to the raw name
-    fish["raw_name"] = f"inverted_{fish['raw_name']}"
-    fish["name"] = f"Inverted {fish['name']}"  # Adds the modifier to the name
-    # Adds the modifier to the image folder path in the correct place
-    fish["image"] = fish["image"][:40] + "inverted_" + fish["image"][40:]
-    return fish
-
-
-def get_normal_name(fish_name):
-    """Get the unmodified fish name by removing inverted/golden prefix"""
-
-    fish_name = fish_name.removeprefix("inverted_")
-    fish_name = fish_name.removeprefix("golden_")
-    return fish_name
+async def enough_to_craft(crafted: str, user_id: int):
+    for item, required in items_required[crafted][0].items():
+        async with vbu.Database() as db:
+            amount = await db(f"""SELECT {item} FROM user_item_inventory WHERE user_id = $1""", user_id)
+        if amount[0][item] < required:
+            return False
+    return True
 
 
 async def create_select_menu(bot, ctx, option_list, type_noun, type_verb):
@@ -644,18 +672,50 @@ async def create_modal(bot, Interaction, title, placeholder):
     )
 
     # Wait for an interaction to be given back
-    interaction: discord.Interaction = await bot.wait_for(
-        "modal_submit",
-        check=lambda i: i.data['custom_id'] == sent_modal.custom_id,
-    )
+    try:
+        interaction: discord.Interaction = await bot.wait_for(
+            "modal_submit",
+            check=lambda i: i.data['custom_id'] == sent_modal.custom_id,
+            timeout=60.0
+        )
+    except asyncio.TimeoutError:
+        return None
 
     # Go through the response components and get the first (and only) value from the user
     assert interaction.components
     given_value = interaction.components[0].components[0].value
 
     # Respond with what the user said
-    return given_value
+    return given_value, interaction
+
+
+def random_name_finder():
+    titles = [
+        "Captain",
+        "Mr.",
+        "Mrs.",
+        "Commander",
+        "Sir",
+        "Madam",
+        "Skipper",
+        "Crewmate",
+    ]
+    names = [
+        "Nemo",
+        "Bubbles",
+        "Jack",
+        "Finley",
+        "Coral",
+        "Fish",
+        "Turtle",
+        "Squid",
+        "Sponge",
+        "Starfish",
+    ]
+    name = f"{random.choice(titles)} {random.choice(names)}"
+    return name
 
 
 # This is a list of fish that are no longer able to be caught
-past_fish = ["acorn_goldfish", "cornucopish", "turkeyfish"]
+past_fish = ["acorn_goldfish", "cornucopish", "turkeyfish",
+             "christmastreefish", "santa_goldfish", "gingerbread_axolotl"]
