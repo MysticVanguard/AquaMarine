@@ -398,39 +398,63 @@ class Shop(vbu.Cog):
                 if inventory_rows[0][type_of_potion] == 0:
                     return await ctx.send("You have no potions of that type!")
 
-            # Let them tell you what fish they want to give the potion to
+            # Find the fish with that name
+            async with vbu.Database() as db:
+                fish_rows = await db(
+                    """SELECT * FROM user_fish_inventory WHERE user_id = $1 AND tank_fish != '' AND death_time != Null""",
+                    ctx.author.id,
+                )
+
+            fish_rows_names = []
+            for row in fish_rows:
+                fish_rows_names.append(row['fish_name'])
+
+            # Add the buttons to the message
+            components = discord.ui.MessageComponents(
+                discord.ui.ActionRow(
+                    discord.ui.Button(emoji=EMOJIS["aqua_smile"]),
+                ),
+            )
+            # Asks for the name of the tank the user is putting the theme on and makes sure it is correct
             message = await ctx.send(
-                "Enter the name of the fish you want to give that potion to."
+                f"Press the button to specify fish you want to give the potion to",
+                components=components
             )
 
-            # Check for the message the user sends
-            def check(m):
-                return m.author == ctx.author and m.channel == message.channel
+            def button_check(payload):
+                if payload.message.id != message.id:
+                    return False
+                return payload.user.id == ctx.author.id
 
-            # Set the name to what the user enters
+            # Wait for them to click a button
             try:
-                name_message = await self.bot.wait_for(
-                    "message", timeout=60.0, check=check
+                chosen_button_payload = await self.bot.wait_for(
+                    "component_interaction", timeout=60.0, check=button_check
                 )
-                name = name_message.content
-
-            # Timeout check
             except asyncio.TimeoutError:
-                return await message.channel.send(
-                    "Timed out asking for fish name"
+                return await ctx.send(
+                    "Timed out asking for interaction, no available slots given."
+                )
+
+            name, interaction = await utils.create_modal(self.bot, chosen_button_payload, "Choose a fish", "Fish in a tank to give potion to")
+
+            if not name:
+                return await ctx.send(
+                    "Timed out asking for name, no available name given."
                 )
 
             # Find the fish with that name
+            await interaction.response.defer_update()
             async with vbu.Database() as db:
                 fish_row = await db(
-                    """SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2""",
+                    """SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2 AND tank_fish != ''""",
                     ctx.author.id,
-                    name,
+                    name
                 )
 
             # Check for if the fish exists
             if not fish_row:
-                return await ctx.send("There is no fish with that name.")
+                return await ctx.send("There is no fish in a tank with that name.")
 
             # Remove one potion from the user
             async with vbu.Database() as db:
@@ -828,11 +852,12 @@ class Shop(vbu.Cog):
     @commands.bot_has_permissions(send_messages=True)
     async def daily(self, ctx: commands.Context):
         """
-        This command gives the user a daily reward of 1000 Sand Dollars.
+        This command gives the user a daily reward of up to 2,500 Sand Dollars.
         """
 
         # Check if they voted and if not tell them they need to vote
         if not await utils.check_registered(self.bot, ctx.author.id):
+            ctx.command.reset_cooldown(ctx)
             return await ctx.send("Please use the `register` command before using this bot!")
         if await utils.get_user_voted(self.bot, ctx.author.id) is False:
             ctx.command.reset_cooldown(ctx)
@@ -840,22 +865,64 @@ class Shop(vbu.Cog):
                 "Please vote and then run this command to get the daily reward!"
             )
 
+        components = discord.ui.MessageComponents(
+            discord.ui.ActionRow(
+                discord.ui.Button(
+                    label="Stop Spinning", custom_id="stop"
+                )
+            ),
+
+        )
+        embed = discord.Embed(title="Click the button to stop the wheel!")
+        file = discord.File(
+            "C:/Users/JT/Pictures/Aqua/assets/images/background/daily_wheel.gif", "win_wheel.gif")
+        embed.set_image(url="attachment://win_wheel.gif")
+        embed.add_field(
+            name=f"Spinning...", value="Green = 400\nBlue = 800\nPurple = 1,600\nYellow = 2,400\nPink = 4,800")
+        daily_message = await ctx.send(embed=embed, components=components, file=file)
+
+        # Make the button check
+
+        def button_check(payload):
+            if payload.message.id != daily_message.id:
+                return False
+            return payload.user.id == ctx.author.id
+
+        # Wait for them to click a button
+        try:
+            await self.bot.wait_for(
+                "component_interaction", check=button_check, timeout=60
+            )
+        except TimeoutError:
+            ctx.command.reset_cooldown(ctx)
+            return await ctx.send("Timed out waiting for click, try again.")
+
+        reward = random.choices(
+            [400, 800, 1600, 2400, 4800], [.5, .25, .125, .083, .042])[0]
+
         # Adds the money to the users balance
         async with vbu.Database() as db:
             await db(
-                """UPDATE user_balance SET balance = balance + 1000 WHERE user_id = $1""",
+                """UPDATE user_balance SET balance = balance + $2 WHERE user_id = $1""",
                 ctx.author.id,
+                reward,
             )
             # Achievements
             await db(
-                """UPDATE user_achievements SET money_gained = money_gained + 1000 WHERE user_id = $1""",
+                """UPDATE user_achievements SET money_gained = money_gained + $2 WHERE user_id = $1""",
                 ctx.author.id,
+                reward,
             )
 
         # confirmation message
-        return await ctx.send(
-            f"Daily reward of 1,000 {EMOJIS['sand_dollar']} claimed!"
-        )
+        embed = discord.Embed(title="Click the button to stop the wheel!")
+        file = discord.File(
+            f"C:/Users/JT/Pictures/Aqua/assets/images/background/{str(reward)}_wheel_win.png", "win_wheel.png")
+        embed.set_image(url="attachment://win_wheel.png")
+        embed.add_field(
+            name=f"Daily reward of {reward:,} {EMOJIS['sand_dollar']} claimed!", value="Green = 400\nBlue = 800\nPurple = 1,600\nYellow = 2,400\nPink = 4,800")
+        await daily_message.delete()
+        return await ctx.send(embed=embed, file=file)
 
     @daily.error
     async def daily_error(self, ctx, error):

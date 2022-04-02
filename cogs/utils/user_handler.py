@@ -21,6 +21,12 @@ async def ask_to_sell_fish(
     Ask the user if they want to sell a fish they've been given.
     """
 
+    size_demultiplier = {
+        "small": 1,
+        "medium": 2,
+        "large": 3
+    }
+    chosen_button_payload = None
     # Add the buttons to the message
     components = discord.ui.MessageComponents(
         discord.ui.ActionRow(
@@ -145,6 +151,8 @@ async def ask_to_sell_fish(
                 )
             return
         if chosen_button == "sell":
+            if chosen_button_payload:
+                await chosen_button_payload.response.defer_update()
             # See if they want to sell the fish
             vote_multiplier = 0
             if await get_user_voted(bot, ctx.author.id):
@@ -154,7 +162,9 @@ async def ask_to_sell_fish(
                 )
 
             level_multiplier = level / 20
-            money_earned = math.ceil((int(chosen_fish.cost)) * (
+            money_gained = int(chosen_fish.cost /
+                               size_demultiplier[chosen_fish.size])
+            money_earned = math.ceil((money_gained) * (
                 utils.ROD_UPGRADES[upgrades[0]["rod_upgrade"]] + level_multiplier + vote_multiplier))
             async with bot.database() as db:
                 await db(

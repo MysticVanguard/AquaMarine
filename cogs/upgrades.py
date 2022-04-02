@@ -21,11 +21,11 @@ class Upgrades(vbu.Cog):
         "lure_upgrade": "Increases the chance of catching a special fish when fishing",
         "feeding_upgrade": "Increases how long fish will live after being fed",
         "toys_upgrade": "Increases the xp gained from entertaining",
-        "mutation_upgrade": "Increases the chance of a fish mutating to a special fish during cleaning",
+        "mutation_upgrade": "Increases chance of a fish getting a skin while cleaning",
         "amazement_upgrade": "Increases chance of bonus level when entertaining",
         "bleach_upgrade": "Increases the cleaning multiplier",
         "big_servings_upgrade": "Increases chance of a fish not eating food when they are fed",
-        "hygienic_upgrade": "Lessens the frequency of cleaning, while giving a multiplier equal to the lost time",
+        "hygienic_upgrade": "Lessens the frequency of cleaning, and gives multiplier to compensate",
     }
 
     # TIER 3
@@ -234,7 +234,7 @@ class Upgrades(vbu.Cog):
 
                 # If they're fully upgraded
                 if level == 5:
-                    cost_string = "This Upgrade is fully upgraded."
+                    cost_string = "Fully upgraded."
 
                 # Each level they have is a full bar emoji, up to 5 characters long
                 emote_string_list.clear()  # Clear our emoji list first
@@ -271,26 +271,32 @@ class Upgrades(vbu.Cog):
                     tier = 0
 
         # Set up the embed with titles for each field
-        embed = vbu.Embed()
         for time, message_data in enumerate(message):
-            if time == 0:
+            if time <= 7:
+                if time == 0:
+                    embed = vbu.Embed()
+                    embed.add_field(
+                        name="The Way of the Fish",
+                        value="These upgrades have to do with fishing",
+                        inline=False,
+                    )
                 embed.add_field(
-                    name="The Way of the Fish",
-                    value="These upgrades have to do with fishing",
-                    inline=False,
+                    name=message_data[1], value=message_data[0], inline=False
                 )
-            elif time == 8:
-                embed.add_field(
-                    name="The Way of the Tank",
-                    value="These upgrades have to do with owning fish in aquariums",
-                    inline=False,
+            if time > 7:
+                if time == 8:
+                    embed_2 = vbu.Embed()
+                    embed_2.add_field(
+                        name="The Way of the Tank",
+                        value="These upgrades have to do with owning fish in aquariums",
+                        inline=False,
+                    )
+                embed_2.add_field(
+                    name=message_data[1], value=message_data[0], inline=False
                 )
-            embed.add_field(
-                name=message_data[1], value=message_data[0], inline=False
-            )
-
         # Send the embed
         await ctx.send(embed=embed)
+        await ctx.send(embed=embed_2)
 
     @commands.command()
     @commands.bot_has_permissions(send_messages=True, embed_links=True)

@@ -101,11 +101,11 @@ CREDITS_EMBED = discord.Embed(
 )
 CREDITS_EMBED.add_field(
     name="The lovely coders who helped me with creating the bot, and who have taught me so much!",
-    value="""
-        [**Hero#2313**](https://github.com/iHeroGH): Creator of StalkerBot
-        [**Kae#0004**](https://voxelfox.co.uk/): Creator of MarriageBot and so many others
-        [**slippery schlöpp#6969**](https://github.com/schlopp): Creator of pp bot
-    """,
+    value=(
+        "[**Hero#2313**](https://github.com/iHeroGH): Creator of StalkerBot"
+        "[**Kae#0004**](https://voxelfox.co.uk/): Creator of MarriageBot and so many others"
+        "[**slippery schlöpp#6969**](https://github.com/schlopp): Creator of pp bot"
+    ),
     inline=False,
 )
 CREDITS_EMBED.add_field(
@@ -125,13 +125,170 @@ CREDITS_EMBED.add_field(
 )
 CREDITS_EMBED.add_field(
     name="Credits to all the people who have helped me test the bot!",
-    value="""
-        Aria, Astro, Dessy, Finn, George,
-        Jack, Kae, Nafezra, Quig Quonk,
-        Schlöpp, Toby, Victor, Ween
-    """,
+    value=(
+        "Aria, Astro, Dessy, Finn, George,\n"
+        "Jack, Kae, Nafezra, Quig Quonk,\n"
+        "Schlöpp, Toby, Victor, Ween"
+    ),
     inline=False,
 )
+
+help_descriptions = {
+    "prefix": (
+        "prefix *new prefix*",
+        "This command will change the prefix of the bot in your server."
+    ),
+    "info": (
+        "info",
+        "This command will show various info about the bot, including a little blurb on how to use it, and some useful buttons (a button to invite the bot, "
+        "the website one doesn't work, one to the support server, one to the github, the donate one doesn't work, and one to vote for the bot)."
+    ),
+    "invite": (
+        "invite",
+        "This will give the invite link for the bot."
+    ),
+    "vote": (
+        "vote",
+        "This will give a link to top.gg, where you can vote to unlock a 1.5x bonus to gained sand dollars and access to the daily command for that day."
+    ),
+    "stats": (
+        "stats",
+        "This command will show various info about the bot, including the creator, votes, and guild (server) count."
+    ),
+    "firsttank": (
+        "firsttank",
+        "This command needs to be used before you can have a tank, and it will give you your first starter tank with 1 point of space."
+    ),
+    "preview": (
+        "preview *theme*",
+        "This command will preview the given theme, on the tank type (chosen after via select box)."
+    ),
+    "fish": (
+        "fish",
+        "This command is the most basic command, and is used to catch a fish, that can be kept or sold. First it will have you guess the name of a fish for a "
+        "few bonus sand dollars, then you can choose to keep the fish, where you wil lthen have to name it, or you can choose to sell the fish to get more sand dollars."
+    ),
+    "rename": (
+        "rename \"*old fish/tank's name*\" \"*new fish/tank's name*\"",
+        "This command will let you rename a fish or tank to a new name, prioritizing the tank name if there is both a fish and tank with the name."
+    ),
+    "craft": (
+        "craft __item name__",
+        "This command will give a menu (when no item name is supplied) of what items can be crafted, what they do, and how much trash it costs to craft them. "
+        "If an item name is supplied, it will try to craft the item."
+    ),
+    "tank": (
+        "tank *tank name*",
+        "This command will show a few buttons to help manage your tank. The first button entertains the fish inside, giving them xp. "
+        "The second button cleans the tank, giving you money. The third button will give a drop down of hungry fish in the tank, and let you feed one of them if you "
+        "have fish food for them, adding 3 days to their lifespan. The revive button can be used to revive a fish if you have a revival, giving a dropdown of dead "
+        "fish in the tank. The show button will create a gif of the fish swimming in the tank (if they are alive). The remove fish button will remove a fish from the "
+        "tank, but make sure you have some fish food on you as it will take up one of them to remove the fish. The deposit fish button will deposit a fish into the tank "
+        "if there is room in the tank. The info button will give info on the tank like its type, the room left, and info on the fish inside"
+    ),
+    "stab": (
+        "stab *mention user*",
+        "This command will send a cute gif and stab another user."
+    ),
+    "bug": (
+        "bug *command name* *report of problem*",
+        "This command can be used to report any problems you see in the bot that you don't think are intentional."
+    ),
+    "support": (
+        "support",
+        "This command will give a link to the support server for the bot, where there is a growing community and cute aqua emotes."
+    ),
+    "shop": (
+        "shop",
+        "This command sends a paginated embed of the shop, with various items for sale."
+    ),
+    "buy": (
+        "buy \"*item*\" __amount__",
+        "This command is used to buy an amount of an item that is listed in the shop."
+    ),
+    "use": (
+        "use *item*",
+        "This command uses an item, either a fish bag or a potion. If a fish bag is used, it is relatively similar to using the 'fish' command. If a potion is used, a name "
+        "of the fish it is given to will need to be entered."
+    ),
+    "inventory": (
+        "inventory",
+        "This command will show you how many of each different item you have."
+    ),
+    "balance": (
+        "balance __user mention__",
+        "This command will show your balance, or a mentioned user's balance if one's given."
+    ),
+    "sell": (
+        "sell *fish name*",
+        "This command will sell a fish, increasing with the level of fish sold."
+    ),
+    "daily": (
+        "daily",
+        "This command will let you spin a wheel of prizes of voted, where you can win up to 4,800 sand dollars."
+    ),
+    "gamble": (
+        "gamble *amount divisible by 100*",
+        "This command let's you gamble and win or lose your sand dollars."
+    ),
+    "upgrades": (
+        "upgrades",
+        "This will show your progression in upgrades, each giving various buffs and bonuses. The previous upgrade must be fully upgrade before the next tier is unlocked."
+    ),
+    "upgrade": (
+        "upgrade *upgrade name*",
+        "This will upgrade the given upgrade by one if you have enough sand dollars to do so."
+    ),
+    "tanks": (
+        "tanks",
+        "This will show various info on all the tanks you have, and the fish inside them."
+    ),
+    "profile": (
+        "profile",
+        "This will show a lot of compact info about you, including your highest level fish, how many unique different types of fish you have, sorted by rarity, how many of each "
+        "item you have, how many tanks you have, and your balance."
+    ),
+    "bestiary": (
+        "bestiary __fish name__",
+        "This command will give a paginated embed of every fish name sorted by rarity, or if a specific fish is given, it will show what that fish looks like, it's size, and how "
+        "much it sells for."
+    ),
+    "fishbucket": (
+        "fishbucket __user mention__",
+        "This command will give you a paginated embed of all the fish you have kept, giving info about their name, size, if they are alive, and if they have a skin."
+    ),
+    "achievements": (
+        "achievements",
+        "This command shows you various achievements that can be collected and your progress. If there are claimable rewards, a button will appear (This command may need ran "
+        "multiple times to claim all rewards)."
+    ),
+    "credits": (
+        "credits",
+        "This command gives a thank you to the people who helped work on the bot and test it, as well as the person who made the aqua emotes."
+    ),
+    "leaderboard": (
+        "leaderboard",
+        "This command will open up a dropdown where you will choose the type of leaderboard you want to view (balance, fish points), and then give the leaderboard in the selected "
+        "area. Balance is everyone's current balance, and fish points are directly related to the fish a user has kept."
+    ),
+    "register": (
+        "register",
+        "This command is used to register for using the bot, and every new user needs to do it to start using the bot. It will give a small information blurb on where to go for help."
+    ),
+    "guide": (
+        "guide",
+        "This command is used to learn how to use the bot, and explains the commands and interworkings of the bot much more in depth."
+    ),
+    "totalfish": (
+        "totalfish",
+        "This command is used to see a ranking of the most kept fish in the bot to the least kept fish."
+    ),
+    "help": (
+        "help __command__",
+        "This command gives general info on each command, or specific info on a singular command if one is specified."
+    )
+
+}
 
 
 class Informative(vbu.Cog):
@@ -644,6 +801,11 @@ class Informative(vbu.Cog):
         """
         This command shows the user info about fish.
         """
+        size_demultiplier = {
+            "small": 1,
+            "medium": 2,
+            "large": 3
+        }
 
         # If we want to just send all the fish
         if not fish_name:
@@ -689,13 +851,16 @@ class Informative(vbu.Cog):
 
         # Find the info of the fish they selected
         try:
-            selected_fish = FishSpecies.get_fish(name=fish_name)
+            selected_fish = FishSpecies.get_fish(
+                name=fish_name.replace(" ", "_").lower())
 
         # If it doesnt exist tell them
         except KeyError:
             return await ctx.send("That fish doesn't exist.")
 
         # Set up the embed with all the needed data
+        money_gained = int(selected_fish.cost /
+                           size_demultiplier[selected_fish.size])
         embed = discord.Embed(
             title=selected_fish.name.replace('_', ' ').title())
         embed.set_image(url="attachment://new_fish.png")
@@ -704,7 +869,7 @@ class Informative(vbu.Cog):
         )
         embed.add_field(
             name="Base Sell Price:",
-            value=f"{int(selected_fish.cost)} {EMOJIS['sand_dollar']}",
+            value=f"{int(money_gained)} {EMOJIS['sand_dollar']}",
             inline=True,
         )
         embed.add_field(
@@ -725,8 +890,7 @@ class Informative(vbu.Cog):
 
     @commands.command(aliases=["bucket", "fb"])
     @commands.bot_has_permissions(
-        send_messages=True, embed_links=True, manage_messages=True
-    )
+        send_messages=True, embed_links=True)
     async def fishbucket(
         self, ctx: commands.Context, user: discord.User = None
     ):
@@ -1278,7 +1442,9 @@ class Informative(vbu.Cog):
     @commands.command()
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def guide(self, ctx: commands.Context):
-
+        """
+        Give's a navigatable guide of the bot.
+        """
         # Check the size of the fields and make sure they're correct
         fields = []
         for field in GUIDE_FIELDS:
@@ -1290,6 +1456,9 @@ class Informative(vbu.Cog):
     @commands.command()
     @commands.bot_has_permissions(send_messages=True)
     async def totalfish(self, ctx: commands.Context, *, tank_cleaned: str = None):
+        """
+        Shows the number of each type of fish owned, sorted by most
+        """
         fish_dict = {}
         async with vbu.Database() as db:
             fish = await db("""SELECT fish FROM user_fish_inventory""")
@@ -1320,6 +1489,34 @@ class Informative(vbu.Cog):
         # Return the embed
         return await menu.start(ctx)
 
+    @commands.command()
+    @commands.bot_has_permissions(send_messages=True)
+    async def help(self, ctx: commands.Context, *, command: str = None):
+        """
+        Gives help for all or a specific command
+        """
+        HELP_EMBED = discord.Embed(
+            title="List of all the commands and what they do")
+        for cog_num, cog in enumerate(self.bot.cogs.values()):
+            field_title = cog.qualified_name
+            value = ""
+            if field_title not in ["Command Event", "Owner Only", "Command Counter", "Connect Event", "Error Handler", "Presence Auto Updater", "Interaction Handler", "Analytics", "Help"]:
+                for command_singular in cog.get_commands():
+                    if command_singular.hidden == False:
+                        value += f"**{command_singular.name}**: {command_singular.help}\n"
+                HELP_EMBED.add_field(
+                    name=f"__{field_title}__", value=value, inline=False)
+        if not command:
+            return await ctx.send(embed=HELP_EMBED)
+        if command not in help_descriptions.keys():
+            return await ctx.send("That command doesn't exist!")
+        embed = discord.Embed(title=f"Help for {command}")
+        embed.add_field(
+            name=f"Use: {help_descriptions[command][0]}", value=f"{help_descriptions[command][1]}\n\n(*italic words* are required, while __underlined words__ are optional, but always include any \"\")")
+
+        return await ctx.send(embed=embed)
+
 
 def setup(bot):
+    bot.remove_command("help")
     bot.add_cog(Informative(bot))

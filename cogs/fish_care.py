@@ -1,12 +1,13 @@
 import math
 import random
 from datetime import datetime as dt, timedelta
+from PIL import Image
 
 from discord.ext import commands, tasks, vbu
 import discord
 
 from cogs import utils
-from cogs.utils.fish_handler import DAYLIGHT_SAVINGS, FishSpecies
+from cogs.utils.fish_handler import FishSpecies, Fish
 
 
 class FishCare(vbu.Cog):
@@ -47,498 +48,218 @@ class FishCare(vbu.Cog):
 
     @commands.command()
     @commands.bot_has_permissions(send_messages=True)
-    async def entertain(
-        self, ctx: commands.Context, *, tank_entertained: str = None
-    ):
+    async def tank(self, ctx: commands.Context, *, tank: str = None):
         """
-        This command entertains all the fish in a tank, giving them all xp.
+        Shows the specified tank and lets you feed, clean, entertain, etc.
         """
-
-        # fetches needed rows
-        if not await utils.check_registered(self.bot, ctx.author.id):
-            return await ctx.send("Please use the `register` command before using this bot!")
-        async with vbu.Database() as db:
-            tank_rows = await db(
-                """SELECT * FROM user_tank_inventory WHERE user_id = $1""",
-                ctx.author.id,
-            )
-            upgrades = await db(
-                """SELECT toys_upgrade, amazement_upgrade FROM user_upgrades WHERE user_id = $1""",
-                ctx.author.id,
-            )
-
-        await ctx.trigger_typing()
-
-        # If the user has no tanks return
-        if not tank_rows:
-            return await ctx.send("You have no tanks! Please use the `firsttank` command!")
-
-        # If they didnt specify a tank to entertain...
-        if not tank_entertained:
-
-            # Create a select menu with the tanks as options
-            tank_entertained = await utils.create_select_menu(
-                self.bot, ctx, tank_rows[0]["tank_name"], "tank", "entertain"
-            )
-
-        # Get the fish in the chosen tank
-        async with vbu.Database() as db:
-            fish_rows = await db(
-                """SELECT * FROM user_fish_inventory WHERE user_id = $1 AND tank_fish = $2 AND fish_alive = TRUE""",
-                ctx.author.id,
-                tank_entertained,
-            )
-            amount_of_crafted = await db(f"""SELECT fishing_boots FROM user_item_inventory WHERE user_id = $1""", ctx.author.id)
-
-        # Finds how much xp will be added, and if an extra level will be added
-        total_xp_to_add = random.randint(
-            utils.TOYS_UPGRADE[upgrades[0]["toys_upgrade"]][0],
-            utils.TOYS_UPGRADE[upgrades[0]["toys_upgrade"]][1],
-        )
-
-        if amount_of_crafted:
-            boot_multiplier = .5 * amount_of_crafted[0]['fishing_boots']
-        else:
-            boot_multiplier = 0
-        total_xp_to_add * (1 + (boot_multiplier))
-        extra_level = random.randint(
-            1, utils.AMAZEMENT_UPGRADE[upgrades[0]["amazement_upgrade"]]
-        )
-
-        # set a new level check to true if theres an extra level
-        if extra_level == 1:
-            new_level = True
-        else:
-            new_level = False
-
-        # Checks to see if there is no tank
-        if tank_entertained not in tank_rows[0]["tank_name"]:
-            return await ctx.send("There is no tank with that name! (If you don't own a tank use the `firsttank` command)")
-
-        # Work out which slot the tank is in
-        tank_slot = 0
-        for tank_slots, tank_slot_in in enumerate(tank_rows[0]["tank_name"]):
-            if tank_slot_in == tank_entertained:
-                tank_slot = tank_slots
-                break
-
-        # See if they're able to entertain their tank due to the cooldown
-        if tank_rows[0]["tank_entertain_time"][tank_slot]:
-            if (
-                tank_rows[0]["tank_entertain_time"][tank_slot]
-                + timedelta(minutes=5)
-                > dt.utcnow()
-            ):
-                time_left = timedelta(
-                    seconds=(
-                        tank_rows[0]["tank_entertain_time"][tank_slot]
-                        - dt.utcnow()
-                        + timedelta(minutes=5)
-                    ).total_seconds()
-                )
-                relative_time = discord.utils.format_dt(
-                    dt.utcnow()
-                    + time_left
-                    - timedelta(hours=DAYLIGHT_SAVINGS),
-                    style="R",
-                )
-                return await ctx.send(
-                    f"This tank is entertained, please try again in {relative_time}."
-                )
-
-        # See if there are any fish in the tank
-        if not fish_rows:
-            return await ctx.send("You have no alive fish in this tank!")
+        # Slash command defer
+        if hasattr(ctx, "interaction"):
+            await ctx.interaction.response.defer()
 
         # Typing Indicator
         async with ctx.typing():
 
-            # For each fish add them to a list of fish names
-            fish = []
-            for single_fish in range(len(fish_rows)):
-                fish.append(fish_rows[single_fish]["fish_name"])
+            # variables
+            min_max_y = {
+                "Fish Bowl": (20, 50),
+                "Small Tank": (15, 200),
+                "Medium Tank": (20, 200),
+            }
+            min_max_x = {
+                "Fish Bowl": (50, 150),
+                "Small Tank": (50, 360),
+                "Medium Tank": (50, 720),
+            }
+            im = []
+            fishes = []
+            files = []
+            dead_alive = []
+            fish_selections = []
+            gif_name = random.randint(1, 1000)
+            tank_types = {
+                "Fish Bowl": "fishbowl",
+                "Small Tank": "Small_Tank_2D",
+                "Medium Tank": "Medium_Tank_2D",
+            }
+            tank_slot = 0
 
-            # Find the xp per fish and initiate the new data, and new line
-            xp_per_fish = math.floor(total_xp_to_add / len(fish))
-            new_fish_data = []
-            n = "\n"
-
-            # database...
+            # gets database info for tank
+            if not await utils.check_registered(self.bot, ctx.author.id):
+                return await ctx.send("Please use the `register` command before using this bot!")
             async with vbu.Database() as db:
-
-                # Set the new time for when the tank was entertained
-                await db(
-                    """UPDATE user_tank_inventory SET tank_entertain_time[$2] = $3 WHERE user_id = $1""",
+                selected_fish = await db(
+                    """SELECT * FROM user_fish_inventory WHERE user_id = $1 AND tank_fish = $2""",
                     ctx.author.id,
-                    int(tank_slot + 1),
-                    dt.utcnow(),
+                    tank,
                 )
-
-                # For each fish in the tank add their xp, gets the new fish's data
-                for fish_name in fish:
-                    await utils.xp_finder_adder(
-                        ctx.author, fish_name, xp_per_fish, new_level
-                    )
-                    new_fish_rows = await db(
-                        """SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2""",
-                        ctx.author.id,
-                        fish_name,
-                    )
-                    new_fish_data.append(
-                        [
-                            new_fish_rows[0]["fish_name"],
-                            new_fish_rows[0]["fish_level"],
-                            new_fish_rows[0]["fish_xp"],
-                            new_fish_rows[0]["fish_xp_max"],
-                        ]
-                    )
-
-                # Achievement added
-                await db(
-                    """UPDATE user_achievements SET times_entertained = times_entertained + 1 WHERE user_id = $1""",
+                tank_row = await db(
+                    """SELECT * FROM user_tank_inventory WHERE user_id =$1""",
                     ctx.author.id,
                 )
 
-        # The start of the display
-        display_block = f"All fish have gained {xp_per_fish:,} XP{n}"
-
-        # Add a string for each fish adding their new level and data
-        for data in new_fish_data:
-            display_block = (
-                display_block
-                + f"{data[0]} is now level {data[1]}, {data[2]}/{data[3]}{n}"
-            )
-
-        # Send the display string
-        return await ctx.send(display_block)
-
-    @commands.command()
-    @commands.bot_has_permissions(send_messages=True)
-    async def feed(self, ctx: commands.Context, *, fish_fed: str = None):
-        """
-        This command feeds a fish in a tank with fish flakes.
-        """
-
-        # Send a defer while we open the database
-        await ctx.trigger_typing()
-
-        # Fetches needed rows and gets the users amount of food
-        if not await utils.check_registered(self.bot, ctx.author.id):
-            return await ctx.send("Please use the `register` command before using this bot!")
-        async with vbu.Database() as db:
-            upgrades = await db(
-                """SELECT feeding_upgrade, big_servings_upgrade FROM user_upgrades WHERE user_id = $1""",
-                ctx.author.id,
-            )
-            fish_rows = await db(
-                """SELECT * FROM user_fish_inventory WHERE user_id = $1 AND tank_fish != ''""",
-                ctx.author.id,
-            )
-            tank_rows = await db(
-                """SELECT * FROM user_tank_inventory WHERE user_id = $1""",
-                ctx.author.id,
-            )
-            item_rows = await db(
-                """SELECT * FROM user_item_inventory WHERE user_id = $1""",
-                ctx.author.id,
-            )
-
-        # Checks for if the user owns fish or tanks
-        await ctx.trigger_typing()
-        if not fish_rows:
-            return await ctx.send("You have no fish in a tank!")
-        if not tank_rows:
-            return await ctx.send("You have no tanks! Please use the `firsttank` command!")
-        if not fish_fed:
-
-            # If they own more than 25 fish...
-            if len(fish_rows) > 25:
-
-                # Creates a select menu of all the tanks and returns the users choice
-                tank_chosen = await utils.create_select_menu(
-                    self.bot, ctx, tank_rows[0]["tank_name"], "tank", "choose"
-                )
-
-                # Set the new fish_rows of only fish in that tank
-                async with vbu.Database() as db:
-                    fish_rows = await db(
-                        """SELECT * FROM user_fish_inventory WHERE user_id = $1 AND tank_fish = $2""",
-                        ctx.author.id,
-                        tank_chosen,
-                    )
-
-            # For each fish in the selected fish rows add them to a list
-            fish_in_tank = []
-            for fish in fish_rows:
-                fish_in_tank.append(fish["fish_name"])
-
-            # Create a select menu of those fish
-            fish_fed = await utils.create_select_menu(
-                self.bot, ctx, fish_in_tank, "fish", "feed"
-            )
-
-        # Find the fish row of the selected fish
-        async with vbu.Database() as db:
-            fish_row = await db(
-                """SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2 AND tank_fish != ''""",
-                ctx.author.id,
-                fish_fed,
-            )
-
-        # See if the user has a fish with that name
-        if not fish_row:
-            return await ctx.send("You have no fish in a tank named that!")
-
-        # See if the user has fish food for it
-        if fish_row[0]["fish_level"] <= 20:
-            type_of_food = "flakes"
-        elif fish_row[0]["fish_level"] <= 50:
-            type_of_food = "pellets"
-        else:
-            type_of_food = "wafers"
-
-        # If they dont, tell them they have none
-        if not item_rows[0][type_of_food]:
-            return await ctx.send(f"You have no {type_of_food}!")
-
-        # Make sure the fish is able to be fed
-        if fish_row[0]["fish_feed_time"]:
-            if (
-                fish_feed_timeout := fish_row[0]["fish_feed_time"]
-                + self.FISH_FEED_COOLDOWN
-            ) > dt.utcnow() and ctx.author.id != 449966150898417664:
-                relative_time = discord.utils.format_dt(
-                    fish_feed_timeout - timedelta(hours=DAYLIGHT_SAVINGS),
-                    style="R",
-                )
+            # Check if the tank exists
+            if not tank_row:
                 return await ctx.send(
-                    f"This fish is full, please try again {relative_time}."
+                    "You have no tanks! use the `firsttank` command to get one!"
                 )
-
-        # Make sure the fish is alive
-        if fish_row[0]["fish_alive"] is False:
-            return await ctx.send("That fish is dead!")
-
-        # How many days and hours till the next feed based on upgrades
-        day, hour = utils.FEEDING_UPGRADES[upgrades[0]["feeding_upgrade"]]
-
-        # Set the time to be now + the new death date
-        death_date = fish_row[0]["death_time"] + timedelta(
-            days=day, hours=hour
-        )
-
-        # Update the fish's death date
-        async with vbu.Database() as db:
-            await db(
-                """UPDATE user_fish_inventory SET death_time = $3, fish_feed_time = $4 WHERE user_id = $1 AND fish_name = $2""",
-                ctx.author.id,
-                fish_fed,
-                death_date,
-                dt.utcnow(),
-            )
-
-            # If the fish is full it doesn't take up fish food (calculated with upgrades)
-            extra = ""
-            full = random.randint(
-                1,
-                utils.BIG_SERVINGS_UPGRADE[
-                    upgrades[0]["big_servings_upgrade"]
-                ],
-            )
-            if full != 1:
-                await db(
-                    """UPDATE user_item_inventory SET {0}={0}-1 WHERE user_id=$1""".format(
-                        type_of_food
-                    ),
-                    ctx.author.id,
-                )
-            else:
-                extra = "\nThat fish wasn't as hungry and didn't consume food!"
-
-            # Achievements
-            await db(
-                """UPDATE user_achievements SET times_fed = times_fed + 1 WHERE user_id = $1""",
-                ctx.author.id,
-            )
-
-        # And done
-        return await ctx.send(
-            f"**{fish_row[0]['fish_name']}** has been fed! <:AquaBonk:877722771935883265>{extra}"
-        )
-
-    @commands.command()
-    @commands.bot_has_permissions(send_messages=True)
-    async def clean(self, ctx: commands.Context, *, tank_cleaned: str = None):
-        """
-        This command cleans a tank, earning the user sand dollars.
-        """
-
-        # Get the fish, upgrades, and tank data from the database
-        if not await utils.check_registered(self.bot, ctx.author.id):
-            return await ctx.send("Please use the `register` command before using this bot!")
-        async with vbu.Database() as db:
-            upgrades = await db(
-                """SELECT bleach_upgrade, hygienic_upgrade, mutation_upgrade FROM user_upgrades WHERE user_id = $1""",
-                ctx.author.id,
-            )
-            tank_rows = await db(
-                """SELECT * FROM user_tank_inventory WHERE user_id = $1""",
-                ctx.author.id,
-            )
-
-        # If they dont own a tank tell them
-        if not tank_rows:
-            return await ctx.send("You have no tanks! Please use the `firsttank` command!")
-
-        # If they dont input a specific tank
-        if not tank_cleaned:
-
-            # Creates a select menu of all the tanks and returns the users choice
-            tank_cleaned = await utils.create_select_menu(
-                self.bot, ctx, tank_rows[0]["tank_name"], "tank", "clean"
-            )
-
-        # Find the fish rows of all the fish in that tank
-        async with vbu.Database() as db:
-            fish_rows = await db(
-                """SELECT * FROM user_fish_inventory WHERE user_id = $1 AND tank_fish = $2 AND fish_alive = TRUE""",
-                ctx.author.id,
-                tank_cleaned,
-            )
-
-        # Find if the tank exists
-        if tank_cleaned not in tank_rows[0]["tank_name"]:
-            return await ctx.send("There is no tank with that name")
-
-        # Work out which slot the tank is in
-        tank_slot = 0
-        for tank_slots, tank_slot_in in enumerate(tank_rows[0]["tank_name"]):
-            if tank_slot_in == tank_cleaned:
-                tank_slot = tank_slots
-                break
-
-        # Get the time before cleaning and the multiplier from upgrades
-        multiplier, time = utils.HYGIENIC_UPGRADE[
-            upgrades[0]["hygienic_upgrade"]
-        ]
-
-        # If its been enough time they can clean, else give an error
-        if tank_rows[0]["tank_clean_time"][tank_slot]:
-            if (
-                tank_rows[0]["tank_clean_time"][tank_slot]
-                + timedelta(minutes=time)
-                > dt.utcnow()
-                and ctx.author.id != 449966150898417664
-            ):
-                time_left = timedelta(
-                    seconds=(
-                        tank_rows[0]["tank_clean_time"][tank_slot]
-                        - dt.utcnow()
-                        + timedelta(minutes=time)
-                    ).total_seconds()
-                )
-                relative_time = discord.utils.format_dt(
-                    dt.utcnow()
-                    + time_left
-                    - timedelta(hours=DAYLIGHT_SAVINGS),
-                    style="R",
-                )
+            # finds the tank slot
+            for tank_slot_in in tank_row[0]["tank_name"]:
+                if tank_slot_in == tank:
+                    break
+                tank_slot += 1
+            # finds the type of tank it is and checks if it exists
+            if tank not in tank_row[0]["tank_name"]:
                 return await ctx.send(
-                    f"This tank is clean, please try again {relative_time}."
+                    f"You have no tank named **{tank}**!",
+                    allowed_mentions=discord.AllowedMentions.none(),
                 )
+            tank_info = tank_row[0]["tank_type"][tank_slot]
+            tank_info_button = (tank_row[0]["tank_type"][tank_slot], tank_row[0]["tank_theme"][tank_slot], tank_row[0]["fish_room"]
+                                [tank_slot], tank_row[0]["tank_clean_time"][tank_slot], tank_row[0]["tank_entertain_time"][tank_slot], tank)
 
-        # See if there are any fish in the tank
-        if not fish_rows:
-            return await ctx.send("You have no alive fish in this tank!")
+            # finds what type of fish it is, then adds the paths to a list, as well as finding the fish's random starting position
+            for selected_fish_types in selected_fish:
+                fishes.append(Fish(name=selected_fish_types['fish_name'], level=selected_fish_types['fish_level'], current_xp=selected_fish_types['fish_xp'], max_xp=selected_fish_types['fish_xp_max'],
+                                   alive=selected_fish_types['fish_alive'], species=FishSpecies.get_fish(selected_fish_types['fish']), location_caught=selected_fish_types['fish_location'], skin=selected_fish_types['fish_skin']))
 
-        # Initiate money gained, the rarity multiplier, and the size multiplier dictionaries
-        money_gained = 0
-        rarity_values = {
-            "common": 1.0,
-            "uncommon": 1.2,
-            "rare": 1.4,
-            "epic": 1.6,
-            "legendary": 1.8,
-            "mythic": 2.0,
-        }
-        size_values = {"small": 0, "medium": 2, "large": 14}
+            # For each fish in the tank...
+            for fish_object in fishes:
+                fish_selections.append(
+                    utils.get_normal_size_image(fish_object))
 
-        # Randomly pick the effort extra
-        effort_extra = random.choices([0, 15, 30], [0.6, 0.3, 0.1])
+                dead_alive.append(fish_object.alive)
 
-        # Initiate the size, extra, and rarity variables
-        size_multiplier = 1
-        extra = ""
-        rarity_multiplier = 0
-
-        # For each fish in the tank...
-        for fish in fish_rows:
-
-            # See if they mutate with the mutate upgrade
-            mutate = random.randint(
-                1, utils.MUTATION_UPGRADE[upgrades[0]["mutation_upgrade"]]
+            # gif variables
+            file_prefix = "C:/Users/JT/Pictures/Aqua/assets/images"
+            gif_filename = (
+                f"{file_prefix}/tanks/user_tank{gif_name}.png"
             )
 
-            if mutate == 1:
-                async with vbu.Database() as db:
-                    await db(
-                        """UPDATE user_fish_inventory SET fish_skin = $1 where user_id = $2 AND fish = $3""",
-                        "inverted",
-                        ctx.author.id,
-                        fish["fish"],
+            # Open our constant images
+            tank_theme = tank_row[0]["tank_theme"][tank_slot]
+            background = Image.open(
+                f"{file_prefix}/background/{tank_theme}_background_{tank_types[tank_info]}.png"
+            )
+            midground = Image.open(
+                f"{file_prefix}/background/{tank_theme}_background_{tank_types[tank_info]}_midground.png"
+            )
+            foreground = Image.open(
+                f"{file_prefix}/background/{tank_types[tank_info]}.png"
+            )
+            for x in range(0, len(fish_selections)):
+                im.append(Image.open(fish_selections[x]).convert("RGBA"))
+
+            # Add a fish to the background image
+            this_background = background.copy()
+
+            # adds multiple fish and moves them if they are alive
+            for x in range(0, len(im)):
+                x_spot = random.randint(
+                    min_max_x[tank_info][0], min_max_x[tank_info][1])
+                y_spot = random.randint(
+                    min_max_y[tank_info][0], min_max_y[tank_info][1])
+
+                if dead_alive[x] is False:
+                    this_background.paste(
+                        im[x].rotate(180),
+                        (x_spot, y_spot),
+                        im[x].rotate(180),
                     )
-                    nl = "\n"
-                    extra += f"{nl}{fish['fish']} looks kind of strange now..."
+                else:
+                    this_background.paste(
+                        im[x], (x_spot, y_spot), im[x]
+                    )
 
-            fish_species = FishSpecies.get_fish(fish['fish'])
-            size_multiplier = size_values[fish_species.size]
-            rarity_multiplier = rarity_values[fish_species.rarity]
+            # Pastes the backgrounds
+            this_background.paste(midground, (0, 0), midground)
+            this_background.paste(foreground, (0, 0), foreground)
 
-            # The money added for each fish is the level * the rarity * the size
-            money_gained += (
-                fish["fish_level"] * (rarity_multiplier + size_multiplier)
-            )
+            # Save the generated image to memory
+            this_background.save(fp=gif_filename, format="PNG")
 
-        # See if they voted, and if so add a .5 to the multipliers
-        vote_multiplier = 0
-        if await utils.get_user_voted(self.bot, ctx.author.id) == True:
-            vote_multiplier = .5
-            await ctx.send(
-                "You voted at <https://top.gg/bot/840956686743109652/vote> for a **1.5x** bonus to money earned"
-            )
-
-        # After all the fish the new money is the total * upgrade multipliers + the effort rounded down
-        money_gained = math.floor(money_gained * (utils.BLEACH_UPGRADE[upgrades[0]["bleach_upgrade"]] + (
-            multiplier - 1) + vote_multiplier) + effort_extra[0])
-
-        # Add the money gained to the database, and add the achievements
-        async with vbu.Database() as db:
-            await db(
-                """UPDATE user_tank_inventory SET tank_clean_time[$2] = $3 WHERE user_id = $1""",
-                ctx.author.id,
-                int(tank_slot + 1),
-                dt.utcnow(),
-            )
-            await db(
-                """UPDATE user_balance SET balance = balance + $2 WHERE user_id = $1""",
-                ctx.author.id,
-                int(money_gained),
-            )
-            # Achievements
-            await db(
-                """UPDATE user_achievements SET times_cleaned = times_cleaned + 1 WHERE user_id = $1""",
-                ctx.author.id,
-            )
-            await db(
-                """UPDATE user_achievements SET money_gained = money_gained + $2 WHERE user_id = $1""",
-                ctx.author.id,
-                int(money_gained),
-            )
-
-        # And were done, send it worked
-        await ctx.send(
-            f"You earned **{money_gained}** <:sand_dollar:877646167494762586> for cleaning that tank! <:AquaSmile:877939115994255383>{extra}"
+        entertain_button = discord.ui.Button(
+            label="Entertain", custom_id="entertain"
         )
+        feed_button = discord.ui.Button(
+            label="Feed", custom_id="feed"
+        )
+        clean_button = discord.ui.Button(
+            label="Clean", custom_id="clean"
+        )
+        show_button = discord.ui.Button(
+            label="Show", custom_id="show"
+        )
+        revive_button = discord.ui.Button(
+            label="Revive", custom_id="revive"
+        )
+        remove_button = discord.ui.Button(
+            label="Remove Fish", custom_id="remove"
+        )
+        deposit_button = discord.ui.Button(
+            label="Deposit Fish", custom_id="deposit"
+        )
+        info_button = discord.ui.Button(
+            label="Info", custom_id="info"
+        )
+        valid_buttons_row_one = [entertain_button, clean_button, feed_button]
+        valid_buttons_row_two = [show_button,
+                                 remove_button, deposit_button, info_button]
+        if False in dead_alive:
+            valid_buttons_row_one.append(revive_button)
+
+        components = discord.ui.MessageComponents(
+            discord.ui.ActionRow(
+                *valid_buttons_row_one
+            ),
+            discord.ui.ActionRow(
+                *valid_buttons_row_two
+            ),
+        )
+
+        # Send gif to Discord
+        if True not in dead_alive:
+            components.get_component("entertain").disable()
+            components.get_component("feed").disable()
+            components.get_component("clean").disable()
+        if not selected_fish:
+            components.get_component("remove").disable()
+        tank_message = await ctx.send(file=discord.File(gif_filename), components=components)
+
+        # Make the button check
+        def button_check(payload):
+            if payload.message.id != tank_message.id:
+                return False
+            return payload.user.id == ctx.author.id
+
+        # Wait for them to click a button
+        while True:
+            chosen_button_payload = await self.bot.wait_for(
+                "component_interaction", check=button_check
+            )
+            chosen_button = (
+                chosen_button_payload.component.custom_id
+            )
+            if chosen_button == "feed":
+                await chosen_button_payload.response.defer_update()
+                await utils.user_feed(self, ctx, tank)
+            elif chosen_button == "revive":
+                await chosen_button_payload.response.defer_update()
+                await utils.user_revive(self, ctx, tank)
+            elif chosen_button == "show":
+                await chosen_button_payload.response.defer_update()
+                await utils.user_show(self, ctx, tank, chosen_button_payload)
+            elif chosen_button == "remove":
+                await chosen_button_payload.response.defer_update()
+                await utils.user_remove(self, ctx, tank)
+            elif chosen_button == "info":
+                await chosen_button_payload.response.defer_update()
+                await utils.user_info(self, ctx, tank_info_button, fishes)
+            elif chosen_button == "deposit":
+                await utils.user_deposit(self, ctx, tank, chosen_button_payload)
+            elif chosen_button == "entertain":
+                await utils.user_entertain(self, ctx, tank, chosen_button_payload)
+            elif chosen_button == "clean":
+                await utils.user_clean(self, ctx, tank, chosen_button_payload)
 
     @commands.command()
     @commands.bot_has_permissions(send_messages=True)
@@ -621,6 +342,15 @@ class FishCare(vbu.Cog):
         await ctx.send(
             message, allowed_mentions=discord.AllowedMentions.none()
         )
+
+    @commands.command(aliases=["clean", "entertain", "feed", "deposit", "remove", "show"])
+    @commands.bot_has_permissions(send_messages=True)
+    async def moved(self, ctx, *, filler=None):
+        """
+        This command gives a response for the moved commands
+        """
+        await ctx.send(
+            "This command has moved to the a.tank *tank name* command. thank you!")
 
 
 def setup(bot):

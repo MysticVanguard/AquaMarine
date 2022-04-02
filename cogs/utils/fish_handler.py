@@ -342,8 +342,8 @@ EMOJIS = {
     "pile_of_straws": "<:pile_of_straws:934600169872306227>",
     "old_boot": "<:old_boot:934600170161717360>",
     "old_tire": "<:old_tire:934600169918439446>",
-    "fishing_boots": "<:AquaBlep:878248090400870401>",
-    "trash_toys": "<:AquaBonk:877722771935883265>",
+    "fishing_boots": "<:fishing_boots:957838977312907315>",
+    "trash_toys": "<:trash_toys:957838977237397514>",
 }
 
 # List of names for tank themes
@@ -352,7 +352,7 @@ TANK_THEMES = PLANT_LIFE_NAMES
 # Daylight savings variable because for some reason i need to
 # add four and then an hour when its daylight savings,
 # will be changed to 4 when daylight savings is over
-DAYLIGHT_SAVINGS = 5
+DAYLIGHT_SAVINGS = 4
 
 # What colors the embed should have based on rarity
 RARITY_CULERS = {
@@ -383,7 +383,10 @@ skin_type_dict = {
     'golden': ['clownfish', 'goldfish', 'guppies', 'headshield_slug', 'blue_maomao', 'bottlenose_dolphin',
                'pufferfish', 'starfish', 'tuna', 'anglerfish', 'bobtail_squid', 'blobfish',
                'cuttlefish', 'starfish_with_pants', 'dumbo_octopus', 'flowerhorn_cichlid', 'narwhal', 'smalltooth_sawfish'],
+    'blooming': ['axolotl', 'sea_bunny'],
+    'triumphant': ['omnifish', 'victory_drakefish', 'seal', 'shrimp', 'whale_shark', 'anglerfish']
 }
+
 location_list = []
 
 
@@ -584,7 +587,7 @@ async def enough_to_craft(crafted: str, user_id: int):
     return True
 
 
-async def create_select_menu(bot, ctx, option_list, type_noun, type_verb):
+async def create_select_menu(bot, ctx, option_list, type_noun, type_verb, remove=False):
     """
     This will create a select menu from the given list,
     have the user select one, and return the selection
@@ -645,6 +648,8 @@ async def create_select_menu(bot, ctx, option_list, type_noun, type_verb):
         )
 
     # Return what they chose
+    if remove == True:
+        await message.delete()
     return str(payload.values[0])
 
 
@@ -679,7 +684,7 @@ async def create_modal(bot, Interaction, title, placeholder):
             timeout=60.0
         )
     except asyncio.TimeoutError:
-        return None
+        return None, None
 
     # Go through the response components and get the first (and only) value from the user
     assert interaction.components
@@ -716,6 +721,23 @@ def random_name_finder():
     return name
 
 
+fish_footers = [
+    'Invite Aqua bot now with a.invite!',
+    'Need help? Use the a.guide or join the support server with a.support!',
+    'Get a coding error message or some other error? Use a.bug `command name` `description` to report it!',
+    'Vote for the bot with a.vote to get access to a daily reward! (a.daily)',
+    f'Join the support server with a.support to get access to aqua emotes!',
+    'Use a.support to join the Aqua server if you have any suggestions!',
+    'Make sure you claim achievements with a.achievements to get doubloons!',
+    'Make sure you\'re getting upgrades with the a.upgrades command!',
+    'When using the a.buy command, put the item exactly as listen in parentheses, then the amount!',
+    'Need to see a lot of information fast? use the a.profile command!',
+    'Buying fish bags is not monetarily advantagous, they are mostly for collection purposes!',
+    'Get your first tank free with a.firsttank! (It only has room to hold one small fish)',
+    'Make sure you take care of fish in tanks with a.entertain, a.clean, and a.feed commands!',
+    'You can craft cool items using trash you catch with a.craft!',
+    'To fish you need casts, which you get 6 for being new then 1 additional every hour'
+]
 # This is a list of fish that are no longer able to be caught
 past_fish = ["acorn_goldfish", "cornucopish", "turkeyfish",
              "christmastreefish", "santa_goldfish", "gingerbread_axolotl"]

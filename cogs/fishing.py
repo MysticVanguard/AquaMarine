@@ -257,6 +257,7 @@ class Fishing(vbu.Cog):
                     value=f"You have {amount} **{chosen_fish.name.replace('_', ' ').title()}**",
                     inline=False,
                 )
+                embed.set_footer(text=random.choice(utils.fish_footers))
                 embed.set_image(url="attachment://new_fish.png")
                 embed.color = utils.RARITY_CULERS[rarity]
 
