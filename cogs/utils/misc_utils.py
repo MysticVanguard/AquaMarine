@@ -778,7 +778,7 @@ async def user_clean(self, ctx, tank_cleaned, payload):
     size_values = {"small": 0, "medium": 2, "large": 14}
 
     # Randomly pick the effort extra
-    effort_extra = random.choices([0, 15, 30], [0.6, 0.3, 0.1])
+    effort_extra = random.choices([0, 5, 15], [0.6, 0.3, 0.1])
 
     # Initiate the size, extra, and rarity variables
     size_multiplier = 1

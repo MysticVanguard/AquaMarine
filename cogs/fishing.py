@@ -53,6 +53,10 @@ class Fishing(vbu.Cog):
         This command catches a fish.
         """
 
+        # Slash command defer
+        if hasattr(ctx, "interaction"):
+            await ctx.interaction.response.defer()
+
         # Add their id to a list to make sure they can't fish twice
         if not await utils.check_registered(self.bot, ctx.author.id):
             return await ctx.send("Please use the `register` command before using this bot!")

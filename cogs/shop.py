@@ -15,53 +15,40 @@ from cogs.utils import EMOJIS
 # Set up the fields for the shop
 SHOP_FIELDS = [
     (
-        "Fish Shop\n*These are neutral items for sale.*",
-        f"**Fish Points {EMOJIS['fish_points']}** __Price: 500 {EMOJIS['sand_dollar']}__\n"
-        f"One permanant point for the \"Fish Points\" leaderboard\n"
-        f"**Fishing Casts {EMOJIS['casts']}** __Price: 5 {EMOJIS['doubloon']}__\n"
-        f"Five casts to be used for fishing\n"
-        f"**Sand Dollars {EMOJIS['sand_dollar']}** __Price: 1 {EMOJIS['doubloon']}__\n"
-        f"1,500 sand dollars to spend on various goods\n"
-        f"**Fish Revival {EMOJIS['revival']}** __Price: 2,500 {EMOJIS['sand_dollar']}__\n"
-        f"Fish revival to bring your fish back to life after it has died\n"
-        f"**Plant Life** __Price: 250 {EMOJIS['doubloon']}__\n"
-        f"The plant life theme for one of your tanks\n"
-    ),
-    (
         f"{EMOJIS['amfc']} __AquaMarine Fish Corps State Issued Resources__ {EMOJIS['amfc']}\n"
         f"These are resources bought from the AMFC company.",
-        f"**Fish Flakes {EMOJIS['fish_flake']}** __Price: 200 {EMOJIS['sand_dollar']}__\n"
+        f"**Fish Flakes {EMOJIS['fish_flake']}** __Price: 100 {EMOJIS['sand_dollar']}__\n"
         f"Fish flakes to feed a fish that is level 1-20, keeping them alive \n"
-        f"**Fish Pellets {EMOJIS['fish_pellet']}** __Price: 500 {EMOJIS['sand_dollar']}__\n"
+        f"**Fish Pellets {EMOJIS['fish_pellet']}** __Price: 600 {EMOJIS['sand_dollar']}__\n"
         f"Fish pellets to feed a fish that is level 21-50, keeping them alive \n"
-        f"**Fish Wafers {EMOJIS['fish_wafer']}** __Price: 1000 {EMOJIS['sand_dollar']}__\n"
+        f"**Fish Wafers {EMOJIS['fish_wafer']}** __Price: 1,300 {EMOJIS['sand_dollar']}__\n"
         f"Fish wafers to feed a fish that is level 51+, keeping them alive \n"
-        f"**Fish Bowl** __Price: 500 {EMOJIS['sand_dollar']}__\n"
+        f"**Fish Revival {EMOJIS['revival']}** __Price: 2,500 {EMOJIS['sand_dollar']}__\n"
+        f"Fish revival to bring your fish back to life after it has died\n"
+        f"**Fish Bowl** __Price: 250 {EMOJIS['sand_dollar']}__\n"
         f"Fish Bowl Tank that you can deposit one small fish into \n"
-        f"**Small Tank** __Price: 2,000 {EMOJIS['sand_dollar']}__\n"
+        f"**Small Tank** __Price: 5,000 {EMOJIS['sand_dollar']}__\n"
         f"Small Tank that you can deposit five small fish or one medium fish into\n"
-        f"**Medium Tank** __Price: 12,000 {EMOJIS['sand_dollar']}__\n"
+        f"**Medium Tank** __Price: 50,000 {EMOJIS['sand_dollar']}__\n"
         f"Medium Tank that you can deposit twenty five small fish, five medium fish, or one large fish into \n"
     ),
     (
         f"{EMOJIS['gfu']} __Golden Fishers Union Item Market__ {EMOJIS['gfu']}\n"
         f"These are items sold by the GFU",
-        f"**Common Fish Bag {EMOJIS['common_fish_bag']}** __Price: 50 {EMOJIS['sand_dollar']}__\n"
-        f"One fish from the common rarity \n"
-        f"**Uncommon Fish Bag {EMOJIS['uncommon_fish_bag']}** __Price: 150 {EMOJIS['sand_dollar']}__\n"
-        f"One fish from the uncommon rarity \n"
-        f"**Rare Fish Bag {EMOJIS['rare_fish_bag']}** __Price: 750 {EMOJIS['sand_dollar']}__\n"
-        f"One fish from the rare rarity \n"
-        f"**Inverted Fish Bag {EMOJIS['inverted_fish_bag']}** __Price: 100,000 {EMOJIS['sand_dollar']}__\n"
+        f"**Five Fishing Casts {EMOJIS['casts']}** __Price: 1 {EMOJIS['doubloon']}__\n"
+        f"Five casts to be used for fishing\n"
+        f"**Inverted Fish Bag {EMOJIS['inverted_fish_bag']}** __Price: 10 {EMOJIS['doubloon']}__\n"
         f"One inverted fish from any rarity \n"
-        f"**High Level Fish Bag {EMOJIS['high_level_fish_bag']}** __Price: 75,000 {EMOJIS['sand_dollar']}__\n"
+        f"**High Level Fish Bag {EMOJIS['high_level_fish_bag']}** __Price: 40,000 {EMOJIS['sand_dollar']}__\n"
         f"One fish from any rarity between the levels 10-50 \n"
-        f"**Feeding Potion {EMOJIS['feeding_potion']}** __Price; 10,000 {EMOJIS['sand_dollar']}__\n"
-        f"Feeding potion that will make your fish full for 30 days \n"
-        f"**Experience Potion {EMOJIS['experience_potion']}** __Price: 40,000 {EMOJIS['sand_dollar']}__\n"
+        f"**Experience Potion {EMOJIS['experience_potion']}** __Price: 75,000 {EMOJIS['sand_dollar']}__\n"
         f"Experience potion that gives your fish 25,000 experience \n"
         f"**Mutation Potion {EMOJIS['mutation_potion']}** __ Price: 50 {EMOJIS['doubloon']}__\n"
         f"Mutation potion that turns one of your fish inverted \n"
+        f"**Plant Life** __Price: 250 {EMOJIS['doubloon']}__\n"
+        f"The plant life theme for one of your tanks\n"
+        f"**Fish Points {EMOJIS['fish_points']}** __Price: 500 {EMOJIS['sand_dollar']}__\n"
+        f"One permanant point for the \"Fish Points\" leaderboard\n"
     ),
 ]
 
@@ -94,9 +81,6 @@ class Shop(vbu.Cog):
 
         # All the valid names
         all_names = [
-            utils.COMMON_BAG_NAMES,
-            utils.UNCOMMON_BAG_NAMES,
-            utils.RARE_BAG_NAMES,
             utils.FISH_FLAKES_NAMES,
             utils.FISH_BOWL_NAMES,
             utils.SMALL_TANK_NAMES,
@@ -104,13 +88,11 @@ class Shop(vbu.Cog):
             utils.PLANT_LIFE_NAMES,
             utils.FISH_REVIVAL_NAMES,
             utils.CASTS_NAMES,
-            utils.SAND_DOLLAR_NAMES,
             utils.FISH_PELLETS_NAMES,
             utils.FISH_WAFERS_NAMES,
             utils.FISH_POINTS_NAMES,
             utils.EXPERIENCE_POTION_NAMES,
             utils.MUTATION_POTION_NAMES,
-            utils.FEEDING_POTION_NAMES,
             utils.INVERTED_BAG_NAMES,
             utils.HIGH_LEVEL_BAG_NAMES,
         ]
@@ -134,51 +116,33 @@ class Shop(vbu.Cog):
 
         # Info for each item; {name: (accepted named, price, display name, sql statement)}
         item_name_dict = {
-            "cfb": (
-                utils.COMMON_BAG_NAMES,
-                50,
-                "Common Fish Bag",
-                inventory_insert_sql.format("cfb"),
-            ),
-            "ufb": (
-                utils.UNCOMMON_BAG_NAMES,
-                150,
-                "Uncommon Fish Bag",
-                inventory_insert_sql.format("ufb"),
-            ),
-            "rfb": (
-                utils.RARE_BAG_NAMES,
-                750,
-                "Rare Fish Bag",
-                inventory_insert_sql.format("rfb"),
-            ),
             "ifb": (
                 utils.INVERTED_BAG_NAMES,
-                100000,
+                10,
                 "Inverted Fish Bag",
                 inventory_insert_sql.format("ifb"),
             ),
             "hlfb": (
                 utils.HIGH_LEVEL_BAG_NAMES,
-                75000,
+                40000,
                 "High Level Fish Bag",
                 inventory_insert_sql.format("hlfb"),
             ),
             "flakes": (
                 utils.FISH_FLAKES_NAMES,
-                200,
+                100,
                 "Fish Flakes",
                 inventory_insert_sql.format("flakes"),
             ),
             "pellets": (
                 utils.FISH_PELLETS_NAMES,
-                500,
+                600,
                 "Fish Pellets",
                 inventory_insert_sql.format("pellets"),
             ),
             "wafers": (
                 utils.FISH_WAFERS_NAMES,
-                1000,
+                1300,
                 "Fish Wafers",
                 inventory_insert_sql.format("wafers"),
             ),
@@ -188,9 +152,9 @@ class Shop(vbu.Cog):
                 "Fish Revival",
                 inventory_insert_sql.format("revival"),
             ),
-            "Fish Bowl": (utils.FISH_BOWL_NAMES, 500, "Fish Bowl", ""),
-            "Small Tank": (utils.SMALL_TANK_NAMES, 2000, "Small Tank", ""),
-            "Medium Tank": (utils.MEDIUM_TANK_NAMES, 12000, "Medium Tank", ""),
+            "Fish Bowl": (utils.FISH_BOWL_NAMES, 250, "Fish Bowl", ""),
+            "Small Tank": (utils.SMALL_TANK_NAMES, 5000, "Small Tank", ""),
+            "Medium Tank": (utils.MEDIUM_TANK_NAMES, 50000, "Medium Tank", ""),
             "Plant Life": (utils.PLANT_LIFE_NAMES, 250, "Plant Life", ""),
             "Fish Points": (
                 utils.FISH_POINTS_NAMES,
@@ -200,33 +164,21 @@ class Shop(vbu.Cog):
             ),
             "Casts": (
                 utils.CASTS_NAMES,
-                5,
+                1,
                 "Casts",
                 balance_insert_sql.format("casts"),
             ),
-            "Sand Dollars": (
-                utils.SAND_DOLLAR_NAMES,
-                1,
-                "Sand Dollars",
-                balance_insert_sql.format("balance"),
-            ),
             "Experience Potion": (
                 utils.EXPERIENCE_POTION_NAMES,
-                40000,
+                75000,
                 "Experience Potions",
                 inventory_insert_sql.format("experience_potions"),
             ),
             "Mutation Potion": (
                 utils.MUTATION_POTION_NAMES,
-                100,
+                50,
                 "Mutation Potions",
                 inventory_insert_sql.format("mutation_potions"),
-            ),
-            "Feeding Potion": (
-                utils.FEEDING_POTION_NAMES,
-                15000,
-                "Feeding Potions",
-                inventory_insert_sql.format("feeding_potions"),
             ),
         }
 
@@ -242,8 +194,8 @@ class Shop(vbu.Cog):
         Doubloon_things = (
             utils.PLANT_LIFE_NAMES
             + utils.CASTS_NAMES
-            + utils.SAND_DOLLAR_NAMES
             + utils.MUTATION_POTION_NAMES
+            + utils.INVERTED_BAG_NAMES
         )
 
         # Work out which of the SQL statements to use
@@ -283,8 +235,6 @@ class Shop(vbu.Cog):
             # Find out how many are given for things that give more than one thing
             if response == "Casts":
                 amount = amount * 5
-            elif response == "Sand Dollars":
-                amount = amount * 1500
 
             # Check if they have enough money
             if not await utils.check_price(

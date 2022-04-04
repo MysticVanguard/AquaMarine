@@ -1495,6 +1495,10 @@ class Informative(vbu.Cog):
         """
         Gives help for all or a specific command
         """
+        # Slash command defer
+        if hasattr(ctx, "interaction"):
+            await ctx.interaction.response.defer()
+
         HELP_EMBED = discord.Embed(
             title="List of all the commands and what they do")
         for cog_num, cog in enumerate(self.bot.cogs.values()):

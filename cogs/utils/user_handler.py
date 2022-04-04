@@ -128,6 +128,7 @@ async def ask_to_sell_fish(
                         f"I'll name the fish for you. "
                         f"Let's call it **{name}** (Lvl. {level})"
                     )
+                    errorcheck = True
             if not errorcheck:
                 await interaction.response.send_message(
                     f"Your new fish **{name}** (Lvl. {level}) has been added to your bucket!"
