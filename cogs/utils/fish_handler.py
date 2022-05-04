@@ -250,7 +250,7 @@ def rarity_percentage_finder(
     return [
         list(i[0] for i in BAIT_UPGRADE[upgrade_level]),
         list(i[1] for i in BAIT_UPGRADE[upgrade_level]),
-    ]  # type:ignore
+    ]
 
 
 """
@@ -722,19 +722,18 @@ def random_name_finder():
 
 
 fish_footers = [
-    'Invite Aqua bot now with a.invite!',
-    'Need help? Use the a.guide or join the support server with a.support!',
+    '[Invite Aqua bot now](https://discord.com/oauth2/authorize?client_id=840956686743109652&scope=bot+applications.commands&permissions=52224)!',
+    'Need help? Use the a.guide or join the [support server](https://discord.gg/FUyr8QmrD8)!',
     'Get a coding error message or some other error? Use a.bug `command name` `description` to report it!',
-    'Vote for the bot with a.vote to get access to a daily reward! (a.daily)',
-    f'Join the support server with a.support to get access to aqua emotes!',
-    'Use a.support to join the Aqua server if you have any suggestions!',
+    'Vote for the bot with a.vote [(or here)](https://top.gg/bot/840956686743109652) to get access to a daily reward! (a.daily)',
+    f'Join the [support server](https://discord.gg/FUyr8QmrD8) to get access to aqua emotes!',
     'Make sure you claim achievements with a.achievements to get doubloons!',
     'Make sure you\'re getting upgrades with the a.upgrades command!',
     'When using the a.buy command, put the item exactly as listen in parentheses, then the amount!',
     'Need to see a lot of information fast? use the a.profile command!',
-    'Buying fish bags is not monetarily advantagous, they are mostly for collection purposes!',
+    'Want to suggest something? fill out this [quick google form](https://forms.gle/ZFJitHwq8Kxasmt17)',
     'Get your first tank free with a.firsttank! (It only has room to hold one small fish)',
-    'Make sure you take care of fish in tanks with a.entertain, a.clean, and a.feed commands!',
+    'Make sure you take care of fish in tanks with the a.tank command!',
     'You can craft cool items using trash you catch with a.craft!',
     'To fish you need casts, which you get 6 for being new then 1 additional every hour'
 ]

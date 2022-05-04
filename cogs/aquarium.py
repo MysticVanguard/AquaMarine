@@ -74,7 +74,8 @@ class Aquarium(vbu.Cog):
 
         try:
             name, interaction2 = await utils.create_modal(self.bot, chosen_button_payload, "Tank Name", "Enter your new tank's name")
-            await interaction2.response.defer()
+            if interaction2:
+                await interaction2.response.defer()
         except TypeError:
             name = None
 

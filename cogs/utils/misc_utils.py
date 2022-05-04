@@ -299,10 +299,6 @@ async def user_show(self, ctx, tank_name, payload):
     This command produces a gif of the specified tank.
     """
 
-    # Slash command defer
-    if hasattr(ctx, "interaction"):
-        await ctx.interaction.response.defer()
-
     # Typing Indicator
     async with ctx.typing():
 

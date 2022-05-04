@@ -3,6 +3,7 @@ import math
 import asyncio
 from PIL.Image import new
 import discord
+from datetime import datetime as dt, timedelta
 from discord.ext import commands, tasks, vbu
 import string
 
@@ -11,8 +12,9 @@ from cogs.utils import EMOJIS
 
 
 class Fishing(vbu.Cog):
-
+    cast_time = dt.utcnow()
     # Start the loop when the cog is started
+
     def __init__(self, bot: vbu.Bot):
         super().__init__(bot)
         self.user_cast_loop.start()
@@ -24,6 +26,7 @@ class Fishing(vbu.Cog):
     # Every hour, everyone gets a cast as long as they have less than 50
     @tasks.loop(hours=1)
     async def user_cast_loop(self):
+        self.cast_time = dt.utcnow()
         async with vbu.Database() as db:
             casts = await db("""SELECT * FROM user_balance""")
             for x in casts:
@@ -57,19 +60,22 @@ class Fishing(vbu.Cog):
         if hasattr(ctx, "interaction"):
             await ctx.interaction.response.defer()
 
-        # Add their id to a list to make sure they can't fish twice
+        # Check to see if they've registered with the bot before
         if not await utils.check_registered(self.bot, ctx.author.id):
             return await ctx.send("Please use the `register` command before using this bot!")
+
+        # If they're already fishing don't let them fish again, else make them already fishing
         if ctx.author.id in utils.current_fishers:
             return await ctx.send(
                 f"**{ctx.author.display_name}**, you're already fishing!"
             )
         utils.current_fishers.append(ctx.author.id)
 
-        # Fetch their upgrades and casts, if they arent in the database yet add them to it with 6 starting casts
+        # Fetch their upgrades and casts
         async with vbu.Database() as db:
             upgrades = await db(
-                """SELECT rod_upgrade, bait_upgrade, weight_upgrade, line_upgrade, lure_upgrade, crate_chance_upgrade, crate_tier_upgrade FROM user_upgrades WHERE user_id = $1""",
+                """SELECT rod_upgrade, bait_upgrade, weight_upgrade, line_upgrade, lure_upgrade,
+                crate_chance_upgrade, crate_tier_upgrade FROM user_upgrades WHERE user_id = $1""",
                 ctx.author.id,
             )
             casts = await db(
@@ -80,8 +86,12 @@ class Fishing(vbu.Cog):
         # If they have no casts tell them they can't fish and remove them from currrent fishers
         if casts[0]["casts"] <= 0:
             utils.current_fishers.remove(ctx.author.id)
+            relative_time = discord.utils.format_dt(
+                self.cast_time - timedelta(hours=(utils.DAYLIGHT_SAVINGS - 1)),
+                style="R",
+            )
             return await ctx.send(
-                "You have no casts, please wait atleast an hour until the next casts are out."
+                f"You have no casts, You will get another {relative_time}."
             )
 
         # pick a random number using the line upgrade, if it is equal to 1 they get to fish twice
@@ -91,6 +101,7 @@ class Fishing(vbu.Cog):
         )
         if two_in_one_roll == 1:
             caught_fish = 2
+
         # For each fish caught...
         for _ in range(caught_fish):
 
@@ -114,8 +125,7 @@ class Fishing(vbu.Cog):
                     chosen_fish = random.choice(
                         utils.FishSpecies.get_rarity(rarity))
 
-                # find if its skinned
-
+                # If the fish is skinned, choose one of it's skins
                 fish_skin = ""
                 if special == "skinned":
                     fish_skin = random.choice(chosen_fish.skins)
@@ -180,7 +190,7 @@ class Fishing(vbu.Cog):
                     # Add that fish to the choices
                     choices.append(random_fish.name.replace('_', ' ').title())
 
-                # Shuffle the choices so they're radom
+                # Shuffle the choices so they're random
                 random.shuffle(choices)
 
                 # And send the choices as buttons
@@ -219,9 +229,12 @@ class Fishing(vbu.Cog):
                     chosen_button = (
                         chosen_button_payload.component.custom_id
                     )
+                    await guess_message.edit(
+                        components=None
+                    )
                 except asyncio.TimeoutError:
                     await guess_message.edit(
-                        components=components.disable_components()
+                        components=None
                     )
                     await ctx.send("Timed out asking for guess.")
                     chosen_button = "AAAAAAAAAAAAAA"
@@ -229,9 +242,7 @@ class Fishing(vbu.Cog):
                 # Give them a bonus based on the fish's cost and tell them they got it correct if they did
                 if chosen_button == chosen_fish.name.replace('_', ' ').title():
                     bonus = 15 + math.floor(int(chosen_fish.cost) / 10)
-                    await ctx.channel.send(
-                        f"<@{ctx.author.id}> guessed correctly and recieved {bonus} bonus sand dollars {EMOJIS['sand_dollar']}!"
-                    )
+                    guess_message = f"<@{ctx.author.id}> guessed correctly and recieved {bonus} bonus sand dollars {EMOJIS['sand_dollar']}!"
 
                     # Update the users balance with the bonus
                     async with vbu.Database() as db:
@@ -243,9 +254,7 @@ class Fishing(vbu.Cog):
 
                 # Else tell them it was wrong
                 else:
-                    await ctx.channel.send(
-                        f"Incorrect <@{ctx.author.id}>, no bonus given."
-                    )
+                    guess_message = f"Incorrect <@{ctx.author.id}>, no bonus given."
 
                 # Tell the user about the fish they caught
                 owned_unowned = "Owned" if amount > 0 else "Unowned"
@@ -261,11 +270,15 @@ class Fishing(vbu.Cog):
                     value=f"You have {amount} **{chosen_fish.name.replace('_', ' ').title()}**",
                     inline=False,
                 )
-                embed.set_footer(text=random.choice(utils.fish_footers))
+                embed.add_field(
+                    name="** **", value=f"*{random.choice(utils.fish_footers)}*")
                 embed.set_image(url="attachment://new_fish.png")
                 embed.color = utils.RARITY_CULERS[rarity]
-
+                if casts[0]["casts"] == 3:
+                    guess_message += "\n⚠️You have two casts left⚠️"
                 # Ask if they want to sell the fish they just caught or keep it
+
+                await ctx.send(guess_message)
                 await utils.ask_to_sell_fish(self.bot, ctx, chosen_fish, fish_skin, embed=embed)
 
                 # Find if they catch a crate with the crate_chance_upgrade

@@ -87,15 +87,7 @@ async def ask_to_sell_fish(
             # Get their current fish names
             fish_names = [i["fish_name"] for i in fish_rows]
             xp_max = math.floor(25 * level ** 1.5)
-            errorcheck = False
-            try:
-                name, interaction = await create_modal(bot, chosen_button_payload, "Fish Kept", "Enter Your Fish's Name")
-            except TypeError:
-                errorcheck = True
-                name = random_name_finder()
-                while name in fish_names:
-                    name = random_name_finder()
-                await ctx.send("If you are seeing this, your discord is outdated or you closed the modal prematurely, so this fish has been randomly named. Please update discord, and use the `rename` command to rename the fish.")
+            name, interaction = await create_modal(bot, chosen_button_payload, "Fish Kept", "Enter Your Fish's Name")
 
             # Disable the given button
             await message.edit(components=components.disable_components())
@@ -108,7 +100,7 @@ async def ask_to_sell_fish(
                 )
                 try:
                     message = await ctx.channel.send(
-                        "That name is already one of your other fish's names. Click the button to try again",
+                        f"{ctx.author.mention} An error occured! Click the button to try again",
                         components=components
                     )
                 except discord.HTTPException:
@@ -128,8 +120,7 @@ async def ask_to_sell_fish(
                         f"I'll name the fish for you. "
                         f"Let's call it **{name}** (Lvl. {level})"
                     )
-                    errorcheck = True
-            if not errorcheck:
+            if interaction:
                 await interaction.response.send_message(
                     f"Your new fish **{name}** (Lvl. {level}) has been added to your bucket!"
                 )
