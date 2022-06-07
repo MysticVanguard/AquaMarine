@@ -638,7 +638,7 @@ async def user_feed(self, ctx, tank_chosen):
         type_of_food = "wafers"
 
     # If they dont, tell them they have none
-    if not item_rows[0][type_of_food]:
+    if not item_rows[0][type_of_food] or item_rows[0][type_of_food] <= 0:
         return await ctx.send(f"You have no {type_of_food}!")
 
     # Make sure the fish is able to be fed

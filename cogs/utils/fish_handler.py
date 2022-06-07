@@ -726,7 +726,7 @@ fish_footers = [
     'Need help? Use the a.guide or join the [support server](https://discord.gg/FUyr8QmrD8)!',
     'Get a coding error message or some other error? Use a.bug `command name` `description` to report it!',
     'Vote for the bot with a.vote [(or here)](https://top.gg/bot/840956686743109652) to get access to a daily reward! (a.daily)',
-    f'Join the [support server](https://discord.gg/FUyr8QmrD8) to get access to aqua emotes!',
+    'Join the [support server](https://discord.gg/FUyr8QmrD8) to get access to aqua emotes!',
     'Make sure you claim achievements with a.achievements to get doubloons!',
     'Make sure you\'re getting upgrades with the a.upgrades command!',
     'When using the a.buy command, put the item exactly as listen in parentheses, then the amount!',
