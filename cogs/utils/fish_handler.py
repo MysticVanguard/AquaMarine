@@ -387,7 +387,8 @@ skin_type_dict = {
     'triumphant': ['omnifish', 'victory_drakefish', 'seal', 'shrimp', 'whale_shark', 'anglerfish']
 }
 
-location_list = []
+location_list = ['pond', 'estuary', 'creek', 'coral_reef',
+                 'lake', 'river', 'deep_sea', 'ocean', 'none']
 
 
 class FishSpecies:
@@ -395,17 +396,25 @@ class FishSpecies:
     all_species_by_name = {}
     all_species_by_rarity = {}
     all_fish_skins = {}
+    all_species_by_location_rarity = {}
 
-    def __init__(self, *, name: str, size: int, rarity: str, image: str, locations: list):
+    def __init__(self, *, name: str, size: int, rarity: str, image: str, location: str):
         self.name = name
+        print(name)
         self.size = size
         self.rarity = rarity
         self.image = image
-        self.locations = locations
+        self.location = location
         self.all_fish_skins[name] = ["inverted"]
         for skin_name, fish in skin_type_dict.items():
             if name in fish:
                 self.all_fish_skins[name].append(skin_name)
+        if location not in self.all_species_by_location_rarity.keys():
+            self.all_species_by_location_rarity[location] = {}
+        if rarity not in self.all_species_by_location_rarity[location]:
+            self.all_species_by_location_rarity[location][rarity] = [self]
+        else:
+            self.all_species_by_location_rarity[location][rarity].append(self)
         self.all_species_by_name[name] = self
         self.skins = self.all_fish_skins[name]
         if rarity not in self.all_species_by_rarity.keys():
@@ -420,6 +429,10 @@ class FishSpecies:
     @classmethod
     def get_rarity(cls, rarity: str):
         return cls.all_species_by_rarity[rarity]
+
+    @classmethod
+    def get_location_rarity(cls, rarity: str, location: str):
+        return cls.all_species_by_location_rarity[location][rarity]
 
     @property
     def cost(self) -> int:
@@ -463,10 +476,18 @@ def parse_fish_filename(filename: str) -> dict:
     filename = filename[:-4]  # Remove file extension
 
     # Splits the formatted file name into its parts
-    rarity, cost, size, *raw_name = filename.split("_")
+    rarity, cost, size, *location_and_name = filename.split("_")
 
     # Return the parts of the filename in a dict of the stats
-    return rarity, size, "_".join(raw_name)
+    for location_type in location_list:
+        if location_and_name[0] == location_type:
+            location = location_and_name[0]
+            location_and_name.pop(0)
+        elif "_".join(location_and_name[:2]) == location_type:
+            location = location_and_name[0]
+            location_and_name.pop(0)
+            location_and_name.pop(0)
+    return rarity, size, location, "_".join(location_and_name)
 
 
 def fetch_fish(directory: str) -> dict:
@@ -484,10 +505,10 @@ def fetch_fish(directory: str) -> dict:
     for filename in fish_filenames:
 
         # Add the fish to the dict
-        rarity, size, name = parse_fish_filename(filename)
+        rarity, size, location, name = parse_fish_filename(filename)
         image = f"{directory}/{filename}"
         fetched_fish.append(
-            FishSpecies(name=name, size=size, rarity=rarity, image=image, locations=location_list))
+            FishSpecies(name=name, size=size, rarity=rarity, image=image, location=location))
 
     return fetched_fish
 
