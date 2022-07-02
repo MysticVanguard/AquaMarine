@@ -592,10 +592,6 @@ async def user_feed(self, ctx, tank_chosen):
             """SELECT * FROM user_fish_inventory WHERE user_id = $1 AND tank_fish = $2""",
             ctx.author.id, tank_chosen
         )
-        tank_rows = await db(
-            """SELECT * FROM user_tank_inventory WHERE user_id = $1""",
-            ctx.author.id,
-        )
         item_rows = await db(
             """SELECT * FROM user_item_inventory WHERE user_id = $1""",
             ctx.author.id,
@@ -613,93 +609,160 @@ async def user_feed(self, ctx, tank_chosen):
         if fish["fish_alive"] == True and not (fish_feed_timeout := feed_time + FISH_FEED_COOLDOWN) > dt.utcnow():
             fish_in_tank.append(fish["fish_name"])
     if len(fish_in_tank) != 0:
+        if item_rows[0]['super_food'] > 0:
+            # Make the button check
+            def yes_no_check(payload):
+                if payload.message.id != yes_no_message.id:
+                    return False
+                self.bot.loop.create_task(payload.response.defer_update())
+                return payload.user.id == ctx.author.id
+
+            components = discord.ui.MessageComponents(
+                discord.ui.ActionRow(
+                    discord.ui.Button(
+                        label="Yes", custom_id="yes"
+                    ),
+                    discord.ui.Button(
+                        label="No", custom_id="no"
+                    ),
+                ),
+            )
+            yes_no_message = await ctx.send(f"Would you like to use a Super Food? (You have {item_rows[0]['super_food']})", components=components)
+            # Wait for them to click a button
+            try:
+                chosen_button_payload = await self.bot.wait_for(
+                    "component_interaction", timeout=60.0, check=yes_no_check
+                )
+                chosen_button = (
+                    chosen_button_payload.component.custom_id.lower()
+                )
+            except asyncio.TimeoutError:
+                await yes_no_message.edit(
+                    components=components.disable_components()
+                )
+                chosen_button = "no"
+            await yes_no_message.delete()
+        else:
+            chosen_button = "no"
         # Create a select menu of those fish
-        fish_fed = await utils.create_select_menu(
-            self.bot, ctx, fish_in_tank, "fish", "feed", True
-        )
+
+        if chosen_button == "no":
+            fish_fed = await utils.create_select_menu(
+                self.bot, ctx, fish_in_tank, "fish", "feed", True
+            )
+            if fish_fed is not str:
+                return
+            # Find the fish row of the selected fish
+            async with vbu.Database() as db:
+                fish_row = await db(
+                    """SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2 AND tank_fish != ''""",
+                    ctx.author.id,
+                    fish_fed,
+                )
+            # See if the user has fish food for it
+            if fish_row[0]["fish_level"] <= 20:
+                type_of_food = "flakes"
+            elif fish_row[0]["fish_level"] <= 50:
+                type_of_food = "pellets"
+            else:
+                type_of_food = "wafers"
+            # If they dont, tell them they have none
+            if not item_rows[0][type_of_food] or item_rows[0][type_of_food] <= 0:
+                return await ctx.send(f"You have no {type_of_food}!")
+            # Make sure the fish is able to be fed
+            if fish_row[0]["fish_feed_time"]:
+                if (
+                    fish_feed_timeout := fish_row[0]["fish_feed_time"]
+                    + FISH_FEED_COOLDOWN
+                ) > dt.utcnow():
+                    relative_time = discord.utils.format_dt(
+                        fish_feed_timeout - timedelta(hours=DAYLIGHT_SAVINGS),
+                        style="R",
+                    )
+                    return await ctx.send(
+                        f"This fish is full, please try again {relative_time}."
+                    )
+            # How many days and hours till the next feed based on upgrades
+            day, hour = utils.FEEDING_UPGRADES[upgrades[0]
+                                               ["feeding_upgrade"]]
+
+            # Set the time to be now + the new death date
+            death_date = fish_row[0]["death_time"] + timedelta(
+                days=day, hours=hour
+            )
+
+            # Update the fish's death date
+            async with vbu.Database() as db:
+                await db(
+                    """UPDATE user_fish_inventory SET death_time = $3, fish_feed_time = $4 WHERE user_id = $1 AND fish_name = $2""",
+                    ctx.author.id,
+                    fish_fed,
+                    death_date,
+                    dt.utcnow(),
+                )
+
+                # If the fish is full it doesn't take up fish food (calculated with upgrades)
+                extra = ""
+                full = random.randint(
+                    1,
+                    utils.BIG_SERVINGS_UPGRADE[
+                        upgrades[0]["big_servings_upgrade"]
+                    ],
+                )
+                if full != 1:
+                    await db(
+                        """UPDATE user_item_inventory SET {0}={0}-1 WHERE user_id=$1""".format(
+                            type_of_food
+                        ),
+                        ctx.author.id,
+                    )
+                else:
+                    extra = "\nThat fish wasn't as hungry and didn't consume food!"
+
+                # Achievements
+                await db(
+                    """UPDATE user_achievements SET times_fed = times_fed + 1 WHERE user_id = $1""",
+                    ctx.author.id,
+                )
+
+            # And done
+            return await ctx.send(
+                f"**{fish_row[0]['fish_name']}** has been fed! <:AquaBonk:877722771935883265>{extra}"
+            )
     else:
         return await ctx.send("No fish are hungry!")
-    if not fish_fed:
-        return
-    # Find the fish row of the selected fish
-    async with vbu.Database() as db:
-        fish_row = await db(
-            """SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2 AND tank_fish != ''""",
-            ctx.author.id,
-            fish_fed,
-        )
 
-    # See if the user has fish food for it
-    if fish_row[0]["fish_level"] <= 20:
-        type_of_food = "flakes"
-    elif fish_row[0]["fish_level"] <= 50:
-        type_of_food = "pellets"
-    else:
-        type_of_food = "wafers"
+    for fish_fed in fish_rows:
+        if fish_fed['fish_alive']:
+            # How many days and hours till the next feed based on upgrades
+            day, hour = utils.FEEDING_UPGRADES[upgrades[0]["feeding_upgrade"]]
 
-    # If they dont, tell them they have none
-    if not item_rows[0][type_of_food]:
-        return await ctx.send(f"You have no {type_of_food}!")
-
-    # Make sure the fish is able to be fed
-    if fish_row[0]["fish_feed_time"]:
-        if (
-            fish_feed_timeout := fish_row[0]["fish_feed_time"]
-            + FISH_FEED_COOLDOWN
-        ) > dt.utcnow():
-            relative_time = discord.utils.format_dt(
-                fish_feed_timeout - timedelta(hours=DAYLIGHT_SAVINGS),
-                style="R",
-            )
-            return await ctx.send(
-                f"This fish is full, please try again {relative_time}."
+            # Set the time to be now + the new death date
+            death_date = fish_fed["death_time"] + timedelta(
+                days=day, hours=hour
             )
 
-    # How many days and hours till the next feed based on upgrades
-    day, hour = utils.FEEDING_UPGRADES[upgrades[0]["feeding_upgrade"]]
+            # Update the fish's death date
+            async with vbu.Database() as db:
+                await db(
+                    """UPDATE user_fish_inventory SET death_time = $3, fish_feed_time = $4 WHERE user_id = $1 AND fish_name = $2""",
+                    ctx.author.id,
+                    fish_fed['fish_name'],
+                    death_date,
+                    dt.utcnow(),
+                )
 
-    # Set the time to be now + the new death date
-    death_date = fish_row[0]["death_time"] + timedelta(
-        days=day, hours=hour
-    )
-
-    # Update the fish's death date
+    # Achievements
     async with vbu.Database() as db:
         await db(
-            """UPDATE user_fish_inventory SET death_time = $3, fish_feed_time = $4 WHERE user_id = $1 AND fish_name = $2""",
-            ctx.author.id,
-            fish_fed,
-            death_date,
-            dt.utcnow(),
+            """UPDATE user_item_inventory SET super_food=super_food-1 WHERE user_id=$1""", ctx.author.id
         )
-
-        # If the fish is full it doesn't take up fish food (calculated with upgrades)
-        extra = ""
-        full = random.randint(
-            1,
-            utils.BIG_SERVINGS_UPGRADE[
-                upgrades[0]["big_servings_upgrade"]
-            ],
-        )
-        if full != 1:
-            await db(
-                """UPDATE user_item_inventory SET {0}={0}-1 WHERE user_id=$1""".format(
-                    type_of_food
-                ),
-                ctx.author.id,
-            )
-        else:
-            extra = "\nThat fish wasn't as hungry and didn't consume food!"
-
-        # Achievements
         await db(
             """UPDATE user_achievements SET times_fed = times_fed + 1 WHERE user_id = $1""",
             ctx.author.id,
         )
-
-    # And done
     return await ctx.send(
-        f"**{fish_row[0]['fish_name']}** has been fed! <:AquaBonk:877722771935883265>{extra}"
+        f"All fish have been fed! <:AquaBonk:877722771935883265>"
     )
 
 

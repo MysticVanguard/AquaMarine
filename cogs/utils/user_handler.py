@@ -5,13 +5,13 @@ import random
 from typing import Text
 
 import discord
+from discord.ext import vbu
 
 from cogs import utils
 from cogs.utils import EMOJIS
 from cogs.utils.fish_handler import FishSpecies, create_modal, random_name_finder
 
-
-current_fishers = []
+user_last_fish_caught = {}
 
 
 async def ask_to_sell_fish(
@@ -439,3 +439,83 @@ async def get_user_voted(bot, user_id: int) -> bool:
         if ret.status != 200:
             return False
     return bool(data["voted"])
+
+
+async def user_item_inventory_db_call(user_id: int) -> list:
+    async with vbu.Database() as db:
+        selected = await db(
+            """SELECT * FROM user_item_inventory WHERE user_id = $1""",
+            user_id,
+        )
+        return list(selected)
+
+
+async def user_fish_inventory_db_call(user_id: int) -> list:
+    async with vbu.Database() as db:
+        selected = await db(
+            """SELECT * FROM user_fish_inventory WHERE user_id = $1""",
+            user_id,
+        )
+        return list(selected)
+
+
+async def user_tank_inventory_db_call(user_id: int) -> list:
+    async with vbu.Database() as db:
+        selected = await db(
+            """SELECT * FROM user_tank_inventory WHERE user_id = $1""",
+            user_id,
+        )
+        return list(selected)
+
+
+async def user_upgrades_db_call(user_id: int) -> list:
+    async with vbu.Database() as db:
+        selected = await db(
+            """SELECT * FROM user_upgrades WHERE user_id = $1""",
+            user_id,
+        )
+        return list(selected)
+
+
+async def user_balance_db_call(user_id: int) -> list:
+    async with vbu.Database() as db:
+        selected = await db(
+            """SELECT * FROM user_balance WHERE user_id = $1""",
+            user_id,
+        )
+        return list(selected)
+
+
+async def user_achievements_milestones_db_call(user_id: int) -> list:
+    async with vbu.Database() as db:
+        selected = await db(
+            """SELECT * FROM user_achievements_milestones WHERE user_id = $1""",
+            user_id,
+        )
+        return list(selected)
+
+
+async def user_achievements_db_call(user_id: int) -> list:
+    async with vbu.Database() as db:
+        selected = await db(
+            """SELECT * FROM user_achievements WHERE user_id = $1""",
+            user_id,
+        )
+        return list(selected)
+
+
+async def fish_pool_location_db_call() -> list:
+    async with vbu.Database() as db:
+        selected = await db(
+            """SELECT * FROM fish_pool_location""",
+        )
+        return list(selected)
+
+
+async def user_location_info_db_call(user_id: int) -> list:
+    async with vbu.Database() as db:
+        selected = await db(
+            """SELECT * FROM user_location_info WHERE user_id = $1""",
+            user_id,
+        )
+        return selected

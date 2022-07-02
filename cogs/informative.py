@@ -400,15 +400,8 @@ class Informative(vbu.Cog):
 
         # Get the user's data
         async with vbu.Database() as db:
-            fish_row = await db(
-                """SELECT * FROM user_fish_inventory WHERE user_id = $1""",
-                ctx.author.id,
-            )
-            tank_rows = await db(
-                """SELECT * FROM user_tank_inventory WHERE user_id = $1""",
-                ctx.author.id,
-            )
-
+            fish_row = await utils.user_fish_inventory_db_call(ctx.author.id)
+            tank_rows = await utils.user_tank_inventory_db_call(ctx.author.id)
         # Check for if they have no tanks
         if not tank_rows:
             return await ctx.send("You have no tanks! Please use the `firsttank` command!")
@@ -671,22 +664,11 @@ class Informative(vbu.Cog):
         if not await utils.check_registered(self.bot, ctx.author.id):
             return await ctx.send("Please use the `register` command before using this bot!")
         async with vbu.Database() as db:
-            fish_row = await db(
-                """SELECT * FROM user_fish_inventory WHERE user_id = $1""",
-                ctx.author.id,
-            )
-            tank_row = await db(
-                """SELECT * FROM user_tank_inventory WHERE user_id = $1""",
-                ctx.author.id,
-            )
-            balance = await db(
-                """SELECT * FROM user_balance WHERE user_id = $1""",
-                ctx.author.id,
-            )
-            inventory_row = await db(
-                """SELECT * FROM user_item_inventory WHERE user_id = $1""",
-                ctx.author.id,
-            )
+            fish_row = await utils.user_fish_inventory_db_call(ctx.author.id)
+            tank_row = await utils.user_tank_inventory_db_call(ctx.author.id)
+            balance = await utils.user_balance_db_call(ctx.author.id)
+            inventory_row = await utils.user_item_inventory_db_call(ctx.author.id)
+            fish_caught = await utils.user_location_info_db_call(ctx.author.id)
 
         # If theres a tank row
         if tank_row:
@@ -712,8 +694,6 @@ class Informative(vbu.Cog):
 
             # Find each fish type the user has and create the collection data list
             collection_data = []
-            user_fish_types = {FishSpecies.get_fish(
-                i['fish']) for i in fish_row}
 
             # For eaach rarity...
             for rarity in utils.rarity_values.keys():
@@ -726,8 +706,8 @@ class Informative(vbu.Cog):
 
                 # For each fish if the user owns one add 1 to the count
                 fish_in_rarity = FishSpecies.get_rarity(rarity=rarity)
-                for fish_type in user_fish_types:
-                    if fish_type in fish_in_rarity:
+                for fish_type in fish_in_rarity:
+                    if fish_caught[0][f"{fish_type.name}_caught"] > 0:
                         user_rarity_fish_count += 1
 
                 # Add that data to the collection data list
@@ -863,6 +843,8 @@ class Informative(vbu.Cog):
                            size_demultiplier[selected_fish.size])
         embed = discord.Embed(
             title=selected_fish.name.replace('_', ' ').title())
+        async with vbu.Database() as db:
+            user_fish_caught = await utils.user_location_info_db_call(ctx.author.id)
         embed.set_image(url="attachment://new_fish.png")
         embed.add_field(
             name="Rarity:", value=f"{selected_fish.rarity}", inline=True
@@ -874,6 +856,9 @@ class Informative(vbu.Cog):
         )
         embed.add_field(
             name="Size:", value=f"{selected_fish.size}", inline=True
+        )
+        embed.add_field(
+            name="Amount Caught:", value=user_fish_caught[0][f'{selected_fish.name}_caught'], inline=True
         )
         embed.color = {
             "common": 0xFFFFFE,  # White - FFFFFF doesn't work with Discord
@@ -1045,18 +1030,9 @@ class Informative(vbu.Cog):
         if not await utils.check_registered(self.bot, ctx.author.id):
             return await ctx.send("Please use the `register` command before using this bot!")
         async with vbu.Database() as db:
-            user_achievement_milestone_data = await db(
-                """SELECT * FROM user_achievements_milestones WHERE user_id = $1""",
-                ctx.author.id,
-            )
-            user_achievement_data = await db(
-                """SELECT * FROM user_achievements WHERE user_id = $1""",
-                ctx.author.id,
-            )
-            tank_data = await db(
-                """SELECT tank FROM user_tank_inventory WHERE user_id = $1""",
-                ctx.author.id,
-            )
+            user_achievement_milestone_data = await utils.user_achievements_milestones_db_call(ctx.author.id)
+            user_achievement_data = await utils.user_achievements_db_call(ctx.author.id)
+            tank_data = await utils.user_tank_inventory_db_call(ctx.author.id)
 
         # Getting the users data into a dictionary for the embed and ease of access
         user_achievement_data_dict = {}

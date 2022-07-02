@@ -220,12 +220,12 @@ HYGIENIC_UPGRADE = {
 
 # Feeding upgrade increases the time before a fish dies from not being fed
 FEEDING_UPGRADES = {
-    0: (3, 0),
-    1: (3, 6),
-    2: (3, 12),
-    3: (3, 18),
-    4: (3, 24),
-    5: (4, 6),
+    0: (1, 0),
+    1: (1, 12),
+    2: (2, 0),
+    3: (2, 12),
+    4: (3, 0),
+    5: (3, 12),
 }
 
 
@@ -282,6 +282,7 @@ FISH_POINTS_NAMES = ["Fish Points", "Points", "P"]
 EXPERIENCE_POTION_NAMES = ["Experience Potion", "Experience", "E"]
 MUTATION_POTION_NAMES = ["Mutation Potion", "Mutation", "M"]
 FEEDING_POTION_NAMES = ["Feeding Potion", "Feeding", "F"]
+NEW_LOCATION_UNLOCK_NAMES = ["New Location Unlock", "Unlock", "NLU"]
 
 
 EMOJIS = {
@@ -299,6 +300,15 @@ EMOJIS = {
     "aqua_shrug": "<:AquaShrug:877939116480802896>",
     "aqua_unamused": "<:AquaUnamused:877939116132696085>",
     "aqua_smile": "<:AquaSmile:877939115994255383>",
+    "aqua_clean": "<:AquaClean:965778951605714994>",
+    "aqua_craft": "<:AquaCraft:965778951773503569>",
+    "aqua_eat": "<:AquaEat:965778952121647215>",
+    "aqua_eyes": "<:AquaEyes:965778952083869707>",
+    "aqua_rich": "<:AquaRich:965778951937097748>",
+    "aqua_stare": "<:AquaStare:965778951643492382>",
+    "aqua_tank": "<:AquaTank:965778951576354877>",
+    "aqua_tap": "<a:AquaTap:965778952029339658>",
+    "aqua_trash": "<:AquaTrash:965778950980796427>",
     "bar_1": "<:bar_1:877646167184408617>",
     "bar_2": "<:bar_2:877646166823694437>",
     "bar_3": "<:bar_3:877646167138267216>",
@@ -336,14 +346,15 @@ EMOJIS = {
     "pile_of_bottle_caps": "<:pile_of_bottle_caps:934600170274951188>",
     "plastic_bottle": "<:plastic_bottle:934600322305912904>",
     "plastic_bag": "<:plastic_bag:934600170228817930>",
-    "seaweed_scraps": "<:seaweed_scraps:934604323399303239>",
+    "seaweed_scraps": "<:seaweed_scraps:982769507095445544>",
     "broken_fishing_net": "<:broken_fishing_net:934600170346283038>",
     "halfeaten_flip_flop": "<:halfeaten_flipflop:934600169834577921>",
     "pile_of_straws": "<:pile_of_straws:934600169872306227>",
     "old_boot": "<:old_boot:934600170161717360>",
     "old_tire": "<:old_tire:934600169918439446>",
-    "fishing_boots": "<:fishing_boots:957838977312907315>",
-    "trash_toys": "<:trash_toys:957838977237397514>",
+    "fishing_boots": "<:fishing_boots:982769507212873728>",
+    "trash_toys": "<:trash_toys:982769507070255224>",
+    "super_food": "<:AquaSmile:877939115994255383>"
 }
 
 # List of names for tank themes
@@ -387,7 +398,8 @@ skin_type_dict = {
     'triumphant': ['omnifish', 'victory_drakefish', 'seal', 'shrimp', 'whale_shark', 'anglerfish']
 }
 
-location_list = []
+location_list = ['pond', 'estuary', 'creek', 'coral_reef',
+                 'lake', 'river', 'deep_sea', 'ocean', 'none']
 
 
 class FishSpecies:
@@ -395,22 +407,38 @@ class FishSpecies:
     all_species_by_name = {}
     all_species_by_rarity = {}
     all_fish_skins = {}
+    all_species_by_location_rarity = {}
 
-    def __init__(self, *, name: str, size: int, rarity: str, image: str, locations: list):
+    for location_type in location_list:
+        all_species_by_location_rarity[location_type] = {
+            "common": [], "uncommon": [], "rare": [], "epic": []}
+
+    def __init__(self, *, name: str, size: int, rarity: str, image: str, location: str):
         self.name = name
         self.size = size
         self.rarity = rarity
         self.image = image
-        self.locations = locations
+        self.location = location
+        print(name, location, rarity)
         self.all_fish_skins[name] = ["inverted"]
         for skin_name, fish in skin_type_dict.items():
             if name in fish:
                 self.all_fish_skins[name].append(skin_name)
+        if rarity == 'mythic' and rarity not in self.all_species_by_location_rarity[location].keys():
+            for location_type in location_list:
+                self.all_species_by_location_rarity[location_type][rarity] = [
+                    self]
+        elif rarity not in self.all_species_by_location_rarity[location]:
+            self.all_species_by_location_rarity[location][rarity] = [self]
+        elif self.name not in [obj.name for obj in self.all_species_by_location_rarity[location][rarity]]:
+            self.all_species_by_location_rarity[location][rarity].append(
+                self)
+        print(self.all_species_by_location_rarity[location][rarity])
         self.all_species_by_name[name] = self
         self.skins = self.all_fish_skins[name]
         if rarity not in self.all_species_by_rarity.keys():
             self.all_species_by_rarity[rarity] = [self]
-        else:
+        elif self.name not in [obj.name for obj in self.all_species_by_rarity[rarity]]:
             self.all_species_by_rarity[rarity].append(self)
 
     @classmethod
@@ -420,6 +448,10 @@ class FishSpecies:
     @classmethod
     def get_rarity(cls, rarity: str):
         return cls.all_species_by_rarity[rarity]
+
+    @classmethod
+    def get_location_rarity(cls, rarity: str, location: str):
+        return cls.all_species_by_location_rarity[location][rarity]
 
     @property
     def cost(self) -> int:
@@ -463,10 +495,18 @@ def parse_fish_filename(filename: str) -> dict:
     filename = filename[:-4]  # Remove file extension
 
     # Splits the formatted file name into its parts
-    rarity, cost, size, *raw_name = filename.split("_")
+    rarity, cost, size, *location_and_name = filename.split("_")
 
     # Return the parts of the filename in a dict of the stats
-    return rarity, size, "_".join(raw_name)
+    for location_type in location_list:
+        if location_and_name[0] == location_type:
+            location = location_and_name[0]
+            location_and_name.pop(0)
+        elif "_".join(location_and_name[:2]) == location_type:
+            location = "_".join(location_and_name[:2])
+            location_and_name.pop(0)
+            location_and_name.pop(0)
+    return rarity, size, location, "_".join(location_and_name)
 
 
 def fetch_fish(directory: str) -> dict:
@@ -484,10 +524,10 @@ def fetch_fish(directory: str) -> dict:
     for filename in fish_filenames:
 
         # Add the fish to the dict
-        rarity, size, name = parse_fish_filename(filename)
+        rarity, size, location, name = parse_fish_filename(filename)
         image = f"{directory}/{filename}"
         fetched_fish.append(
-            FishSpecies(name=name, size=size, rarity=rarity, image=image, locations=location_list))
+            FishSpecies(name=name, size=size, rarity=rarity, image=image, location=location))
 
     return fetched_fish
 
@@ -574,7 +614,10 @@ items_required = {
         "halfeaten_flip_flop": 2,
         "plastic_bottle": 5,
         "seaweed_scraps": 4
-    }, "Gives you a 50% bonus to xp gotten from entertaining. (stacks up to 5)")
+    }, "Gives you a 50% bonus to xp gotten from entertaining. (stacks up to 5)"),
+    "Super Food": ({
+        "seaweed_scraps": 4,
+    }, "Used to feed all fish in a tank, no matter their level."),
 }
 
 
@@ -726,7 +769,7 @@ fish_footers = [
     'Need help? Use the a.guide or join the [support server](https://discord.gg/FUyr8QmrD8)!',
     'Get a coding error message or some other error? Use a.bug `command name` `description` to report it!',
     'Vote for the bot with a.vote [(or here)](https://top.gg/bot/840956686743109652) to get access to a daily reward! (a.daily)',
-    f'Join the [support server](https://discord.gg/FUyr8QmrD8) to get access to aqua emotes!',
+    'Join the [support server](https://discord.gg/FUyr8QmrD8) to get access to aqua emotes!',
     'Make sure you claim achievements with a.achievements to get doubloons!',
     'Make sure you\'re getting upgrades with the a.upgrades command!',
     'When using the a.buy command, put the item exactly as listen in parentheses, then the amount!',

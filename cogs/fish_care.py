@@ -92,10 +92,7 @@ class FishCare(vbu.Cog):
                     ctx.author.id,
                     tank,
                 )
-                tank_row = await db(
-                    """SELECT * FROM user_tank_inventory WHERE user_id =$1""",
-                    ctx.author.id,
-                )
+                tank_row = await utils.user_tank_inventory_db_call(ctx.author.id)
 
             # Check if the tank exists
             if not tank_row:
@@ -276,10 +273,7 @@ class FishCare(vbu.Cog):
                 """SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_alive = FALSE""",
                 ctx.author.id,
             )
-            revival_count = await db(
-                """SELECT revival FROM user_item_inventory WHERE user_id = $1""",
-                ctx.author.id,
-            )
+            revival_count = await utils.user_item_inventory_db_call(ctx.author.id)
 
         # If they dont give a fish
         if not fish:
@@ -314,7 +308,7 @@ class FishCare(vbu.Cog):
         # Checks that error
         if fish_row[0]["fish_alive"] is True:
             return await ctx.send("That fish is alive!")
-        if not revival_count:
+        if not revival_count[0]['revival']:
             return await ctx.send("You have no revivals!")
 
         # If the fish isn't in a tank, it has no death timer, but if it is it's set to three days
@@ -342,15 +336,6 @@ class FishCare(vbu.Cog):
         await ctx.send(
             message, allowed_mentions=discord.AllowedMentions.none()
         )
-
-    @commands.command(aliases=["clean", "entertain", "feed", "deposit", "remove", "show"])
-    @commands.bot_has_permissions(send_messages=True)
-    async def moved(self, ctx, *, filler=None):
-        """
-        This command gives a response for the moved commands
-        """
-        await ctx.send(
-            "This command has moved to the a.tank *tank name* command. thank you!")
 
 
 def setup(bot):

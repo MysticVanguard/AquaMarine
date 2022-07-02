@@ -77,13 +77,7 @@ class Upgrades(vbu.Cog):
         if not await utils.check_registered(self.bot, ctx.author.id):
             return await ctx.send("Please use the `register` command before using this bot!")
         async with vbu.Database() as db:
-            upgrades = await db(
-                """SELECT rod_upgrade, bait_upgrade, line_upgrade, lure_upgrade, crate_chance_upgrade, weight_upgrade,
-                crate_tier_upgrade, bleach_upgrade, toys_upgrade, amazement_upgrade, mutation_upgrade,
-                big_servings_upgrade, hygienic_upgrade, feeding_upgrade
-                FROM user_upgrades WHERE user_id = $1""",
-                ctx.author.id,
-            )
+            upgrades = await utils.user_upgrades_db_call(ctx.author.id)
 
         # Find the positions for the different upgrades
         positions = [(2140, 910), (1300, 1070), (1310, 1260), (1710, 1080), (2200, 1470),
@@ -114,9 +108,11 @@ class Upgrades(vbu.Cog):
 
         # For each upgrade open the upgrade at it's tier and paste it to the background
         for i, upgrade in enumerate(upgrades[0]):
+            if i == 0:
+                continue
             added_upgrade = Image.open(
                 f"{file_prefix}/background/Room Walls/Upgrades_Wall/{list_of_upgrades[i]}_tier_{upgrades[0][list_of_upgrades[i]]+1}-export.png").convert("RGBA")
-            new_background.paste(added_upgrade, positions[i], added_upgrade)
+            new_background.paste(added_upgrade, positions[i-1], added_upgrade)
 
         # Paste the shadow on top finally
         new_background.paste(shadow, (0, 0), shadow)
@@ -309,15 +305,7 @@ class Upgrades(vbu.Cog):
         if not await utils.check_registered(self.bot, ctx.author.id):
             return await ctx.send("Please use the `register` command before using this bot!")
         async with vbu.Database() as db:
-            upgrades = await db(
-                """SELECT rod_upgrade, line_upgrade, crate_chance_upgrade,
-                weight_upgrade, bait_upgrade, crate_tier_upgrade,
-                lure_upgrade, feeding_upgrade, toys_upgrade,
-                mutation_upgrade, amazement_upgrade, bleach_upgrade,
-                big_servings_upgrade, hygienic_upgrade
-                FROM user_upgrades WHERE user_id = $1""",
-                ctx.author.id,
-            )
+            upgrades = await utils.user_upgrades_db_call(ctx.author.id)
 
         # Set up their upgrades and let them enter the name of the upgrade with or without upgrade
         upgrades = upgrades[0]

@@ -22,10 +22,7 @@ class Aquarium(vbu.Cog):
 
         # See if they already have a tank
         async with vbu.Database() as db:
-            fetched = await db(
-                """SELECT user_id FROM user_tank_inventory WHERE user_id=$1;""",
-                ctx.author.id,
-            )
+            fetched = await utils.user_tank_inventory_db_call(ctx.author.id)
         if fetched:
             return await ctx.send("You have your first tank already!")
 
