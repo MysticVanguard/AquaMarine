@@ -80,8 +80,9 @@ class Fishing(vbu.Cog):
             location_pools_info = await utils.fish_pool_location_db_call()
 
             if not user_locations_info:
-                await db(
-                    """INSERT INTO user_location_info (user_id, current_location) VALUES ($1, 'pond')"""
+                user_locations_info = await db(
+                    """INSERT INTO user_location_info (user_id, current_location) VALUES ($1, 'pond') RETURNING *""",
+                    ctx.author.id
                 )
 
         # If they have no casts tell them they can't fish and remove them from currrent fishers
@@ -638,6 +639,12 @@ class Fishing(vbu.Cog):
                 user_fish_caught = await utils.user_location_info_db_call(ctx.author.id)
                 fish_pool_left = await utils.fish_pool_location_db_call()
                 user_inventory = await utils.user_item_inventory_db_call(ctx.author.id)
+
+                if not user_fish_caught:
+                    user_fish_caught = await db(
+                        """INSERT INTO user_location_info (user_id, current_location) VALUES ($1, 'pond') RETURNING *""",
+                        ctx.author.id
+                    )
             embed = discord.Embed(
                 title=f"{location.replace('_', ' ').title()} Info")
             for rarity, fish in FishSpecies.all_species_by_location_rarity[location].items():

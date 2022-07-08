@@ -616,7 +616,8 @@ class Shop(vbu.Cog):
             ("Old Tire", "old_tire"),
             ("Fishing Boots", "fishing_boots"),
             ("Trash Toys", "trash_toys"),
-            ("Super Food", "super_food")
+            ("Super Food", "super_food"),
+            ("New Location Unlock", "new_location_unlock")
         ]
 
         # Create an embed

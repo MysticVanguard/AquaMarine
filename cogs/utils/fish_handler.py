@@ -183,7 +183,7 @@ CRATE_TIERS = {
 }
 
 
-BLEACH_UPGRADE = {0: 1, 1: 1.4, 2: 1.8, 3: 2.2, 4: 2.6, 5: 3.0}
+BLEACH_UPGRADE = {0: 1, 1: 1.3, 2: 1.6, 3: 1.9, 4: 2.2, 5: 2.5}
 
 # Toys upgrade that increases the amount of xp gained
 TOYS_UPGRADE = {
@@ -354,7 +354,8 @@ EMOJIS = {
     "old_tire": "<:old_tire:934600169918439446>",
     "fishing_boots": "<:fishing_boots:982769507212873728>",
     "trash_toys": "<:trash_toys:982769507070255224>",
-    "super_food": "<:AquaSmile:877939115994255383>"
+    "super_food": "<:AquaSmile:877939115994255383>",
+    "new_location_unlock": "<:AquaShrug:877939116480802896>",
 }
 
 # List of names for tank themes

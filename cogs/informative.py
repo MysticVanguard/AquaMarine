@@ -650,7 +650,9 @@ class Informative(vbu.Cog):
             "old_boot": EMOJIS["old_boot"],
             "old_tire": EMOJIS["old_tire"],
             "fishing_boots": EMOJIS["fishing_boots"],
-            "trash_toys": EMOJIS['trash_toys']
+            "trash_toys": EMOJIS['trash_toys'],
+            "new_location_unlock": EMOJIS['new_location_unlock'],
+            "super_food": EMOJIS['super_food'],
         }
 
         # Set up the default values
@@ -669,6 +671,12 @@ class Informative(vbu.Cog):
             balance = await utils.user_balance_db_call(ctx.author.id)
             inventory_row = await utils.user_item_inventory_db_call(ctx.author.id)
             fish_caught = await utils.user_location_info_db_call(ctx.author.id)
+
+            if not fish_caught:
+                fish_caught = await db(
+                    """INSERT INTO user_location_info (user_id, current_location) VALUES ($1, 'pond') RETURNING *""",
+                    ctx.author.id
+                )
 
         # If theres a tank row
         if tank_row:
@@ -845,6 +853,11 @@ class Informative(vbu.Cog):
             title=selected_fish.name.replace('_', ' ').title())
         async with vbu.Database() as db:
             user_fish_caught = await utils.user_location_info_db_call(ctx.author.id)
+            if not user_fish_caught:
+                user_fish_caught = await db(
+                    """INSERT INTO user_location_info (user_id, current_location) VALUES ($1, 'pond') RETURNING *""",
+                    ctx.author.id
+                )
         embed.set_image(url="attachment://new_fish.png")
         embed.add_field(
             name="Rarity:", value=f"{selected_fish.rarity}", inline=True

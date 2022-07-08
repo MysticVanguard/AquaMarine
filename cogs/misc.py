@@ -6,23 +6,6 @@ class Misc(vbu.Cog):
 
     def __init__(self, bot: vbu.Bot):
         super().__init__(bot)
-        self.reset_fish_pools.start()
-
-    # When the cog is turned off, turn the loop off
-    def cog_unload(self):
-        self.reset_fish_pools.cancel()
-
-    # Every hour, everyone gets a cast as long as they have less than 50
-    @tasks.loop(hours=168)
-    async def reset_fish_pools(self):
-        async with vbu.Database() as db:
-            await db("""DELETE FROM fish_pool_location""")
-            await db("""INSERT INTO fish_pool_location (banggai_cardinalfish_count) VALUES (100)""")
-
-    # Wait until the bot is on and ready and not just until the cog is on
-    @reset_fish_pools.before_loop
-    async def before_reset_fish_pools(self):
-        await self.bot.wait_until_ready()
 
     @commands.command()
     @commands.bot_has_permissions(send_messages=True)
