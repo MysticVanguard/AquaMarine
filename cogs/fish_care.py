@@ -48,7 +48,7 @@ class FishCare(vbu.Cog):
 
     @commands.command()
     @commands.bot_has_permissions(send_messages=True)
-    async def tank(self, ctx: commands.Context, *, tank: str = None):
+    async def tank(self, ctx: commands.Context, *, tank: str):
         """
         Shows the specified tank and lets you feed, clean, entertain, etc.
         """

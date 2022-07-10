@@ -187,12 +187,12 @@ BLEACH_UPGRADE = {0: 1, 1: 1.3, 2: 1.6, 3: 1.9, 4: 2.2, 5: 2.5}
 
 # Toys upgrade that increases the amount of xp gained
 TOYS_UPGRADE = {
-    0: (5, 50),
-    1: (15, 75),
-    2: (25, 125),
-    3: (50, 250),
-    4: (100, 500),
-    5: (200, 1000),
+    0: (10, 30),
+    1: (25, 75),
+    2: (50, 150),
+    3: (100, 300),
+    4: (150, 450),
+    5: (200, 600),
 }
 
 # Amazement upgrade increases the chance of a fish to gain a level
@@ -200,7 +200,7 @@ TOYS_UPGRADE = {
 AMAZEMENT_UPGRADE = {0: 1600, 1: 1500, 2: 1300, 3: 1000, 4: 600, 5: 100}
 
 # Mutation upgrade increases the chance of a fish to mutate to
-# golden or inverted after being *****TBD
+# golden or inverted after being in a tank cleaned
 MUTATION_UPGRADE = {0: 50000, 1: 40000, 2: 30000, 3: 20000, 4: 10000, 5: 5000}
 
 # Big servings upgrade increases the chance of fish food not being

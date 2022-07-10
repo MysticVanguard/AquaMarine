@@ -18,39 +18,62 @@ SHOP_FIELDS = [
     (
         f"{EMOJIS['amfc']} __AquaMarine Fish Corps State Issued Resources__ {EMOJIS['amfc']}\n"
         f"These are resources bought from the AMFC company.",
-        f"**Fish Flakes {EMOJIS['fish_flake']}** __Price: 30 {EMOJIS['sand_dollar']}__\n"
+        f"**Fish Flakes {EMOJIS['fish_flake']}**\n "
+        f"{EMOJIS['bar_empty']}__Price: 30 {EMOJIS['sand_dollar']}__\n"
         f"{EMOJIS['bar_empty']}Keeps a level **1-20** fish alive for 1 more day\n"
-        f"**Fish Pellets {EMOJIS['fish_pellet']}** __Price: 200 {EMOJIS['sand_dollar']}__\n"
+        f"**Fish Pellets {EMOJIS['fish_pellet']}** \n"
+        f"{EMOJIS['bar_empty']}__Price: 200 {EMOJIS['sand_dollar']}__\n"
         f"{EMOJIS['bar_empty']}Keeps a level **21-50** fish alive for 1 more day\n"
-        f"**Fish Wafers {EMOJIS['fish_wafer']}** __Price: 400 {EMOJIS['sand_dollar']}__\n"
+        f"**Fish Wafers {EMOJIS['fish_wafer']}** \n"
+        f"{EMOJIS['bar_empty']}__Price: 400 {EMOJIS['sand_dollar']}__\n"
         f"{EMOJIS['bar_empty']}Keeps a level **51+** fish alive for 1 more day\n"
-        f"**Fish Revival {EMOJIS['revival']}** __Price: 2,500 {EMOJIS['sand_dollar']}__\n"
+        f"**Fish Revival {EMOJIS['revival']}** \n"
+        f"{EMOJIS['bar_empty']}__Price: 2,500 {EMOJIS['sand_dollar']}__\n"
         f"{EMOJIS['bar_empty']}Can be used to **revive a dead fish**\n"
-        f"**Fish Bowl** __Price: 250 {EMOJIS['sand_dollar']}__\n"
+        f"**Fish Bowl** \n"
+        f"{EMOJIS['bar_empty']}__Price: 250 {EMOJIS['sand_dollar']}__\n"
         f"{EMOJIS['bar_empty']}The smallest tank, with only **1** Size Point\n"
-        f"**Small Tank** __Price: 5,000 {EMOJIS['sand_dollar']}__\n"
+    ),
+    (
+        f"{EMOJIS['amfc']} __AquaMarine Fish Corps State Issued Resources__ {EMOJIS['amfc']}\n"
+        f"These are resources bought from the AMFC company.",
+        f"**Small Tank** \n"
+        f"{EMOJIS['bar_empty']}__Price: 5,000 {EMOJIS['sand_dollar']}__\n"
         f"{EMOJIS['bar_empty']}Enough to hold a medium fish, has **5** Size Points\n"
-        f"**Medium Tank** __Price: 50,000 {EMOJIS['sand_dollar']}__\n"
+        f"**Medium Tank** \n"
+        f"{EMOJIS['bar_empty']}__Price: 50,000 {EMOJIS['sand_dollar']}__\n"
         f"{EMOJIS['bar_empty']}The biggest tank, with **25** Size Points, able to hold a large fish\n"
-        f"**New Location Unlock** __Price: 25 {EMOJIS['doubloon']}__\n"
+        f"**New Location Unlock** \n"
+        f"{EMOJIS['bar_empty']}__Price: 25 {EMOJIS['doubloon']}__\n"
         f"{EMOJIS['bar_empty']}Unlocks one of the advanced locations\n"
     ),
     (
         f"{EMOJIS['gfu']} __Golden Fishers Union Item Market__ {EMOJIS['gfu']}\n"
         f"These are items sold by the GFU",
-        f"**Five Fishing Casts {EMOJIS['casts']}** __Price: 1 {EMOJIS['doubloon']}__\n"
+        f"**Five Fishing Casts {EMOJIS['casts']}** \n"
+        f"{EMOJIS['bar_empty']}__Price: 1 {EMOJIS['doubloon']}__\n"
         f"{EMOJIS['bar_empty']}Gives you **5** casts to use for fishing\n"
-        f"**Inverted Fish Bag {EMOJIS['inverted_fish_bag']}** __Price: 10 {EMOJIS['doubloon']}__\n"
+        f"**Inverted Fish Bag {EMOJIS['inverted_fish_bag']}** \n"
+        f"{EMOJIS['bar_empty']}__Price: 10 {EMOJIS['doubloon']}__\n"
         f"{EMOJIS['bar_empty']}Gives a bag that can be a fish of any rarity, but is **inverted**\n"
-        f"**High Level Fish Bag {EMOJIS['high_level_fish_bag']}** __Price: 40,000 {EMOJIS['sand_dollar']}__\n"
+        f"**High Level Fish Bag {EMOJIS['high_level_fish_bag']}** \n"
+        f"{EMOJIS['bar_empty']}__Price: 40,000 {EMOJIS['sand_dollar']}__\n"
         f"{EMOJIS['bar_empty']}Gives a bag that can be a fish of any rarity, but is **level 25-50**\n"
-        f"**Experience Potion {EMOJIS['experience_potion']}** __Price: 75,000 {EMOJIS['sand_dollar']}__\n"
+        f"**Experience Potion {EMOJIS['experience_potion']}** \n"
+        f"{EMOJIS['bar_empty']}__Price: 75,000 {EMOJIS['sand_dollar']}__\n"
         f"{EMOJIS['bar_empty']}When used on a fish, gives them **25,000 Experience**\n"
-        f"**Mutation Potion {EMOJIS['mutation_potion']}** __ Price: 50 {EMOJIS['doubloon']}__\n"
+    ),
+    (
+        f"{EMOJIS['gfu']} __Golden Fishers Union Item Market__ {EMOJIS['gfu']}\n"
+        f"These are items sold by the GFU",
+        f"**Mutation Potion {EMOJIS['mutation_potion']}** \n"
+        f"{EMOJIS['bar_empty']}__ Price: 50 {EMOJIS['doubloon']}__\n"
         f"{EMOJIS['bar_empty']}When used on a fish, makes that fish **inverted**\n"
-        f"**Plant Life** __Price: 250 {EMOJIS['doubloon']}__\n"
+        f"**Plant Life** \n"
+        f"{EMOJIS['bar_empty']}__Price: 250 {EMOJIS['doubloon']}__\n"
         f"{EMOJIS['bar_empty']}A nice green **plant themed background** for your aquarium, can be veiwed with `preview` \n"
-        f"**Fish Points {EMOJIS['fish_points']}** __Price: 500 {EMOJIS['sand_dollar']}__\n"
+        f"**Fish Points {EMOJIS['fish_points']}** \n"
+        f"{EMOJIS['bar_empty']}__Price: 500 {EMOJIS['sand_dollar']}__\n"
         f"{EMOJIS['bar_empty']}One permanant point for the **\"Fish Points\" leaderboard**\n"
     ),
 ]
@@ -295,7 +318,7 @@ class Shop(vbu.Cog):
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def use(self, ctx: commands.Context, *, item: str):
         """
-        This command is only for using fish bags, and is just like using the fish command.
+        This command is for using fish bags and potions.
         """
 
         if not await utils.check_registered(self.bot, ctx.author.id):
@@ -420,7 +443,7 @@ class Shop(vbu.Cog):
             if item.title() in utils.EXPERIENCE_POTION_NAMES:
 
                 # Add 10k xp to the fish
-                await utils.xp_finder_adder(ctx.author, name, 25000, False)\
+                await utils.xp_finder_adder(ctx.author.id, name, 25000, False)\
 
                 # Get the new rows
                 async with vbu.Database() as db:
@@ -677,12 +700,12 @@ class Shop(vbu.Cog):
 
             # If they specified someone get that users balance
             if user:
-                other_or_self = f"{user.display_name} has"
+                other_or_self = f"{user.display_name}'s"
                 fetched = await utils.user_balance_db_call(user.id)
 
             # Else get your own balance
             else:
-                other_or_self = "You have"
+                other_or_self = "Your"
                 fetched = await utils.user_balance_db_call(ctx.author.id)
 
             # If theres none of each type of balance say no, otherwise say that balance
@@ -700,7 +723,14 @@ class Shop(vbu.Cog):
                 amount_three = f"{fetched[0]['casts']:,}"
 
         # Send the users balance
-        await ctx.send(f"""{other_or_self} {amount_one} Sand Dollars {EMOJIS["sand_dollar"]}!\n{other_or_self} {amount_two} Doubloons {EMOJIS["doubloon"]}!\n{other_or_self} {amount_three} Casts {EMOJIS["casts"]}!""")
+        embed = discord.Embed(title=f"{other_or_self} Balance")
+        embed.add_field(name="Sand Dollars:",
+                        value=f"{amount_one} {EMOJIS['sand_dollar']}")
+        embed.add_field(name="Doubloons:",
+                        value=f"{amount_two} {EMOJIS['doubloon']}")
+        embed.add_field(
+            name="Casts:", value=f"{amount_three} {EMOJIS['casts']}")
+        await ctx.send(embed=embed)
 
     @commands.command()
     @commands.bot_has_permissions(send_messages=True)

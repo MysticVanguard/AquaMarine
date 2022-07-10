@@ -17,7 +17,7 @@ FISH_FEED_COOLDOWN = timedelta(hours=6)
 
 
 async def xp_finder_adder(
-    user: typing.Union[discord.User, discord.Member],
+    user_id: int,
     played_with_fish: str,
     xp_per_fish: int,
     level: bool,
@@ -36,7 +36,7 @@ async def xp_finder_adder(
     async with vbu.Database() as db:
         fish_rows = await db(
             """SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2""",
-            user.id,
+            user_id,
             played_with_fish,
         )
 
@@ -63,7 +63,7 @@ async def xp_finder_adder(
             inventory_rows = await db(
                 """UPDATE user_fish_inventory SET fish_level = fish_level + $3 WHERE
                 user_id = $1 AND fish_name = $2 RETURNING fish_level""",
-                user.id,
+                user_id,
                 played_with_fish,
                 (1 + added_level),
             )
@@ -79,14 +79,14 @@ async def xp_finder_adder(
         # Once the fish is done leveling set the current xp and the xp needed to their appropriate values
         await db(
             """UPDATE user_fish_inventory SET fish_xp = $3 WHERE user_id = $1 AND fish_name = $2""",
-            user.id,
+            user_id,
             played_with_fish,
             current_xp,
         )
         await db(
             """UPDATE user_fish_inventory SET fish_xp_max = $1 WHERE user_id = $2 AND fish_name = $3""",
             xp_needed,
-            user.id,
+            user_id,
             played_with_fish,
         )
 
@@ -472,7 +472,7 @@ async def user_entertain(self, ctx, tank_entertained, payload):
     )
 
     if amount_of_crafted:
-        boot_multiplier = .5 * amount_of_crafted[0]['fishing_boots']
+        boot_multiplier = .3 * amount_of_crafted[0]['fishing_boots']
     else:
         boot_multiplier = 0
     total_xp_to_add * (1 + (boot_multiplier))
@@ -497,14 +497,14 @@ async def user_entertain(self, ctx, tank_entertained, payload):
     if tank_rows[0]["tank_entertain_time"][tank_slot]:
         if (
             tank_rows[0]["tank_entertain_time"][tank_slot]
-            + timedelta(minutes=5)
+            + timedelta(minutes=10)
             > dt.utcnow()
         ):
             time_left = timedelta(
                 seconds=(
                     tank_rows[0]["tank_entertain_time"][tank_slot]
                     - dt.utcnow()
-                    + timedelta(minutes=5)
+                    + timedelta(minutes=10)
                 ).total_seconds()
             )
             relative_time = discord.utils.format_dt(
@@ -545,7 +545,7 @@ async def user_entertain(self, ctx, tank_entertained, payload):
             # For each fish in the tank add their xp, gets the new fish's data
             for fish_name in fish:
                 await utils.xp_finder_adder(
-                    ctx.author, fish_name, xp_per_fish, new_level
+                    ctx.author.id, fish_name, xp_per_fish, new_level
                 )
                 new_fish_rows = await db(
                     """SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2""",

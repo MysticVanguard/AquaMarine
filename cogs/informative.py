@@ -102,8 +102,8 @@ CREDITS_EMBED = discord.Embed(
 CREDITS_EMBED.add_field(
     name="The lovely coders who helped me with creating the bot, and who have taught me so much!",
     value=(
-        "[**Hero#2313**](https://github.com/iHeroGH): Creator of StalkerBot"
-        "[**Kae#0004**](https://voxelfox.co.uk/): Creator of MarriageBot and so many others"
+        "[**Hero#2313**](https://github.com/iHeroGH): Creator of StalkerBot\n"
+        "[**Kae#0004**](https://voxelfox.co.uk/): Creator of MarriageBot and so many others\n"
         "[**slippery schlöpp#6969**](https://github.com/schlopp): Creator of pp bot"
     ),
     inline=False,
@@ -120,6 +120,15 @@ CREDITS_EMBED.add_field(
     + EMOJIS["aqua_love"]
     + EMOJIS["aqua_cool"]
     + EMOJIS["aqua_blep"]
+    + EMOJIS['aqua_clean']
+    + EMOJIS['aqua_craft']
+    + EMOJIS['aqua_eat']
+    + EMOJIS['aqua_eyes']
+    + EMOJIS['aqua_rich']
+    + EMOJIS['aqua_stare']
+    + EMOJIS['aqua_tank']
+    + EMOJIS['aqua_tap']
+    + EMOJIS['aqua_trash']
     + "(https://peppoco.carrd.co/#)",
     inline=False,
 )
@@ -480,13 +489,21 @@ class Informative(vbu.Cog):
                 )
 
                 # Find all the relevant data for the fish
+                if not fish['fish_skin']:
+                    skin = "No"
+                else:
+                    skin = fish['fish_skin'].title()
+                if fish['fish_alive']:
+                    alive = "Alive"
+                else:
+                    alive = "Dead"
                 fish_collections[fish["tank_fish"]].append(
                     f"**{fish['fish'].replace('_', ' ').title()}: \"{fish['fish_name']}\"**\n"
-                    f"{EMOJIS['bar_empty']}Skin: **{fish['fish_skin']}**\n"
-                    f"{EMOJIS['bar_empty']}Alive: **{fish['fish_alive']}**\n"
-                    f"{EMOJIS['bar_empty']}Death Date: **{relative_time}**\n"
-                    f"{EMOJIS['bar_empty']}Level: **{fish['fish_level']}**\n"
-                    f"{EMOJIS['bar_empty']}XP: **{fish['fish_xp']}/{fish['fish_xp_max']}**"
+                    f"{EMOJIS['bar_empty']}**{skin}** skin\n"
+                    f"{EMOJIS['bar_empty']}This fish is **{alive}**\n"
+                    f"{EMOJIS['bar_empty']}Dies **{relative_time}**\n"
+                    f"{EMOJIS['bar_empty']}Level **{fish['fish_level']}**\n"
+                    f"{EMOJIS['bar_empty']}**{fish['fish_xp']}/{fish['fish_xp_max']}** XP"
                 )
 
         # Set up the fields
@@ -945,10 +962,18 @@ class Informative(vbu.Cog):
         # Get the display string for each field
         for rarity, fish_list in sorted_fish.items():
             if fish_list:
-                fish_string = [
-                    f"\"{fish.name}\": **{' '.join(fish.species.name.split('_')).title()}** (Size: {fish.species.size.title()}, Alive: {fish.alive}, Skin: {fish.skin})"
-                    for fish in fish_list
-                ]
+                fish_string = []
+                for fish in fish_list:
+                    if fish.alive:
+                        alive = "Alive"
+                    else:
+                        alive = "Dead"
+                    if fish.skin:
+                        skin = fish.skin.title()
+                    else:
+                        skin = "No"
+                    fish_string.append(
+                        f"\"{fish.name}\": **{' '.join(fish.species.name.split('_')).title()}** ({fish.species.size.title()}, {alive}, {skin} skin)")
                 field = (rarity.title(), "\n".join(fish_string))
                 [fields.append(i) for i in utils.get_fixed_field(field)]
 
@@ -1279,109 +1304,107 @@ class Informative(vbu.Cog):
         if hasattr(ctx, "interaction"):
             await ctx.interaction.response.defer()
 
-        async with ctx.typing():
+        # Set up a select menu for them to choose which kind of leaderboard
+        leaderboard_type = await utils.create_select_menu(
+            self.bot, ctx, ["Balance", "Fish Points"], "type", "choose")
 
-            # Set up a select menu for them to choose which kind of leaderboard
-            leaderboard_type = await utils.create_select_menu(
-                self.bot, ctx, ["Balance", "Fish Points"], "type", "choose")
+        # If they want the balance one...
+        if leaderboard_type == "Balance":
 
-            # If they want the balance one...
-            if leaderboard_type == "Balance":
+            # Set up for the user's points
+            user_points_unsorted = {}
 
-                # Set up for the user's points
-                user_points_unsorted = {}
+            # Get everyone's balance
+            async with vbu.Database() as db:
+                user_balance_rows = await db("""SELECT * FROM user_balance""")
 
-                # Get everyone's balance
-                async with vbu.Database() as db:
-                    user_balance_rows = await db("""SELECT * FROM user_balance""")
+            # For each row add their id and balance to the unsorted dict
+            for user_info in user_balance_rows:
+                user_points_unsorted[user_info["user_id"]
+                                     ] = user_info["balance"]
 
-                # For each row add their id and balance to the unsorted dict
-                for user_info in user_balance_rows:
-                    user_points_unsorted[user_info["user_id"]
-                                         ] = user_info["balance"]
+        # Else if they want fish points...
+        elif leaderboard_type == "Fish Points":
 
-            # Else if they want fish points...
-            elif leaderboard_type == "Fish Points":
+            # Setup for their info
+            user_info_unsorted = {}
 
-                # Setup for their info
-                user_info_unsorted = {}
-
-                # Get their fish inventory and extra points
-                async with vbu.Database() as db:
-                    user_info_rows = await db(
-                        """SELECT * FROM user_fish_inventory"""
-                    )
-                    user_extra_points = await db("""SELECT * FROM user_balance""")
-
-                # For each row of fish...
-                for user_info in user_info_rows:
-
-                    # If that fish is alive...
-                    if user_info["fish_alive"] is True:
-
-                        # If that user's ID isn't in the dict already...
-                        if user_info["user_id"] not in user_info_unsorted.keys():
-
-                            # Add the user_id with a list to to the dict then add that fish to the list
-                            user_info_unsorted[user_info["user_id"]] = []
-                            user_info_unsorted[user_info["user_id"]].append(
-                                FishSpecies.get_fish(user_info["fish"])
-                            )
-
-                        # Else just add the fish to the list
-                        else:
-                            user_info_unsorted[user_info["user_id"]].append(
-                                FishSpecies.get_fish(user_info["fish"])
-                            )
-
-                # Setup for the rarity points
-                rarity_points = {
-                    "common": 1,
-                    "uncommon": 3,
-                    "rare": 15,
-                    "epic": 75,
-                    "legendary": 150,
-                    "mythic": 1000,
-                }
-
-                # Setup for the unsorted dict
-                user_points_unsorted = {}
-
-                # For each user and their list of fish...
-                for user, fish in user_info_unsorted.items():
-
-                    # Set their points to 0
-                    user_points = 0
-
-                    # Find out what rarity each fish in the list is and add that many points
-                    for fish_type in fish:
-                        user_points += rarity_points[fish_type.rarity]
-
-                    # for each user if its the correct user add the extra points as well
-                    for user_name in user_extra_points:
-                        if user_name["user_id"] == user:
-                            user_points += user_name["extra_points"]
-                            break
-
-                    # Set the user equal to their points
-                    user_points_unsorted[user] = user_points
-
-            # Sort the points by the amount of points
-            user_id_sorted = [
-                (user, points)
-                for user, points in sorted(
-                    user_points_unsorted.items(),
-                    key=lambda item: item[1],
-                    reverse=True,
+            # Get their fish inventory and extra points
+            async with vbu.Database() as db:
+                user_info_rows = await db(
+                    """SELECT * FROM user_fish_inventory"""
                 )
-            ]
+                user_extra_points = await db("""SELECT * FROM user_balance""")
 
-            # Set the output to be a list of strings
-            output: list[str] = []
+            # For each row of fish...
+            for user_info in user_info_rows:
 
-            # Format each person's id and points
-            for user_id, points in user_id_sorted:
-                output.append(f"<@{user_id}> ({points:,})")
+                # If that fish is alive...
+                if user_info["fish_alive"] is True:
+
+                    # If that user's ID isn't in the dict already...
+                    if user_info["user_id"] not in user_info_unsorted.keys():
+
+                        # Add the user_id with a list to to the dict then add that fish to the list
+                        user_info_unsorted[user_info["user_id"]] = []
+                        user_info_unsorted[user_info["user_id"]].append(
+                            FishSpecies.get_fish(user_info["fish"])
+                        )
+
+                    # Else just add the fish to the list
+                    else:
+                        user_info_unsorted[user_info["user_id"]].append(
+                            FishSpecies.get_fish(user_info["fish"])
+                        )
+
+            # Setup for the rarity points
+            rarity_points = {
+                "common": 1,
+                "uncommon": 3,
+                "rare": 15,
+                "epic": 75,
+                "legendary": 150,
+                "mythic": 1000,
+            }
+
+            # Setup for the unsorted dict
+            user_points_unsorted = {}
+
+            # For each user and their list of fish...
+            for user, fish in user_info_unsorted.items():
+
+                # Set their points to 0
+                user_points = 0
+
+                # Find out what rarity each fish in the list is and add that many points
+                for fish_type in fish:
+                    user_points += rarity_points[fish_type.rarity]
+
+                # for each user if its the correct user add the extra points as well
+                for user_name in user_extra_points:
+                    if user_name["user_id"] == user:
+                        user_points += user_name["extra_points"]
+                        break
+
+                # Set the user equal to their points
+                user_points_unsorted[user] = user_points
+
+        # Sort the points by the amount of points
+        user_id_sorted = [
+            (user, points)
+            for user, points in sorted(
+                user_points_unsorted.items(),
+                key=lambda item: item[1],
+                reverse=True,
+            )
+        ]
+
+        # Set the output to be a list of strings
+        output: list[str] = []
+
+        # Format each person's id and points
+        for user_id, points in user_id_sorted:
+            output.append(f"<@{user_id}> ({points:,})")
 
         # Make a Paginator with 10 results per page
         menu = vbu.Paginator(
@@ -1468,7 +1491,8 @@ class Informative(vbu.Cog):
         }
         output = []
         for fish_type, count in fish_dict_sorted.items():
-            output.append(f"{fish_type.replace('_', ' ').title()}: {count}")
+            output.append(
+                f"**{fish_type.replace('_', ' ').title()}**: {count}")
         menu = vbu.Paginator(
             output,
             per_page=10,

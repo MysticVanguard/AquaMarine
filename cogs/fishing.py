@@ -49,6 +49,14 @@ class Fishing(vbu.Cog):
                     """UPDATE user_balance SET casts=casts+$2 WHERE user_id = $1""",
                     x["user_id"], amount
                 )
+            fish_in_tanks = await db("""SELECT * FROM user_fish_inventory WHERE tank_fish != '' AND fish_alive = TRUE""")
+            for y in fish_in_tanks:
+                amount_of_trash_toys = await utils.user_item_inventory_db_call(
+                    y["user_id"])
+                amount_of_xp = await utils.user_upgrades_db_call(y['user_id'])
+                total_xp = math.ceil((utils.TOYS_UPGRADE[amount_of_xp[0]['toys_upgrade']]
+                                      [0] * .25) * (.25 * amount_of_trash_toys[0]['trash_toys']))
+                await utils.xp_finder_adder(y['user_id'], y['fish_name'], total_xp, False)
 
     # Wait until the bot is on and ready and not just until the cog is on
     @user_cast_loop.before_loop
