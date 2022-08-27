@@ -46,7 +46,17 @@ class FishCare(vbu.Cog):
     async def before_fish_food_death_loop(self):
         await self.bot.wait_until_ready()
 
-    @commands.command()
+    @commands.command(
+        application_command_meta=commands.ApplicationCommandMeta(
+            options=[
+                discord.ApplicationCommandOption(
+                    name="tank",
+                    type=discord.ApplicationCommandOptionType.string,
+                    description="The tank you want to deal with"
+                ),
+            ]
+        )
+    )
     @commands.bot_has_permissions(send_messages=True)
     async def tank(self, ctx: commands.Context, *, tank: str):
         """
@@ -258,7 +268,18 @@ class FishCare(vbu.Cog):
             elif chosen_button == "clean":
                 await utils.user_clean(self, ctx, tank, chosen_button_payload)
 
-    @commands.command()
+    @commands.command(
+        application_command_meta=commands.ApplicationCommandMeta(
+            options=[
+                discord.ApplicationCommandOption(
+                    name="fish",
+                    type=discord.ApplicationCommandOptionType.string,
+                    description="Fish you want to revive",
+                    required=False
+                )
+            ]
+        )
+    )
     @commands.bot_has_permissions(send_messages=True)
     async def revive(self, ctx: commands.Context, *, fish: str = None):
         """

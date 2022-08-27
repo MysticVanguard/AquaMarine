@@ -62,7 +62,9 @@ class Upgrades(vbu.Cog):
     UPGRADE_COST_LIST_TWO = (10000, 20000, 30000, 40000, 50000, 50000)
     UPGRADE_COST_LIST_THREE = (100000, 200000, 300000, 400000, 500000, 500000)
 
-    @commands.command()
+    @commands.command(
+        application_command_meta=commands.ApplicationCommandMeta()
+    )
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def upgrades(self, ctx: commands.Context):
         """
@@ -294,8 +296,17 @@ class Upgrades(vbu.Cog):
         await ctx.send(embed=embed)
         await ctx.send(embed=embed_2)
 
-    @commands.command()
-    @commands.bot_has_permissions(send_messages=True, embed_links=True)
+    @commands.command(
+        application_command_meta=commands.ApplicationCommandMeta(
+            options=[
+                discord.ApplicationCommandOption(
+                    name="upgrade",
+                    type=discord.ApplicationCommandOptionType.string,
+                    description="The name of the upgrade you want to increase")
+            ]
+        )
+    )
+    @ commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def upgrade(self, ctx: commands.Context, *, upgrade: str):
         """
         Upgrade one of your items.

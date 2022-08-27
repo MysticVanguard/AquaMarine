@@ -34,7 +34,8 @@ class CommandCounter(vbu.Cog):
         self.bot.logger.info(f"Logging command completion: {command.name}")
 
     @commands.command(
-        aliases=["commandstats", "commandcount", "commandcounter"]
+        aliases=["commandstats", "commandcount", "commandcounter"],
+        application_command_meta=commands.ApplicationCommandMeta()
     )
     async def commanddata(self, ctx: commands.Context):
         """

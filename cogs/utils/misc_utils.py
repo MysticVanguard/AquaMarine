@@ -650,7 +650,6 @@ async def user_feed(self, ctx, tank_chosen):
             fish_fed = await utils.create_select_menu(
                 self.bot, ctx, fish_in_tank, "fish", "feed", True
             )
-            print(fish_fed)
             if type(fish_fed) != str:
                 return
             # Find the fish row of the selected fish

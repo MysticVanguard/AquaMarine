@@ -278,7 +278,6 @@ async def buying_singular(bot, user: discord.user, ctx, item: str):
 
         slot, interaction = await create_modal(bot, chosen_button_payload, "Tank Slot To Change", f"Available: {', '.join(available_slots)}; Taken: {', '.join(nonavailable_slots)}")
 
-        print(slot)
         if not slot:
             await interaction.response.send_message(
                 "Timed out asking for slot, no available slots given."

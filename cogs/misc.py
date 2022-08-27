@@ -24,7 +24,17 @@ class Misc(vbu.Cog):
     async def before_reset_fish_pools(self):
         await self.bot.wait_until_ready()
 
-    @commands.command()
+    @commands.command(
+        application_command_meta=commands.ApplicationCommandMeta(
+            options=[
+                discord.ApplicationCommandOption(
+                    name="user",
+                    type=discord.ApplicationCommandOptionType.user,
+                    description="The user stabbed"
+                ),
+            ]
+        )
+    )
     @commands.bot_has_permissions(send_messages=True)
     async def stab(self, ctx: commands.Context, user: discord.User):
         """
@@ -43,7 +53,22 @@ class Misc(vbu.Cog):
             ),
         )
 
-    @commands.command()
+    @commands.command(
+        application_command_meta=commands.ApplicationCommandMeta(
+            options=[
+                discord.ApplicationCommandOption(
+                    name="command",
+                    type=discord.ApplicationCommandOptionType.string,
+                    description="The command used to get the bug"
+                ),
+                discord.ApplicationCommandOption(
+                    name="info",
+                    type=discord.ApplicationCommandOptionType.string,
+                    description="The info about the bug you want to submit"
+                )
+            ]
+        )
+    )
     @commands.bot_has_permissions(send_messages=True)
     async def bug(self, ctx: commands.Context, command: str, *, info: str):
         """
@@ -67,7 +92,9 @@ class Misc(vbu.Cog):
         # let them know the bug report was sent
         await ctx.send("Bug report sent!")
 
-    @commands.command()
+    @commands.command(
+        application_command_meta=commands.ApplicationCommandMeta()
+    )
     @commands.bot_has_permissions(send_messages=True)
     async def support(self, ctx: commands.Context):
         """

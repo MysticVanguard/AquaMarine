@@ -80,7 +80,10 @@ SHOP_FIELDS = [
 
 
 class Shop(vbu.Cog):
-    @commands.command(aliases=["s", "store"])
+    @commands.command(
+        aliases=["s", "store"],
+        application_command_meta=commands.ApplicationCommandMeta()
+    )
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def shop(self, ctx: commands.Context):
         """
@@ -95,7 +98,25 @@ class Shop(vbu.Cog):
         # Send the correct fields paginated
         await utils.paginate(ctx, fields, ctx.author)
 
-    @commands.command(aliases=["b"])
+    @commands.command(
+        aliases=["b"],
+        application_command_meta=commands.ApplicationCommandMeta(
+            options=[
+                discord.ApplicationCommandOption(
+                    name="item",
+                    type=discord.ApplicationCommandOptionType.string,
+                    description="The item you want to buy"
+                ),
+                discord.ApplicationCommandOption(
+                    name="amount",
+                    type=discord.ApplicationCommandOptionType.integer,
+                    description="The number of the provided item you want to buy",
+                    required=False
+
+                ),
+            ]
+        )
+    )
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def buy(self, ctx: commands.Context, item: str, amount: int = 1):
         """
@@ -129,7 +150,7 @@ class Shop(vbu.Cog):
             return await ctx.send("That is not an available item")
 
         if amount <= 0:
-            return await ctx.send("Please enter a positive amount of sand dollars")
+            return await ctx.send("Please enter a positive amount")
 
         # Set up SQL statements for each of the tiered inserts
         inventory_insert_sql = (
@@ -314,7 +335,18 @@ class Shop(vbu.Cog):
             f"You bought {amount:,} {response} for {full_cost:,} {emoji}!"
         )
 
-    @commands.command(aliases=["u"])
+    @commands.command(
+        aliases=["u"],
+        application_command_meta=commands.ApplicationCommandMeta(
+            options=[
+                discord.ApplicationCommandOption(
+                    name="item",
+                    type=discord.ApplicationCommandOptionType.string,
+                    description="The item you want to use"
+                ),
+            ]
+        )
+    )
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def use(self, ctx: commands.Context, *, item: str):
         """
@@ -601,7 +633,10 @@ class Shop(vbu.Cog):
         await ctx.send(file=fish_file)
         await utils.ask_to_sell_fish(self.bot, ctx, level_inserted=level, chosen_fish=chosen_fish, skin=fish_skin, embed=embed)
 
-    @commands.command(aliases=["inv"])
+    @commands.command(
+        aliases=["inv"],
+        application_command_meta=commands.ApplicationCommandMeta()
+    )
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def inventory(self, ctx: commands.Context):
         """
@@ -682,10 +717,22 @@ class Shop(vbu.Cog):
         # Send the embed
         await ctx.send(embed=embed)
 
-    @commands.command(aliases=["bal"])
+    @commands.command(
+        aliases=["bal"],
+        application_command_meta=commands.ApplicationCommandMeta(
+            options=[
+                discord.ApplicationCommandOption(
+                    name="user",
+                    type=discord.ApplicationCommandOptionType.user,
+                    description="The user's balance you want to check (leave blank for your own)",
+                    required=False
+                ),
+            ]
+        )
+    )
     @commands.bot_has_permissions(send_messages=True)
     async def balance(
-        self, ctx: commands.Context, user: discord.Member = None
+        self, ctx: commands.Context, user: discord.User = None
     ):
         """
         This command checks the user's balance or another user's balance.
@@ -732,7 +779,17 @@ class Shop(vbu.Cog):
             name="Casts:", value=f"{amount_three} {EMOJIS['casts']}")
         await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.command(
+        application_command_meta=commands.ApplicationCommandMeta(
+            options=[
+                discord.ApplicationCommandOption(
+                    name="fish_sold",
+                    type=discord.ApplicationCommandOptionType.string,
+                    description="The fish you want to sell"
+                ),
+            ]
+        )
+    )
     @commands.bot_has_permissions(send_messages=True)
     async def sell(self, ctx: commands.Context, *, fish_sold: str):
         """
@@ -809,7 +866,10 @@ class Shop(vbu.Cog):
             f"You have sold {fish_sold} for {sell_money} {EMOJIS['sand_dollar']}!"
         )
 
-    @commands.command(aliases=["d"])
+    @commands.command(
+        aliases=["d"],
+        application_command_meta=commands.ApplicationCommandMeta()
+    )
     @commands.cooldown(1, 60 * 60 * 24, commands.BucketType.user)
     @commands.bot_has_permissions(send_messages=True)
     async def daily(self, ctx: commands.Context):
@@ -901,7 +961,18 @@ class Shop(vbu.Cog):
             f"Daily reward claimed, please try again {relative_time}."
         )
 
-    @commands.command()
+    @commands.command(
+        application_command_meta=commands.ApplicationCommandMeta(
+            options=[
+                discord.ApplicationCommandOption(
+                    name="amount",
+                    type=discord.ApplicationCommandOptionType.integer,
+                    description="The amount you want to gamble (multiple of 100)",
+                    required=False
+                ),
+            ]
+        )
+    )
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def gamble(self, ctx: commands.Context, amount: int = 100):
         """

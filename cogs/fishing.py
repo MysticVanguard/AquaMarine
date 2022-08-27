@@ -63,7 +63,9 @@ class Fishing(vbu.Cog):
     async def before_user_cast_loop(self):
         await self.bot.wait_until_ready()
 
-    @commands.command()
+    @commands.command(
+        application_command_meta=commands.ApplicationCommandMeta()
+    )
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def fish(self, ctx: commands.Context):
         """
@@ -141,6 +143,10 @@ class Fishing(vbu.Cog):
                     rarity = random.choices(
                         *utils.rarity_percentage_finder(upgrades[0]["bait_upgrade"])
                     )[0]
+                    while rarity not in FishSpecies.all_species_by_location_rarity[user_locations_info[0]['current_location']].keys():
+                        rarity = random.choices(
+                            *utils.rarity_percentage_finder(upgrades[0]["bait_upgrade"])
+                        )[0]
                     chosen_fish = random.choice(
                         FishSpecies.get_location_rarity(
                             rarity, user_locations_info[0]['current_location'])
@@ -478,7 +484,22 @@ class Fishing(vbu.Cog):
                 # Tell them they caught trash and how much of what types
                 await ctx.send(f"{EMOJIS['aqua_trash']} You caught trash!{trash_string}")
 
-    @commands.command()
+    @commands.command(
+        application_command_meta=commands.ApplicationCommandMeta(
+            options=[
+                discord.ApplicationCommandOption(
+                    name="old",
+                    type=discord.ApplicationCommandOptionType.string,
+                    description="The fish or tank you want to rename"
+                ),
+                discord.ApplicationCommandOption(
+                    name="new",
+                    type=discord.ApplicationCommandOptionType.string,
+                    description="The fish or tank's new name"
+                )
+            ]
+        )
+    )
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def rename(self, ctx: commands.Context, old: str, new: str):
         """
@@ -565,7 +586,18 @@ class Fishing(vbu.Cog):
             allowed_mentions=discord.AllowedMentions.none(),
         )
 
-    @commands.command()
+    @commands.command(
+        application_command_meta=commands.ApplicationCommandMeta(
+            options=[
+                discord.ApplicationCommandOption(
+                    name="crafted",
+                    type=discord.ApplicationCommandOptionType.string,
+                    description="The item you want to craft (leave blank for menu)",
+                    required=False
+                )
+            ]
+        )
+    )
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def craft(self, ctx: commands.Context, *, crafted: str = None):
         '''
@@ -629,7 +661,9 @@ class Fishing(vbu.Cog):
         # Let them know it was crafted
         return await ctx.send(f"{crafted} has been crafted!")
 
-    @commands.command()
+    @commands.command(
+        application_command_meta=commands.ApplicationCommandMeta()
+    )
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def map(self, ctx: commands.Context):
         locations = ["Pond", "Creek", "Estuary", "Coral Reef",
@@ -710,8 +744,6 @@ class Fishing(vbu.Cog):
                 await message.edit(components=components.disable_components())
             except asyncio.TimeoutError:
                 await message.edit(components=components.disable_components())
-
-# test
 
 
 def setup(bot):

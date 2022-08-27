@@ -13,7 +13,8 @@ from cogs.utils.fish_handler import DAYLIGHT_SAVINGS, Fish, FishSpecies
 
 
 class Aquarium(vbu.Cog):
-    @commands.command()
+
+    @commands.command(application_command_meta=commands.ApplicationCommandMeta())
     @commands.bot_has_permissions(send_messages=True)
     async def firsttank(self, ctx: commands.Context):
         """
@@ -96,9 +97,32 @@ class Aquarium(vbu.Cog):
                 ctx.author.id,
             )
 
-    @commands.command(enabled=False)
+    @commands.command(
+        application_command_meta=commands.ApplicationCommandMeta(
+            options=[
+                discord.ApplicationCommandOption(
+                    name="theme",
+                    type=discord.ApplicationCommandOptionType.string,
+                    description="The theme that you want to apply to the chosen tank"
+                ),
+                discord.ApplicationCommandOption(
+                    name="tank_type",
+                    type=discord.ApplicationCommandOptionType.string,
+                    description="The type of tank chosen",
+                    choices=[
+                        discord.ApplicationCommandOptionChoice(
+                            name="Fish Bowl", value="Fish Bowl"),
+                        discord.ApplicationCommandOptionChoice(
+                            name="Small Tank", value="Small Tank"),
+                        discord.ApplicationCommandOptionChoice(
+                            name="Medium Tank", value="Medium Tank")
+                    ]
+                )
+            ]
+        )
+    )
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
-    async def preview(self, ctx: commands.Context, theme: str):
+    async def preview(self, ctx: commands.Context, theme: str, tank_type: str):
         """
         Previews a tank theme
         """
@@ -122,11 +146,6 @@ class Aquarium(vbu.Cog):
             "Small Tank": "Small_Tank_2D",
             "Medium Tank": "Medium_Tank_2D",
         }
-
-        # Create a select meny for the tank types
-        tank_type = await utils.create_select_menu(
-            self.bot, ctx, tank_types.keys(), "tank type", "choose"
-        )
 
         # Set up the image
         file_prefix = "C:/Users/JT/Pictures/Aqua/assets/images"

@@ -301,7 +301,9 @@ help_descriptions = {
 
 
 class Informative(vbu.Cog):
-    @commands.command()
+    @commands.command(
+        application_command_meta=commands.ApplicationCommandMeta()
+    )
     @commands.bot_has_permissions(send_messages=True)
     async def tanks(self, ctx: commands.Context):
         """
@@ -633,7 +635,9 @@ class Informative(vbu.Cog):
     #         Embed.add_field(name=field_name, value=field_value, inline=False)
     #     await ctx.send(embed=Embed)
 
-    @commands.command()
+    @commands.command(
+        application_command_meta=commands.ApplicationCommandMeta()
+    )
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def profile(self, ctx: commands.Context):
         """
@@ -800,7 +804,18 @@ class Informative(vbu.Cog):
             embed.add_field(name=name, value=text, inline=inline)
         await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.command(
+        application_command_meta=commands.ApplicationCommandMeta(
+            options=[
+                discord.ApplicationCommandOption(
+                    name="fish_name",
+                    type=discord.ApplicationCommandOptionType.string,
+                    description="The type of fish you want to search (leave blank for all fish)",
+                    required=False
+                ),
+            ]
+        )
+    )
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def bestiary(self, ctx: commands.Context, *, fish_name: str = None):
         """
@@ -903,7 +918,19 @@ class Informative(vbu.Cog):
         # Send the embed
         await ctx.send(file=fish_file, embed=embed)
 
-    @commands.command(aliases=["bucket", "fb"])
+    @commands.command(
+        aliases=["bucket", "fb"],
+        application_command_meta=commands.ApplicationCommandMeta(
+            options=[
+                discord.ApplicationCommandOption(
+                    name="user",
+                    type=discord.ApplicationCommandOptionType.user,
+                    description="The person's bucket you want to see (leave blank for your own)",
+                    required=False
+                ),
+            ]
+        )
+    )
     @commands.bot_has_permissions(
         send_messages=True, embed_links=True)
     async def fishbucket(
@@ -980,7 +1007,9 @@ class Informative(vbu.Cog):
         # Create an embed
         await utils.paginate(ctx, fields, user)
 
-    @commands.command()
+    @commands.command(
+        application_command_meta=commands.ApplicationCommandMeta()
+    )
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def achievements(self, ctx: commands.Context):
         """
@@ -1283,7 +1312,10 @@ class Informative(vbu.Cog):
                 f"Rewards claimed, you earned {amount_of_doubloons_earned} {EMOJIS['doubloon']}!"
             )
 
-    @commands.command(aliases=["creds"])
+    @commands.command(
+        aliases=["creds"],
+        application_command_meta=commands.ApplicationCommandMeta()
+    )
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def credits(self, ctx: commands.Context):
         """
@@ -1293,7 +1325,9 @@ class Informative(vbu.Cog):
         # Send the credits embed made at the beginning of cog
         await ctx.send(embed=CREDITS_EMBED)
 
-    @commands.command()
+    @commands.command(
+        application_command_meta=commands.ApplicationCommandMeta()
+    )
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def leaderboard(self, ctx: commands.Context):
         """
@@ -1416,7 +1450,9 @@ class Informative(vbu.Cog):
         # Return the embed
         return await menu.start(ctx)
 
-    @commands.command()
+    @commands.command(
+        application_command_meta=commands.ApplicationCommandMeta()
+    )
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def register(self, ctx: commands.Context):
         """
@@ -1451,7 +1487,9 @@ class Informative(vbu.Cog):
             if not user_achievements_info:
                 await db("""INSERT INTO user_achievements (user_id) VALUES ($1)""", ctx.author.id)
 
-    @commands.command()
+    @commands.command(
+        application_command_meta=commands.ApplicationCommandMeta()
+    )
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def guide(self, ctx: commands.Context):
         """
@@ -1465,9 +1503,11 @@ class Informative(vbu.Cog):
         # Send the correct fields paginated
         await utils.paginate(ctx, fields, ctx.author)
 
-    @commands.command()
+    @commands.command(
+        application_command_meta=commands.ApplicationCommandMeta()
+    )
     @commands.bot_has_permissions(send_messages=True)
-    async def totalfish(self, ctx: commands.Context, *, tank_cleaned: str = None):
+    async def totalfish(self, ctx: commands.Context):
         """
         Shows the number of each type of fish owned, sorted by most
         """
@@ -1502,7 +1542,18 @@ class Informative(vbu.Cog):
         # Return the embed
         return await menu.start(ctx)
 
-    @commands.command()
+    @commands.command(
+        application_command_meta=commands.ApplicationCommandMeta(
+            options=[
+                discord.ApplicationCommandOption(
+                    name="command",
+                    type=discord.ApplicationCommandOptionType.string,
+                    description="The command you need help with (leave blank for menu)",
+                    required=False
+                ),
+            ]
+        )
+    )
     @commands.bot_has_permissions(send_messages=True)
     async def help(self, ctx: commands.Context, *, command: str = None):
         """

@@ -420,7 +420,6 @@ class FishSpecies:
         self.rarity = rarity
         self.image = image
         self.location = location
-        print(name, location, rarity)
         self.all_fish_skins[name] = ["inverted"]
         for skin_name, fish in skin_type_dict.items():
             if name in fish:
@@ -434,7 +433,6 @@ class FishSpecies:
         elif self.name not in [obj.name for obj in self.all_species_by_location_rarity[location][rarity]]:
             self.all_species_by_location_rarity[location][rarity].append(
                 self)
-        print(self.all_species_by_location_rarity[location][rarity])
         self.all_species_by_name[name] = self
         self.skins = self.all_fish_skins[name]
         if rarity not in self.all_species_by_rarity.keys():
