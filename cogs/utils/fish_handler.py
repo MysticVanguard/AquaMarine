@@ -326,7 +326,8 @@ async def ask_to_sell_fish(
                 money_earned,
             )
         returned_message += f"Sold your **{chosen_fish.name.replace('_', ' ').title()}** for **{money_earned}** {utils.EMOJIS['sand_dollar']}!"
-    await message.edit(components=components.disable_components(), delete_after=5)
+    await message.edit(components=components.disable_components())
+    await message.delete(delay=5)
     return returned_message, post_components
 
 user_last_fish_caught = {}
