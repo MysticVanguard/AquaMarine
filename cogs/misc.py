@@ -59,7 +59,7 @@ class Misc(vbu.Cog):
                 discord.ApplicationCommandOption(
                     name="command",
                     type=discord.ApplicationCommandOptionType.string,
-                    description="The command used to get the bug"
+                    description="The command that produced the the bug"
                 ),
                 discord.ApplicationCommandOption(
                     name="info",
@@ -75,17 +75,12 @@ class Misc(vbu.Cog):
         This command sends a bug report to the support server.
         """
 
-        # Set the user to the person using the command
-        user = ctx.author
-
         # Set the message to send to
-        channel: discord.TextChannel = self.bot.get_channel(
-            877446487087415337
-        )
+        channel: discord.TextChannel = self.bot.get_channel(877446487087415337)
 
         # Send the bug they reported to that channel with their user
         await channel.send(
-            f"From: {user.mention}\n**{command}**: {info}",
+            f"From: {ctx.author.mention}\n**{command}**: {info}",
             allowed_mentions=discord.AllowedMentions.none(),
         )
 
@@ -103,6 +98,21 @@ class Misc(vbu.Cog):
 
         # Sends the link for the support server
         await ctx.send("https://discord.gg/FUyr8QmrD8")
+
+    @commands.command(
+        application_command_meta=commands.ApplicationCommandMeta()
+    )
+    @commands.bot_has_permissions(send_messages=True)
+    async def vote_x(self, ctx: commands.Context):
+        """
+        This command sends the voting link.
+        """
+
+        # Sends the link for the support server
+        embed = discord.Embed(title="Vote for AquaMarine!")
+        embed.add_field(
+            name="**Top.gg**", value=f"[Vote Here!](https://top.gg/bot/840956686743109652/vote)")
+        await ctx.send(embed=embed)
 
 
 def setup(bot):

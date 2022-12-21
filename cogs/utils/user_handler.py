@@ -1,182 +1,7 @@
 import asyncio
-from distutils.log import error
-import math
-import random
-from typing import Text
-
 import discord
 from discord.ext import vbu
-
 from cogs import utils
-from cogs.utils import EMOJIS
-from cogs.utils.fish_handler import FishSpecies, create_modal, random_name_finder
-
-user_last_fish_caught = {}
-
-
-async def ask_to_sell_fish(
-    bot, ctx, chosen_fish: FishSpecies, skin: str, embed, level_inserted: int = 0
-):
-    """
-    Ask the user if they want to sell a fish they've been given.
-    """
-
-    size_demultiplier = {
-        "small": 1,
-        "medium": 2,
-        "large": 3
-    }
-    chosen_button_payload = None
-    # Add the buttons to the message
-    components = discord.ui.MessageComponents(
-        discord.ui.ActionRow(
-            discord.ui.Button(custom_id="keep", emoji=EMOJIS["keep"]),
-            discord.ui.Button(custom_id="sell", emoji=EMOJIS["sell"]),
-        ),
-    )
-    try:
-        message = await ctx.send(embed=embed, components=components)
-    except discord.HTTPException:
-        return
-
-    async with bot.database() as db:
-        fish_rows = await db(
-            """SELECT * FROM user_fish_inventory WHERE user_id=$1""",
-            ctx.author.id,
-        )
-        upgrades = await db(
-            """SELECT rod_upgrade, weight_upgrade FROM user_upgrades WHERE user_id = $1""",
-            ctx.author.id,
-        )
-
-    # See what reaction the user is adding to the message
-
-    def button_check(payload):
-        if payload.message.id != message.id:
-            return False
-        return payload.user.id == ctx.author.id
-        # Keep going...
-
-    # Level variables
-    level = (
-        random.randint(
-            utils.WEIGHT_UPGRADES[upgrades[0]["weight_upgrade"]][0],
-            utils.WEIGHT_UPGRADES[upgrades[0]["weight_upgrade"]][1],
-        )
-        + level_inserted
-    )
-
-    while True:
-
-        # Wait for them to click a button
-        try:
-            chosen_button_payload = await bot.wait_for(
-                "component_interaction", timeout=60.0, check=button_check
-            )
-            chosen_button = chosen_button_payload.component.custom_id.lower()
-        except asyncio.TimeoutError:
-            await message.edit(components=components.disable_components())
-            await message.channel.send(
-                "Did you forget about me? I've been waiting for a while now! "
-                "I'll just assume you wanted to sell the fish."
-            )
-            chosen_button = 'sell'
-
-        # Update the displayed emoji
-        if chosen_button == "keep":
-            # Get their current fish names
-            fish_names = [i["fish_name"] for i in fish_rows]
-            xp_max = math.floor(25 * level ** 1.5)
-            name, interaction = await create_modal(bot, chosen_button_payload, "Fish Kept", "Enter Your Fish's Name")
-
-            # Disable the given button
-            await message.edit(components=components.disable_components())
-            while name in fish_names or not name:
-                # Add the buttons to the message
-                components = discord.ui.MessageComponents(
-                    discord.ui.ActionRow(
-                        discord.ui.Button(custom_id="Retry", label='Retry'),
-                    ),
-                )
-                try:
-                    message = await ctx.channel.send(
-                        f"{ctx.author.mention} An error occured! Click the button to try again",
-                        components=components
-                    )
-                except discord.HTTPException:
-                    return
-
-                try:
-                    chosen_button_payload = await bot.wait_for(
-                        "component_interaction", timeout=60.0, check=button_check
-                    )
-                    name, interaction = await create_modal(bot, chosen_button_payload, "Fish Kept", "Enter Your Fish's Name")
-                except asyncio.TimeoutError:
-                    name = random_name_finder()
-                    while name in fish_names:
-                        name = random_name_finder()
-                    await message.channel.send(
-                        f"Did you forget about me? I've been waiting for a while now! "
-                        f"I'll name the fish for you. "
-                        f"Let's call it **{name}** (Lvl. {level})"
-                    )
-            if interaction:
-                await interaction.response.send_message(
-                    f"Your new fish **{name}** (Lvl. {level}) has been added to your bucket!"
-                )
-            else:
-                await ctx.send(
-                    f"Your new fish **{name}** (Lvl. {level}) has been added to your bucket!"
-                )
-            # Save the fish name
-            async with bot.database() as db:
-                await db(
-                    """INSERT INTO user_fish_inventory (user_id, fish, fish_name, fish_size, fish_level, fish_xp_max, fish_skin, fish_location) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)""",
-                    ctx.author.id,
-                    chosen_fish.name,
-                    name,
-                    chosen_fish.size,
-                    level,
-                    xp_max,
-                    skin,
-                    "",
-                )
-            return
-        if chosen_button == "sell":
-            if chosen_button_payload:
-                await chosen_button_payload.response.defer_update()
-            # See if they want to sell the fish
-            vote_multiplier = 0
-            if await get_user_voted(bot, ctx.author.id):
-                vote_multiplier = .5
-                await message.channel.send(
-                    "You voted at <https://top.gg/bot/840956686743109652/vote> for a **1.5x** bonus"
-                )
-
-            level_multiplier = level / 20
-            money_gained = int(chosen_fish.cost /
-                               size_demultiplier[chosen_fish.size])
-            money_earned = math.ceil((money_gained) * (
-                utils.ROD_UPGRADES[upgrades[0]["rod_upgrade"]] + level_multiplier + vote_multiplier))
-            async with bot.database() as db:
-                await db(
-                    """UPDATE user_balance SET balance = balance + $2 WHERE user_id = $1""",
-                    ctx.author.id,
-                    money_earned,
-                )
-                # Achievements
-                await db(
-                    """UPDATE user_achievements SET money_gained = money_gained + $2 WHERE user_id = $1""",
-                    ctx.author.id,
-                    money_earned,
-                )
-            await message.channel.send(
-                f"Sold your **{chosen_fish.name.replace('_', ' ').title()}** for **{money_earned}** "
-                f"{EMOJIS['sand_dollar']}!"
-            )
-            # Disable the given button
-            await message.edit(components=components.disable_components())
-            return
 
 
 async def check_price(bot, user_id: int, cost: int, balance_type: str) -> bool:
@@ -252,7 +77,7 @@ async def buying_singular(bot, user: discord.user, ctx, item: str):
         # Add the buttons to the message
         components = discord.ui.MessageComponents(
             discord.ui.ActionRow(
-                discord.ui.Button(emoji=EMOJIS["aqua_smile"]),
+                discord.ui.Button(emoji=utils.EMOJIS["aqua_smile"]),
             ),
         )
 
@@ -276,7 +101,7 @@ async def buying_singular(bot, user: discord.user, ctx, item: str):
             )
             return False
 
-        slot, interaction = await create_modal(bot, chosen_button_payload, "Tank Slot To Change", f"Available: {', '.join(available_slots)}; Taken: {', '.join(nonavailable_slots)}")
+        slot, interaction = await utils.create_modal(bot, chosen_button_payload, "Tank Slot To Change", f"Available: {', '.join(available_slots)}; Taken: {', '.join(nonavailable_slots)}")
 
         if not slot:
             await interaction.response.send_message(
@@ -305,7 +130,7 @@ async def buying_singular(bot, user: discord.user, ctx, item: str):
                 )
                 return False
 
-            name, interaction2 = await create_modal(bot, chosen_button_payload, "Tank Name", "Enter your new tank's name")
+            name, interaction2 = await utils.create_modal(bot, chosen_button_payload, "Tank Name", "Enter your new tank's name")
             await interaction2.response.defer()
 
             if not name:
@@ -361,7 +186,7 @@ async def buying_singular(bot, user: discord.user, ctx, item: str):
         # Add the buttons to the message
         components = discord.ui.MessageComponents(
             discord.ui.ActionRow(
-                discord.ui.Button(emoji=EMOJIS["aqua_smile"]),
+                discord.ui.Button(emoji=utils.EMOJIS["aqua_smile"]),
             ),
         )
 
@@ -382,7 +207,7 @@ async def buying_singular(bot, user: discord.user, ctx, item: str):
             )
             return False
 
-        theme_message, interaction = await create_modal(bot, chosen_button_payload, "Tank Slot To Change", f"(Available names: {', '.join(tank_names)})")
+        theme_message, interaction = await utils.create_modal(bot, chosen_button_payload, "Tank Slot To Change", f"(Available names: {', '.join(tank_names)})")
 
         if not theme_message or theme_message not in tank_names:
             await interaction.response.send_message(
@@ -400,7 +225,7 @@ async def buying_singular(bot, user: discord.user, ctx, item: str):
             )
 
 
-async def check_registered(bot, user_id: int) -> bool:
+async def check_registered(bot, ctx, user_id: int):
     async with bot.database() as db:
         user_balance_info = await db("""SELECT * FROM user_balance WHERE user_id = $1""", user_id)
         user_item_inventory_info = await db("""SELECT * FROM user_item_inventory WHERE user_id = $1""", user_id)
@@ -409,10 +234,28 @@ async def check_registered(bot, user_id: int) -> bool:
         user_upgrades_info = await db("""SELECT * FROM user_upgrades WHERE user_id = $1""", user_id)
 
     if user_balance_info and user_upgrades_info and user_item_inventory_info and user_achievements_milestones_info and user_achievements_info:
-        return True
+        return
+
+    start_message = (f"Welcome to AquaMarine! This command helps me get you into the bot, while also displaying some information I think will prove good to have."
+                     f" First things first, I want to mention that there is an in-bot guide for if you get confused on anything that should be able to explain most"
+                     f" things, and it can be accessed with the `guide` command. If you're still confused on anything you can use the `support` command to get the"
+                     f" link to the support server.")
+    await ctx.send(start_message)
+
+    async with bot.Database() as db:
+        if not user_balance_info:
+            await db("""INSERT INTO user_balance (user_id, casts) VALUES ($1, 6)""", user_id)
+        if not user_upgrades_info:
+            await db("""INSERT INTO user_upgrades (user_id) VALUES ($1)""", user_id)
+        if not user_item_inventory_info:
+            await db("""INSERT INTO user_item_inventory (user_id) VALUES ($1)""", user_id)
+        if not user_achievements_milestones_info:
+            await db("""INSERT INTO user_achievements_milestones (user_id) VALUES ($1)""", user_id)
+        if not user_achievements_info:
+            await db("""INSERT INTO user_achievements (user_id) VALUES ($1)""", user_id)
+
+
 # Vote confirmer from https://github.com/Voxel-Fox-Ltd/Flower/blob/master/cogs/plant_care_commands.py
-
-
 async def get_user_voted(bot, user_id: int) -> bool:
     """
     Determines whether or not a user has voted for the bot on Top.gg.
@@ -518,3 +361,242 @@ async def user_location_info_db_call(user_id: int) -> list:
             user_id,
         )
         return selected
+
+ROD_UPGRADES = {0: 1, 1: 1.4, 2: 1.8, 3: 2.2, 4: 2.6, 5: 3.0}
+
+# Bait upgrade that increases your chances of catching rarer fish
+BAIT_UPGRADE = {
+    0: [
+        # 5   3               164/240 --> 121/240 -26.36%
+        ("common", 0.6842),
+        # 15  1   5           60/240  --> 84/240  +40%    2
+        ("uncommon", 0.25),
+        # 75      1   5       12/240  --> 24/240  +100%   1   2
+        ("rare", 0.05),
+        # 375         1   2   2/240   --> 8/240   +250%       1   5
+        ("epic", 0.01),
+        # 750             1   1/240   --> 2/240   +100%           1
+        ("legendary", 0.005),
+        # 5000                1/1250  --> 3/2500  +50%
+        ("mythic", 0.0008),
+    ],
+    1: [
+        ("common", 0.6481),
+        ("uncommon", 0.27),
+        ("rare", 0.06),
+        ("epic", 0.015),
+        ("legendary", 0.006),
+        ("mythic", 0.0009),
+    ],
+    2: [
+        ("common", 0.612),
+        ("uncommon", 0.29),
+        ("rare", 0.07),
+        ("epic", 0.02),
+        ("legendary", 0.007),
+        ("mythic", 0.00010),
+    ],
+    3: [
+        ("common", 0.5759),
+        ("uncommon", 0.31),
+        ("rare", 0.08),
+        ("epic", 0.025),
+        ("legendary", 0.008),
+        ("mythic", 0.0011),
+    ],
+    4: [
+        ("common", 0.5398),
+        ("uncommon", 0.33),
+        ("rare", 0.09),
+        ("epic", 0.03),
+        ("legendary", 0.009),
+        ("mythic", 0.0012),
+    ],
+    5: [
+        ("common", 0.5038),
+        ("uncommon", 0.35),
+        ("rare", 0.1),
+        ("epic", 0.035),
+        ("legendary", 0.01),
+        ("mythic", 0.0012),
+    ],
+}
+
+# Line upgrade that increases the chance of catching two fish in one cast
+LINE_UPGRADES = {
+    0: 10000,
+    1: 7500,
+    2: 5000,
+    3: 2500,
+    4: 500,
+    5: 100,
+}
+
+# Lure upgrades to give users a better chance at special fish
+LURE_UPGRADES = {
+    0: 0.0010,
+    1: 0.0020,
+    2: 0.0040,
+    3: 0.0080,
+    4: 0.0150,
+    5: 0.0300,
+}
+
+# Crate chance upgrade that increases the chance of catching a crate
+CRATE_CHANCE_UPGRADE = {0: 2190, 1: 1570, 2: 1080, 3: 540, 4: 360, 5: 180}
+
+# Weight upgrade that increases the level of the caught fish
+WEIGHT_UPGRADES = {
+    0: (1, 2),
+    1: (5, 10),
+    2: (10, 15),
+    3: (10, 25),
+    4: (10, 50),
+    5: (25, 50),
+}
+
+# Crate tier upgrade that increases the tier of the crate and the items inside
+CRATE_TIER_UPGRADE = {
+    0: (1.0, 0, 0, 0, 0, 0),
+    1: (0.89, 0.1, 0.01, 0, 0, 0),
+    2: (0.74, 0.2, 0.05, 0.01, 0, 0),
+    3: (0.54, 0.3, 0.1, 0.05, 0.01, 0),
+    4: (0.29, 0.4, 0.15, 0.1, 0.05, 0.01),
+    5: (0, 0.5, 0.2, 0.15, 0.1, 0.05),
+}
+
+# Tiers for the crates and what is inside them
+# (sand dollars, casts, chances of fish bags, amount of fish bags,
+# changes of food, amount of food, chances of potions, amount of potions)
+CRATE_TIERS = {
+    "Wooden": (
+        500,
+        1,
+        (1.0, 0, 0, 0, 0, 0),
+        1,
+        (1.0, 0, 0, 0),
+        1,
+        (1.0, 0, 0, 0),
+        1,
+    ),
+    "Bronze": (
+        1000,
+        2,
+        (0.89, 0.1, 0.01, 0, 0, 0),
+        2,
+        (0.89, 0.1, 0.01, 0),
+        2,
+        (0.89, 0.1, 0.01, 0),
+        1,
+    ),
+    "Steel": (
+        2500,
+        5,
+        (0.74, 0.2, 0.05, 0.01, 0, 0),
+        4,
+        (0.74, 0.2, 0.05, 0.01),
+        4,
+        (0.74, 0.2, 0.05, 0.01),
+        1,
+    ),
+    "Golden": (
+        5000,
+        10,
+        (0.54, 0.3, 0.1, 0.05, 0.01, 0),
+        7,
+        (0.54, 0.3, 0.1, 0.05),
+        7,
+        (0.54, 0.3, 0.1, 0.05),
+        2,
+    ),
+    "Diamond": (
+        10000,
+        20,
+        (0.29, 0.4, 0.15, 0.1, 0.05, 0.01),
+        11,
+        (0.29, 0.4, 0.15, 0.1),
+        11,
+        (0.29, 0.4, 0.15, 0.1),
+        2,
+    ),
+    "Enchanted": (
+        50000,
+        100,
+        (0, 0.5, 0.2, 0.15, 0.1, 0.05),
+        16,
+        (0, 0.5, 0.2, 0.15),
+        16,
+        (0, 0.5, 0.2, 0.15),
+        3,
+    ),
+}
+
+
+BLEACH_UPGRADE = {0: 1, 1: 1.3, 2: 1.6, 3: 1.9, 4: 2.2, 5: 2.5}
+
+# Toys upgrade that increases the amount of xp gained
+TOYS_UPGRADE = {
+    0: (10, 30),
+    1: (25, 75),
+    2: (50, 150),
+    3: (100, 300),
+    4: (150, 450),
+    5: (200, 600),
+}
+
+# Amazement upgrade increases the chance of a fish to gain a level
+# when entertained
+AMAZEMENT_UPGRADE = {0: 1600, 1: 1500, 2: 1300, 3: 1000, 4: 600, 5: 100}
+
+# Mutation upgrade increases the chance of a fish to mutate to
+# golden or inverted after being in a tank cleaned
+MUTATION_UPGRADE = {0: 50000, 1: 40000, 2: 30000, 3: 20000, 4: 10000, 5: 5000}
+
+# Big servings upgrade increases the chance of fish food not being
+# consumed when a fish is fed
+BIG_SERVINGS_UPGRADE = {0: 500, 1: 350, 2: 250, 3: 100, 4: 50, 5: 10}
+
+# Hygienic upgrade increases the time between cleans
+# and the multiplier with that time
+HYGIENIC_UPGRADE = {
+    0: (1, 60),
+    1: (4, 240),
+    2: (8, 480),
+    3: (12, 720),
+    4: (16, 960),
+    5: (24, 1440),
+}
+
+# Feeding upgrade increases the time before a fish dies from not being fed
+FEEDING_UPGRADES = {
+    0: (1, 0),
+    1: (1, 12),
+    2: (2, 0),
+    3: (2, 12),
+    4: (3, 0),
+    5: (3, 12),
+}
+
+
+def special_percentage_finder(upgrade_level):
+    """
+    Returns the results of the lure upgrade
+    [(list of types), (list of chances)]
+    """
+    return [
+        list(i[0] for i in LURE_UPGRADES[upgrade_level]),
+        list(i[1] for i in LURE_UPGRADES[upgrade_level]),
+    ]
+
+
+def rarity_percentage_finder(
+    upgrade_level: int,
+) -> tuple[list[str], list[float]]:
+    """
+    Returns the results of the bait upgrade
+    [(list of rarities), (list of chances)]
+    """
+    return [
+        list(i[0] for i in BAIT_UPGRADE[upgrade_level]),
+        list(i[1] for i in BAIT_UPGRADE[upgrade_level]),
+    ]

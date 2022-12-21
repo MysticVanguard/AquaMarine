@@ -76,8 +76,7 @@ class Upgrades(vbu.Cog):
         emote_string_list = []  # Their emoji progress bar
 
         # Grab their upgrades from the database
-        if not await utils.check_registered(self.bot, ctx.author.id):
-            return await ctx.send("Please use the `register` command before using this bot!")
+        await utils.check_registered(self.bot, ctx, ctx.author.id)
         async with vbu.Database() as db:
             upgrades = await utils.user_upgrades_db_call(ctx.author.id)
 
@@ -97,14 +96,13 @@ class Upgrades(vbu.Cog):
         )
 
         # Set the file prefix, shadow path, and file name
-        file_prefix = "C:/Users/JT/Pictures/Aqua/assets/images"
-        shadow = f"{file_prefix}/background/Room Walls/shadow-export.png"
-        file_name = f"{file_prefix}/background/Room Walls/Upgrades_Wall/User Walls/{id}user_upgrade_room.png"
+        shadow = f"{utils.file_prefix}/background/Room Walls/shadow-export.png"
+        file_name = f"{utils.file_prefix}/background/Room Walls/Upgrades_Wall/User Walls/{id}user_upgrade_room.png"
 
         # Open the shadow and background, make a copy of background
         shadow = Image.open(shadow).convert("RGBA")
         background = Image.open(
-            f"{file_prefix}/background/Room Walls/Upgrade_Wall-export.png"
+            f"{utils.file_prefix}/background/Room Walls/Upgrade_Wall-export.png"
         ).convert("RGBA")
         new_background = background.copy()
 
@@ -113,7 +111,7 @@ class Upgrades(vbu.Cog):
             if i == 0:
                 continue
             added_upgrade = Image.open(
-                f"{file_prefix}/background/Room Walls/Upgrades_Wall/{list_of_upgrades[i]}_tier_{upgrades[0][list_of_upgrades[i]]+1}-export.png").convert("RGBA")
+                f"{utils.file_prefix}/background/Room Walls/Upgrades_Wall/{list_of_upgrades[i]}_tier_{upgrades[0][list_of_upgrades[i]]+1}-export.png").convert("RGBA")
             new_background.paste(added_upgrade, positions[i-1], added_upgrade)
 
         # Paste the shadow on top finally
@@ -313,8 +311,7 @@ class Upgrades(vbu.Cog):
         """
 
         # Grab the user's current upgrades
-        if not await utils.check_registered(self.bot, ctx.author.id):
-            return await ctx.send("Please use the `register` command before using this bot!")
+        await utils.check_registered(self.bot, ctx, ctx.author.id)
         async with vbu.Database() as db:
             upgrades = await utils.user_upgrades_db_call(ctx.author.id)
 

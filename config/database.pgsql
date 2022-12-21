@@ -459,7 +459,7 @@ CREATE TABLE IF NOT EXISTS user_location_info(
     river_unlocked BOOLEAN NOT NULL DEFAULT FALSE,
     coral_reef_unlocked BOOLEAN NOT NULL DEFAULT FALSE,
     deep_sea_unlocked BOOLEAN NOT NULL DEFAULT FALSE,
-    bluntnose_minnows_caught INT NOT NULL DEFAULT 0,
+    bluntnose_minnow_school_caught INT NOT NULL DEFAULT 0,
     congo_tetra_school_caught INT NOT NULL DEFAULT 0,
     crawfish_caught INT NOT NULL DEFAULT 0,
     yellow_goby_school_caught INT NOT NULL DEFAULT 0,

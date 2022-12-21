@@ -2,15 +2,13 @@ import random
 import asyncio
 from datetime import datetime as dt, timedelta
 
-import textwrap
-from tkinter import Label
 import discord
 from discord.ext import commands
 import voxelbotutils as vbu
 
 from cogs import utils
-from cogs.utils.fish_handler import DAYLIGHT_SAVINGS, Fish, FishSpecies
-from cogs.utils.misc_utils import create_bucket_embed
+from cogs.utils.fish_handler import FishSpecies
+from cogs.utils.misc_utils import create_bucket_embed, DAYLIGHT_SAVINGS
 from cogs.utils import EMOJIS
 
 # Set up the fields for the shop
@@ -71,7 +69,7 @@ SHOP_FIELDS = [
         f"{EMOJIS['bar_empty']}When used on a fish, makes that fish **inverted**\n"
         f"**Plant Life** \n"
         f"{EMOJIS['bar_empty']}__Price: 250 {EMOJIS['doubloon']}__\n"
-        f"{EMOJIS['bar_empty']}A nice green **plant themed background** for your aquarium, can be veiwed with `preview` \n"
+        f"{EMOJIS['bar_empty']}A nice green **plant themed background** for your aquarium, can be veiwed with {EMOJIS['bar_empty']}`preview` \n"
         f"**Fish Points {EMOJIS['fish_points']}** \n"
         f"{EMOJIS['bar_empty']}__Price: 500 {EMOJIS['sand_dollar']}__\n"
         f"{EMOJIS['bar_empty']}One permanant point for the **\"Fish Points\" leaderboard**\n"
@@ -105,7 +103,39 @@ class Shop(vbu.Cog):
                 discord.ApplicationCommandOption(
                     name="item",
                     type=discord.ApplicationCommandOptionType.string,
-                    description="The item you want to buy"
+                    description="The item you want to buy",
+                    choices=[
+                        discord.ApplicationCommandOptionChoice(
+                            name="Fish Flakes", value="ff"),
+                        discord.ApplicationCommandOptionChoice(
+                            name="Fish Pellets", value="fp"),
+                        discord.ApplicationCommandOptionChoice(
+                            name="Fish Wafers", value="fw"),
+                        discord.ApplicationCommandOptionChoice(
+                            name="Fish Revivals", value="fr"),
+                        discord.ApplicationCommandOptionChoice(
+                            name="Fish Bowl", value="fb"),
+                        discord.ApplicationCommandOptionChoice(
+                            name="Small Tank", value="st"),
+                        discord.ApplicationCommandOptionChoice(
+                            name="Medium Tank", value="mt"),
+                        discord.ApplicationCommandOptionChoice(
+                            name="New Location Unlock", value="nlu"),
+                        discord.ApplicationCommandOptionChoice(
+                            name="Five Fishing Casts", value="fc"),
+                        discord.ApplicationCommandOptionChoice(
+                            name="Inverted Fish Bag", value="ifb"),
+                        discord.ApplicationCommandOptionChoice(
+                            name="High Level Fish Bag", value="hlfb"),
+                        discord.ApplicationCommandOptionChoice(
+                            name="Experience Potion", value="e"),
+                        discord.ApplicationCommandOptionChoice(
+                            name="Mutation Potion", value="m"),
+                        discord.ApplicationCommandOptionChoice(
+                            name="Plant Life", value="pl"),
+                        discord.ApplicationCommandOptionChoice(
+                            name="Fish Points", value="p")
+                    ]
                 ),
                 discord.ApplicationCommandOption(
                     name="amount",
@@ -123,31 +153,7 @@ class Shop(vbu.Cog):
         This command buys an item from a shop with the given amount.
         """
 
-        if not await utils.check_registered(self.bot, ctx.author.id):
-            return await ctx.send("Please use the `register` command before using this bot!")
-
-        # All the valid names
-        all_names = [
-            utils.FISH_FLAKES_NAMES,
-            utils.FISH_BOWL_NAMES,
-            utils.SMALL_TANK_NAMES,
-            utils.MEDIUM_TANK_NAMES,
-            utils.PLANT_LIFE_NAMES,
-            utils.FISH_REVIVAL_NAMES,
-            utils.CASTS_NAMES,
-            utils.FISH_PELLETS_NAMES,
-            utils.FISH_WAFERS_NAMES,
-            utils.FISH_POINTS_NAMES,
-            utils.EXPERIENCE_POTION_NAMES,
-            utils.MUTATION_POTION_NAMES,
-            utils.INVERTED_BAG_NAMES,
-            utils.HIGH_LEVEL_BAG_NAMES,
-            utils.NEW_LOCATION_UNLOCK_NAMES,
-        ]
-
-        # See if they gave a valid item
-        if not any([item.title() in name_list for name_list in all_names]):
-            return await ctx.send("That is not an available item")
+        await utils.check_registered(self.bot, ctx, ctx.author.id)
 
         if amount <= 0:
             return await ctx.send("Please enter a positive amount")
@@ -265,18 +271,6 @@ class Shop(vbu.Cog):
             if item.title() in item_name_singular:
                 amount = 1
 
-            # else:
-            #     components = discord.ui.MessageComponents.add_number_buttons(
-            #         add_negative=True)
-            #     message = await ctx.send("How many of that item do you want to buy?", components=components)
-
-            #     def button_check(payload):
-            #         if payload.message.id != message.id:
-            #             return False
-            #         self.bot.loop.create_task(payload.response.defer_update())
-            #         return payload.user.id == ctx.author.id
-            #         # Keep going...
-
             # Figure out what type of balance to use
             type_of_balance = "balance"
             emoji = EMOJIS["sand_dollar"]
@@ -311,6 +305,7 @@ class Shop(vbu.Cog):
             else:
                 async with vbu.Database() as db:
                     await db(db_call, ctx.author.id, amount)
+            break
 
         # Remove correct type of money from user
         if item.title() in Doubloon_things:
@@ -353,8 +348,7 @@ class Shop(vbu.Cog):
         This command is for using fish bags and potions.
         """
 
-        if not await utils.check_registered(self.bot, ctx.author.id):
-            return await ctx.send("Please use the `register` command before using this bot!")
+        await utils.check_registered(self.bot, ctx, ctx.author.id)
 
         # Set a bunch of variables up for bags
         rarity_of_bag = None
@@ -610,11 +604,6 @@ class Shop(vbu.Cog):
                 amount += 1
 
         # Set the fish file to the fishes image
-        if fish_skin != "":
-            fish_file = discord.File(
-                f"{chosen_fish.image[:40]}{fish_skin}_{chosen_fish.image[40:]}", "new_fish.png")
-        else:
-            fish_file = discord.File(chosen_fish.image, "new_fish.png")
 
         # Tell the user about the fish they caught
         owned_unowned = "Owned" if amount > 0 else "Unowned"
@@ -630,8 +619,8 @@ class Shop(vbu.Cog):
         embed.color = utils.RARITY_CULERS[rarity_of_bag]
 
         # Ask if they want to sell the fish they just caught or keep it
-        await ctx.send(file=fish_file)
-        await utils.ask_to_sell_fish(self.bot, ctx, level_inserted=level, chosen_fish=chosen_fish, skin=fish_skin, embed=embed)
+        message, _ = await utils.ask_to_sell_fish(self.bot, ctx, None, level_inserted=level, chosen_fish=chosen_fish, skin=fish_skin, embed=embed)
+        await ctx.send(message)
 
     @commands.command(
         aliases=["inv"],
@@ -644,37 +633,25 @@ class Shop(vbu.Cog):
         """
 
         # Get the users item inventory
-        if not await utils.check_registered(self.bot, ctx.author.id):
-            return await ctx.send("Please use the `register` command before using this bot!")
+        await utils.check_registered(self.bot, ctx, ctx.author.id)
         async with vbu.Database() as db:
             fetched = await utils.user_item_inventory_db_call(ctx.author.id)
 
         # list of tuples with the name and the name in the database
         items = [
-            ("Common Fish Bag", "cfb"),
-            ("High Level Fish Bag", "hlfb"),
-            ("Uncommon Fish Bag", "ufb"),
-            ("Inverted Fish Bag", "ifb"),
-            ("Rare Fish Bag", "rfb"),
-            ("Fish Flake", "flakes"),
-            ("Fish Pellet", "pellets"),
+            ("High Level Fish Bag", "hlfb"), ("Inverted Fish Bag", "ifb"),
+            ("Fish Flake", "flakes"), ("Fish Pellet", "pellets"),
             ("Mutation Potion", "mutation_potions"),
-            ("Fish Wafer", "wafers"),
-            ("Experience Potion", "experience_potions"),
-            ("Revival", "revival"),
-            ("Feeding Potion", "feeding_potions"),
+            ("Fish Wafer", "wafers"), ("Experience Potion", "experience_potions"),
+            ("Revival", "revival"), ("Feeding Potion", "feeding_potions"),
             ("Pile Of Bottle Caps", "pile_of_bottle_caps"),
             ("Plastic Bottle", "plastic_bottle"),
-            ("Plastic Bag", "plastic_bag"),
-            ("Seaweed Scraps", "seaweed_scraps"),
+            ("Plastic Bag", "plastic_bag"), ("Seaweed Scraps", "seaweed_scraps"),
             ("Broken Fishing Net", "broken_fishing_net"),
             ("Halfeaten Flip Flop", "halfeaten_flip_flop"),
-            ("Pile Of Straws", "pile_of_straws"),
-            ("Old Boot", "old_boot"),
-            ("Old Tire", "old_tire"),
-            ("Fishing Boots", "fishing_boots"),
-            ("Trash Toys", "trash_toys"),
-            ("Super Food", "super_food"),
+            ("Pile Of Straws", "pile_of_straws"), ("Old Boot", "old_boot"),
+            ("Old Tire", "old_tire"), ("Fishing Boots", "fishing_boots"),
+            ("Trash Toys", "trash_toys"), ("Super Food", "super_food"),
             ("New Location Unlock", "new_location_unlock")
         ]
 
@@ -738,11 +715,9 @@ class Shop(vbu.Cog):
         This command checks the user's balance or another user's balance.
         """
 
-        if not await utils.check_registered(self.bot, ctx.author.id):
-            return await ctx.send("Please use the `register` command before using this bot!")
+        await utils.check_registered(self.bot, ctx, ctx.author.id)
         if user:
-            if not await utils.check_registered(self.bot, user.id):
-                return await ctx.send("Please use the `register` command before using this bot!")
+            await utils.check_registered(self.bot, ctx, user.id)
         async with vbu.Database() as db:
 
             # If they specified someone get that users balance
@@ -793,15 +768,14 @@ class Shop(vbu.Cog):
     @commands.bot_has_permissions(send_messages=True)
     async def sell(self, ctx: commands.Context, *, fish_sold: str):
         """
-        This command sells the specified fish, and it must be out of a tank.
+        This command sells the specified fish or tank
         """
 
         # Set the cost to 0
         cost = 0
 
         # Get the fish row for the fish specified
-        if not await utils.check_registered(self.bot, ctx.author.id):
-            return await ctx.send("Please use the `register` command before using this bot!")
+        await utils.check_registered(self.bot, ctx, ctx.author.id)
         async with vbu.Database() as db:
             fish_row = await db(
                 """SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2""",
@@ -878,9 +852,7 @@ class Shop(vbu.Cog):
         """
 
         # Check if they voted and if not tell them they need to vote
-        if not await utils.check_registered(self.bot, ctx.author.id):
-            ctx.command.reset_cooldown(ctx)
-            return await ctx.send("Please use the `register` command before using this bot!")
+        await utils.check_registered(self.bot, ctx, ctx.author.id)
         if await utils.get_user_voted(self.bot, ctx.author.id) is False:
             ctx.command.reset_cooldown(ctx)
             return await ctx.send(
@@ -969,7 +941,7 @@ class Shop(vbu.Cog):
                     type=discord.ApplicationCommandOptionType.integer,
                     description="The amount you want to gamble (multiple of 100)",
                     required=False
-                ),
+                )
             ]
         )
     )
@@ -980,8 +952,7 @@ class Shop(vbu.Cog):
         """
 
         # See if the user has enough money and enters a correct amount
-        if not await utils.check_registered(self.bot, ctx.author.id):
-            return await ctx.send("Please use the `register` command before using this bot!")
+        await utils.check_registered(self.bot, ctx, ctx.author.id)
 
         if amount % 100 != 0:
             return await ctx.send("Please enter an amount divisible by 100")
@@ -1104,14 +1075,11 @@ class Shop(vbu.Cog):
         components = discord.ui.MessageComponents(
             discord.ui.ActionRow(
                 discord.ui.Button(
-                    emoji="1\N{COMBINING ENCLOSING KEYCAP}", custom_id="one"
-                ),
+                    emoji="1\N{COMBINING ENCLOSING KEYCAP}", custom_id="one"),
                 discord.ui.Button(
-                    emoji="2\N{COMBINING ENCLOSING KEYCAP}", custom_id="two"
-                ),
+                    emoji="2\N{COMBINING ENCLOSING KEYCAP}", custom_id="two"),
                 discord.ui.Button(
-                    emoji="3\N{COMBINING ENCLOSING KEYCAP}", custom_id="three"
-                ),
+                    emoji="3\N{COMBINING ENCLOSING KEYCAP}", custom_id="three"),
             ),
         )
 
