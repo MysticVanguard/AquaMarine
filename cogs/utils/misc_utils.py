@@ -117,7 +117,7 @@ TANK_THEMES = PLANT_LIFE_NAMES
 # Daylight savings variable because for some reason i need to
 # add four and then an hour when its daylight savings,
 # will be changed to 4 when daylight savings is over
-DAYLIGHT_SAVINGS = 4
+DAYLIGHT_SAVINGS = 5
 
 # What colors the embed should have based on rarity
 RARITY_CULERS = {
