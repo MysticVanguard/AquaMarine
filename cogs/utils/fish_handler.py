@@ -164,26 +164,22 @@ def fetch_fish(directory: str) -> dict:
 
 def random_name_finder():
     titles = [
-        "Captain",
-        "Mr.",
-        "Mrs.",
-        "Commander",
-        "Sir",
-        "Madam",
-        "Skipper",
-        "Crewmate",
+        "Captain", "Mr.", "Mrs.",
+        "Commander", "Sir", "Madam",
+        "Skipper", "Crewmate", "Lieutenant",
+        "Privateer", "Portmaster", "Shipwright",
+        "Commodore", "Rear Admiral", "Admiral",
+        "Deckhand", "Cadet", "Sailor",
+        "Boatswain", "Firstmate", "Quartermaster",
     ]
     names = [
-        "Nemo",
-        "Bubbles",
-        "Jack",
-        "Finley",
-        "Coral",
-        "Fish",
-        "Turtle",
-        "Squid",
-        "Sponge",
-        "Starfish",
+        "Nemo", "Bubbles", "Jack",
+        "Finley", "Coral", "Fish",
+        "Turtle", "Squid", "Sponge",
+        "Starfish", "Swedish", "McFish",
+        "Floater", "Wave", "Chips",
+        "Bob", "Cod", "Finneus",
+        "Larry", "Salmon", "Sea Beast",
     ]
     name = f"{random.choice(titles)} {random.choice(names)}"
     return name
@@ -303,7 +299,8 @@ async def ask_to_sell_fish(
             )
     if chosen_button == "sell":
         # See if they want to sell the fish
-        await chosen_button_payload.response.defer_update()
+        if chosen_button_payload:
+            await chosen_button_payload.response.defer_update()
         vote_multiplier = 0
         if await utils.get_user_voted(bot, ctx.author.id):
             vote_multiplier = .5

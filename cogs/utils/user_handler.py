@@ -434,12 +434,12 @@ LINE_UPGRADES = {
 
 # Lure upgrades to give users a better chance at special fish
 LURE_UPGRADES = {
-    0: 0.0010,
-    1: 0.0020,
-    2: 0.0040,
-    3: 0.0080,
-    4: 0.0150,
-    5: 0.0300,
+    0: 0.0100,
+    1: 0.0150,
+    2: 0.0225,
+    3: 0.0338,
+    4: 0.0506,
+    5: 0.0759,
 }
 
 # Crate chance upgrade that increases the chance of catching a crate
