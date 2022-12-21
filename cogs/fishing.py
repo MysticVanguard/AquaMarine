@@ -463,7 +463,7 @@ class Fishing(vbu.Cog):
                 crafted = random.choice(
                     ["Common Fish Bag", "Uncommon Fish Bag", "Rare Fish Bag"])
                 db_crafted = ""
-                for x in db_crafted.split(" "):
+                for x in crafted.split(" "):
                     db_crafted += x[0].lower()
             else:
                 db_crafted = crafted.replace(" ", "_").lower()
