@@ -78,6 +78,12 @@ CREATE TABLE IF NOT EXISTS user_item_inventory (
     trash_toys INT NOT NULL DEFAULT 0,
     new_location_unlock INT NOT NULL DEFAULT 0,
     super_food INT NOT NULL DEFAULT 0,
+    recycled_fishing_rod INT NOT NULL DEFAULT 0,
+    recycled_bait INT NOT NULL DEFAULT 0,
+    recycled_fish_hook INT NOT NULL DEFAULT 0,
+    recycled_fishing_net INT NOT NULL DEFAULT 0,
+    recycled_fish_finder INT NOT NULL DEFAULT 0,
+    recycled_waders INT NOT NULL DEFAULT 0,
     PRIMARY KEY (user_id)
 );
 

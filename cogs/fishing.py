@@ -102,6 +102,13 @@ class Fishing(vbu.Cog):
                         f"??? ({location_pools_info[0][f'{single_fish.name}_count']} Left)\t")
             embed.add_field(name=rarity, value='\n'.join(
                 [f"{fish}" for fish in fish_in_rarity]), inline=True)
+        effect_string = "** **"
+        for effect in ["recycled_fishing_rod", "recycled_bait", "recycled_fish_hook", "recycled_fish_finder"]:
+            amount = user_item_inventory[0][effect]
+            formatted_effect = effect.replace("_", " ").title()
+            if amount > 0:
+                effect_string += f"{formatted_effect}: {amount} casts left to apply to\n"
+        embed.add_field(name="Effects", value=effect_string)
 
         # Create fish menu options and send everything
         components = discord.ui.MessageComponents(
@@ -242,7 +249,7 @@ class Fishing(vbu.Cog):
                     specific_locations.append(
                         location.replace('_', ' ').title())
                 for location in unlockable_locations:
-                    if user_locations_info[0][f'{location}_unlocked'] and not location == user_locations_info[0]['current_location']:
+                    if (user_locations_info[0][f'{location}_unlocked'] or user_item_inventory[0]["recycled_waders"] > 0) and not location == user_locations_info[0]['current_location']:
                         specific_locations.append(
                             location.replace('_', ' ').title())
 
@@ -254,6 +261,9 @@ class Fishing(vbu.Cog):
                     location = location_choice.replace(' ', '_').lower()
                     async with vbu.Database() as db:
                         await db("""UPDATE user_location_info SET current_location = $2 WHERE user_id = $1""", ctx.author.id, location)
+                        if user_item_inventory[0]["recycled_waders"] > 0:
+                            await db("""UPDATE user_item_inventory SET recycled_waders = recycled_waders - 1 WHERE user_id = $1""",
+                                     ctx.author.id)
                     await ctx.send(
                         f"Traveled to {location_choice}")
             elif chosen_button == 'unlock':
@@ -309,6 +319,13 @@ class Fishing(vbu.Cog):
                     [f"{fish}" for fish in fish_in_rarity]), inline=True)
             if user_item_inventory[0]['new_location_unlock'] < 1:
                 components.get_component('unlock').disable()
+            effect_string = "** **"
+            for effect in ["recycled_fishing_rod", "recycled_bait", "recycled_fish_hook", "recycled_fish_finder"]:
+                amount = user_item_inventory[0][effect]
+                formatted_effect = effect.replace("_", " ").title()
+                if amount > 0:
+                    effect_string += f"{formatted_effect}: {amount} casts left to apply to\n"
+            new_embed.add_field(name="Effects", value=effect_string)
             await fish_menu_message.edit(embed=new_embed, components=components)
 
         # Disable components when the menu is exited
@@ -428,26 +445,32 @@ class Fishing(vbu.Cog):
         if crafted:
             crafted = crafted.title()
 
-        # Set up the menu for what is craftable and how much they cost
-        crafting_menu_message = ""
-        for craftable, needed in utils.items_required.items():
-            crafting_menu_message += f"\n**{craftable}**"
-            for item, amount in needed[0].items():
-                crafting_menu_message += f"\n{utils.EMOJIS['bar_empty']}{item.replace('_', ' ').title()}: {amount}"
-            crafting_menu_message += f"\n{utils.EMOJIS['bar_empty']}{utils.EMOJIS['bar_empty']}{needed[1]}"
-        crafting_menu_message += "\n*Specify what you want to craft with* `craft Item Name`"
-
-        # If they don't enter a craftable item or don't enter anything give the craftable menu
         if not crafted or crafted not in utils.items_required.keys():
-            return await ctx.send(crafting_menu_message)
+            # Set up the menu for what is craftable and how much they cost
+            embed = discord.Embed(title="Craftable Items")
+            for craftable, needed in utils.items_required.items():
+                crafting_menu_message = ""
+                title = f"**{craftable}**"
+                for item, amount in needed[0].items():
+                    crafting_menu_message += f"\n{utils.EMOJIS['bar_empty']}{item.replace('_', ' ').title()}: {amount}"
+                crafting_menu_message += f"\n{utils.EMOJIS['bar_empty']}{utils.EMOJIS['bar_empty']}{needed[1]}"
+                embed.add_field(
+                    name=title, value=crafting_menu_message, inline=False)
+            embed.set_footer(
+                text="Specify what you want to craft with \"craft [Item Name]\"")
+
+            # If they don't enter a craftable item or don't enter anything give the craftable menu
+            return await ctx.send(embed=embed)
 
         # If they enter one of the stacking items, check that they don't have the max
+        amount = 1
         if crafted in ["Fishing Boots", "Trash Toys"]:
             async with vbu.Database() as db:
                 amount_of_crafted = await db(f"""SELECT {crafted.replace(' ', '_').lower()} FROM user_item_inventory WHERE user_id = $1""", ctx.author.id)
             if amount_of_crafted[0][crafted.replace(' ', '_').lower()] == 5:
                 return await ctx.send("You have the max amount of this item!")
-
+        elif crafted in ["Recycled Fishing Rod", "Recycled Bait", "Recycled Waders"]:
+            amount = 5
         # If they don't have the items to craft, let them know
         if not await utils.enough_to_craft(crafted, ctx.author.id):
             return await ctx.send("You do not have the required items to craft this.")
@@ -458,21 +481,13 @@ class Fishing(vbu.Cog):
             for item, required in utils.items_required[crafted][0].items():
                 await db(f"""UPDATE user_item_inventory SET {item} = {item} - {required} WHERE user_id = $1""", ctx.author.id)
 
-            # If its a fish bag pick a random bag to craft, else use crafted for the db
-            if crafted == "Fish Bag":
-                crafted = random.choice(
-                    ["Common Fish Bag", "Uncommon Fish Bag", "Rare Fish Bag"])
-                db_crafted = ""
-                for x in crafted.split(" "):
-                    db_crafted += x[0].lower()
-            else:
-                db_crafted = crafted.replace(" ", "_").lower()
+            db_crafted = crafted.replace(" ", "_").lower()
 
             # If they get a cast go to the user_balance table, else use the item inventory, and add 1 to the amount
             if db_crafted == "cast":
                 await db(f"""UPDATE user_balance SET casts = casts + 1 WHERE user_id = $1""", ctx.author.id)
             else:
-                await db(f"""UPDATE user_item_inventory SET {db_crafted} = {db_crafted} + 1 WHERE user_id = $1""", ctx.author.id)
+                await db(f"""UPDATE user_item_inventory SET {db_crafted} = {db_crafted} + $2 WHERE user_id = $1""", ctx.author.id, amount)
 
         # Let them know it was crafted
         return await ctx.send(f"{crafted} has been crafted!")

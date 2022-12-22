@@ -80,7 +80,7 @@ class FishSpecies:
         return cls.all_species_by_rarity[rarity]
 
     @classmethod
-    def get_location_rarity(cls, rarity: str, location: str):
+    def get_location_rarity(cls, rarity: str, location: str) -> list:
         return cls.all_species_by_location_rarity[location][rarity]
 
     @property
@@ -241,14 +241,12 @@ async def ask_to_sell_fish(
     message = await ctx.send(message, embed=embed, components=components, file=fish_file)
 
     async with bot.database() as db:
-        fish_rows = await db(
-            """SELECT * FROM user_fish_inventory WHERE user_id=$1""",
-            ctx.author.id,
-        )
+        fish_rows = await utils.user_fish_inventory_db_call(ctx.author.id)
         upgrades = await db(
             """SELECT rod_upgrade, weight_upgrade FROM user_upgrades WHERE user_id = $1""",
             ctx.author.id,
         )
+        item_inventory = await utils.user_item_inventory_db_call(ctx.author.id)
 
     # Level variables
     level = (
@@ -310,7 +308,12 @@ async def ask_to_sell_fish(
                            size_demultiplier[chosen_fish.size])
         money_earned = math.ceil((money_gained) * (
             utils.ROD_UPGRADES[upgrades[0]["rod_upgrade"]] + level_multiplier + vote_multiplier))
+
         async with bot.database() as db:
+            if item_inventory[0]["recycled_fishing_rod"] > 0:
+                money_earned *= 2
+                await db("""UPDATE user_item_inventory SET recycled_fishing_rod = recycled_fishing_rod - 1 WHERE user_id = $1""",
+                         ctx.author.id)
             await db(
                 """UPDATE user_balance SET balance = balance + $2 WHERE user_id = $1""",
                 ctx.author.id,
@@ -340,28 +343,34 @@ async def user_fish(self, ctx, casts, upgrades, user_locations_info, user_invent
     # if two_in_one_roll == 1:
     #    caught_fish = 2
 
-    # For each fish caught...
-    for _ in range(caught_fish):
+    # If they didn't catch trash
+    if random.randint(1, 12) != 12:
 
-        # If they didn't catch trash
-        if random.randint(1, 12) != 12:
+        # For each fish caught...
+        for _ in range(caught_fish):
 
+            async with vbu.Database() as db:
+                user_items = await utils.user_item_inventory_db_call(ctx.author.id)
             # Use upgrades for chances of rarity and mutation, and choose one with weighted randomness
             rarity = random.choices(
                 *utils.rarity_percentage_finder(upgrades[0]["bait_upgrade"])
             )[0]
-            while rarity not in FishSpecies.all_species_by_location_rarity[user_locations_info[0]['current_location']].keys():
+            while rarity not in FishSpecies.all_species_by_location_rarity[user_locations_info[0]['current_location']].keys() or (user_items[0]["recycled_bait"] > 0 and rarity == "common"):
                 rarity = random.choices(
                     *utils.rarity_percentage_finder(upgrades[0]["bait_upgrade"])
                 )[0]
-            special = random.choices(("normal", "skinned"),
-                                     (1-utils.LURE_UPGRADES[upgrades[0]["lure_upgrade"]],
-                                         utils.LURE_UPGRADES[upgrades[0]["lure_upgrade"]])
-                                     )[0]
+            if user_items[0]["recycled_fish_hook"] > 0:
+                special = random.choices(("normal", "skinned"), (.75, .25))[0]
+            else:
+                special = random.choices(("normal", "skinned"),
+                                         (1-utils.LURE_UPGRADES[upgrades[0]["lure_upgrade"]],
+                                          utils.LURE_UPGRADES[upgrades[0]["lure_upgrade"]])
+                                         )[0]
 
             # See which fish they caught by taking a random fish from the chosen rarity)
             if ctx.author.id not in utils.user_last_fish_caught.keys():
                 utils.user_last_fish_caught[ctx.author.id] = ""
+
             chosen_fish = random.choice(
                 FishSpecies.get_location_rarity(
                     rarity, user_locations_info[0]['current_location'])
@@ -370,7 +379,7 @@ async def user_fish(self, ctx, casts, upgrades, user_locations_info, user_invent
                 rarity = random.choices(
                     *utils.rarity_percentage_finder(upgrades[0]["bait_upgrade"])
                 )[0]
-                while rarity not in FishSpecies.all_species_by_location_rarity[user_locations_info[0]['current_location']].keys():
+                while rarity not in FishSpecies.all_species_by_location_rarity[user_locations_info[0]['current_location']].keys() or (user_items[0]["recycled_bait"] > 0 and rarity == "common"):
                     rarity = random.choices(
                         *utils.rarity_percentage_finder(upgrades[0]["bait_upgrade"])
                     )[0]
@@ -378,7 +387,12 @@ async def user_fish(self, ctx, casts, upgrades, user_locations_info, user_invent
                     FishSpecies.get_location_rarity(
                         rarity, user_locations_info[0]['current_location'])
                 )
-
+            if user_items[0]["recycled_fish_finder"] > 0:
+                species = FishSpecies.get_location_rarity(
+                    rarity, user_locations_info[0]["current_location"])
+                new_fish = await utils.create_select_menu(self.bot, ctx, [fish_type.name for fish_type in species], "fish", "catch", True)
+                if new_fish:
+                    chosen_fish = FishSpecies.get_fish(new_fish)
             utils.user_last_fish_caught[ctx.author.id] = chosen_fish.name
             # If the fish is skinned, choose one of it's skins
             fish_skin = ""
@@ -393,6 +407,15 @@ async def user_fish(self, ctx, casts, upgrades, user_locations_info, user_invent
 
             # Get their fish inventory, add 1 to their times caught in achievements, subtract 1 from their casts
             async with vbu.Database() as db:
+                if user_items[0]["recycled_bait"] > 0:
+                    await db("""UPDATE user_item_inventory SET recycled_bait = recycled_bait - 1 WHERE user_id = $1""",
+                             ctx.author.id)
+                if user_items[0]["recycled_fish_hook"] > 0:
+                    await db("""UPDATE user_item_inventory SET recycled_fish_hook = recycled_fish_hook - 1 WHERE user_id = $1""",
+                             ctx.author.id)
+                if user_items[0]["recycled_fish_finder"] > 0:
+                    await db("""UPDATE user_item_inventory SET recycled_fish_finder = recycled_fish_finder - 1 WHERE user_id = $1""",
+                             ctx.author.id)
                 await db(
                     f"""UPDATE user_location_info SET {chosen_fish.name}_caught = {chosen_fish.name}_caught + 1 WHERE user_id = $1""",
                     ctx.author.id,
@@ -531,74 +554,74 @@ async def user_fish(self, ctx, casts, upgrades, user_locations_info, user_invent
             # Ask if they want to sell the fish they just caught or keep it
             return await utils.ask_to_sell_fish(self.bot, ctx, guess_message, chosen_fish, fish_skin, embed=embed)
 
-        # Else if they catch trash...
-        else:
-            # Still use up a cast
+    # Else if they catch trash...
+    else:
+        # Still use up a cast
+        async with vbu.Database() as db:
+            await db(
+                """UPDATE user_balance SET casts = casts-1 WHERE user_id = $1""",
+                ctx.author.id,
+            )
+
+        # Initiate the trash dict and string
+        trash_dict = {}
+        trash_string = ""
+
+        # For each trash caught (1-6)...
+        for i in range(random.randint(1, 6)):
+
+            # They catch a random weighted trash
+            caught = random.choices(
+                (
+                    "Pile Of Bottle Caps",
+                    "Plastic Bottle",
+                    "Plastic Bag",
+                    "Seaweed Scraps",
+                    "Broken Fishing Net",
+                    "Halfeaten Flip Flop",
+                    "Pile Of Straws",
+                    "Old Boot",
+                    "Old Tire"
+                ),
+                (
+                    .15,
+                    .15,
+                    .15,
+                    .15,
+                    .1,
+                    .1,
+                    .1,
+                    .05,
+                    .05,
+                )
+            )[0]
+
+            # If its not already in the dict add it with a 1, else add 1 to it
+            if caught not in trash_dict.keys():
+                trash_dict[caught] = 1
+            else:
+                trash_dict[caught] += 1
+
+        # for each type of trash...
+        for trash, amount in trash_dict.items():
+
+            # Add that trash to a string
+            trash_string += "\n" + \
+                f"{utils.utils.EMOJIS[trash.replace(' ', '_').lower()]}{trash}: {amount}"
+
+            # Add the trash to their inventory
             async with vbu.Database() as db:
                 await db(
-                    """UPDATE user_balance SET casts = casts-1 WHERE user_id = $1""",
+                    f"""UPDATE user_item_inventory SET {trash.replace(' ', '_').lower()} = {trash.replace(' ', '_').lower()}+ {amount} WHERE user_id = $1""",
                     ctx.author.id,
                 )
 
-            # Initiate the trash dict and string
-            trash_dict = {}
-            trash_string = ""
-
-            # For each trash caught (1-6)...
-            for i in range(random.randint(1, 6)):
-
-                # They catch a random weighted trash
-                caught = random.choices(
-                    (
-                        "Pile Of Bottle Caps",
-                        "Plastic Bottle",
-                        "Plastic Bag",
-                        "Seaweed Scraps",
-                        "Broken Fishing Net",
-                        "Halfeaten Flip Flop",
-                        "Pile Of Straws",
-                        "Old Boot",
-                        "Old Tire"
-                    ),
-                    (
-                        .15,
-                        .15,
-                        .15,
-                        .15,
-                        .1,
-                        .1,
-                        .1,
-                        .05,
-                        .05,
-                    )
-                )[0]
-
-                # If its not already in the dict add it with a 1, else add 1 to it
-                if caught not in trash_dict.keys():
-                    trash_dict[caught] = 1
-                else:
-                    trash_dict[caught] += 1
-
-            # for each type of trash...
-            for trash, amount in trash_dict.items():
-
-                # Add that trash to a string
-                trash_string += "\n" + \
-                    f"{utils.utils.EMOJIS[trash.replace(' ', '_').lower()]}{trash}: {amount}"
-
-                # Add the trash to their inventory
-                async with vbu.Database() as db:
-                    await db(
-                        f"""UPDATE user_item_inventory SET {trash.replace(' ', '_').lower()} = {trash.replace(' ', '_').lower()}+ {amount} WHERE user_id = $1""",
-                        ctx.author.id,
-                    )
-
-            post_components = discord.ui.MessageComponents(
-                discord.ui.ActionRow(
-                    discord.ui.Button(label="Fish Again", custom_id="fish_again",
-                                      emoji=utils.EMOJIS["aqua_fish"]),
-                    discord.ui.Button(label="Stop", custom_id="stop")
-                ),
-            )
-            # Tell them they caught trash and how much of what types
-            return f"{utils.EMOJIS['aqua_trash']} You caught trash!{trash_string}", post_components
+        post_components = discord.ui.MessageComponents(
+            discord.ui.ActionRow(
+                discord.ui.Button(label="Fish Again", custom_id="fish_again",
+                                  emoji=utils.EMOJIS["aqua_fish"]),
+                discord.ui.Button(label="Stop", custom_id="stop")
+            ),
+        )
+        # Tell them they caught trash and how much of what types
+        return f"{utils.EMOJIS['aqua_trash']} You caught trash!{trash_string}", post_components

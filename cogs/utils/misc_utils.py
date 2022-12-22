@@ -132,13 +132,23 @@ RARITY_CULERS = {
 items_required = {
     "Cast": ({"broken_fishing_net": 2},
              "Gives you one cast."),
-    "Fish Bag": ({"plastic_bag": 2, "pile_of_straws": 1},
-                 "Gives you one fish bag. (Either common, uncommon, or rare)"),
+    "Recycled Fishing Rod": ({"pile_of_straws": 3, "broken_fishing_net": 2, "plastic_bottle": 3},
+                             "Makes the next 5 fish you catch sell for double (stacks)"),
+    "Recycled Bait": ({"seaweed_scraps": 4, "old_tire": 2},
+                      "Makes the next 5 fish you catch unable to be common (stacks)"),
+    "Recycled Fish Hook": ({"pile_of_straws": 3, "plastic_bag": 4},
+                           "Makes the next fish you catch have a higher chance to be skinned (stacks)"),
+    # "Recycled Fishing Net": ({"plastic_bag": 5, "broken_fishing_net": 2},
+    #                          "Makes the next cast catch two fish instead of one (stacks)"),
+    "Recycled Fish Finder": ({"halfeaten_flip_flop": 3, "pile_of_straws": 3},
+                             "Lets you choose the type of fish you catch next in the same rarity as others (stacks)"),
+    "Recycled Waders": ({"halfeaten_flip_flop": 2, "old_boot": 2},
+                        "Lets you change your location to anywhere once (stacks)"),
     "Fishing Boots": ({"old_boot": 2, "broken_fishing_net": 3},
                       "Gives you a 5% chance to get 2 casts instead of 1 each hour. (stacks up to 5)"),
     "Trash Toys": ({"old_tire": 2, "halfeaten_flip_flop": 2, "plastic_bottle": 5, "seaweed_scraps": 4},
                    "Gives you a 50% bonus to xp gotten from entertaining. (stacks up to 5)"),
-    "Super Food": ({"seaweed_scraps": 4, },
+    "Super Food": ({"seaweed_scraps": 4},
                    "Used to feed all fish in a tank, no matter their level.")
 }
 
