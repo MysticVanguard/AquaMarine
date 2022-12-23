@@ -144,22 +144,22 @@ class Fishing(vbu.Cog):
 
             # If they choose to fish:
             if chosen_button == "fish":
-                # If they have no casts tell them they can't fish
-                if casts[0]["casts"] <= 0:
-                    relative_time = discord.utils.format_dt(
-                        self.cast_time -
-                        timedelta(hours=(utils.DAYLIGHT_SAVINGS - 1)),
-                        style="R",
-                    )
-                    return await chosen_button_payload.response.send_message(
-                        f"You have no casts, You will get another {relative_time}.", ephemeral=True
-                    )
                 await chosen_button_payload.response.defer_update()
                 keep_fishing = True
                 while keep_fishing:
                     async with vbu.Database() as db:
                         casts = await utils.user_balance_db_call(ctx.author.id)
                         user_inventory = await utils.user_fish_inventory_db_call(ctx.author.id)
+
+                    # If they have no casts tell them they can't fish
+                    if casts[0]["casts"] <= 0:
+                        relative_time = discord.utils.format_dt(
+                            self.cast_time -
+                            timedelta(hours=(utils.DAYLIGHT_SAVINGS - 1)),
+                            style="R",
+                        )
+                        return await ctx.send(f"You have no casts, You will get another {relative_time}.")
+
                     returned_message, post_components = await utils.user_fish(self, ctx, casts, upgrades,
                                                                               user_locations_info, user_inventory, location_pools_info)
 

@@ -242,7 +242,7 @@ async def check_registered(bot, ctx, user_id: int):
                      f" link to the support server.")
     await ctx.send(start_message)
 
-    async with bot.Database() as db:
+    async with bot.database() as db:
         if not user_balance_info:
             await db("""INSERT INTO user_balance (user_id, casts) VALUES ($1, 6)""", user_id)
         if not user_upgrades_info:
