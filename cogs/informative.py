@@ -710,7 +710,11 @@ class Informative(vbu.Cog):
                                 discord.ApplicationCommandOptionChoice(
                                     name="Balance", value="Balance"),
                                 discord.ApplicationCommandOptionChoice(
-                                    name="Fish Points", value="Fish Points")
+                                    name="Fish Points", value="Fish Points"),
+                                discord.ApplicationCommandOptionChoice(
+                                    name="Fish Level", value="Fish Level"),
+                                discord.ApplicationCommandOptionChoice(
+                                    name="Fish Type", value="Fish Type")
                     ]
                 )
             ]
@@ -741,6 +745,43 @@ class Informative(vbu.Cog):
                 user_points_unsorted[user_info["user_id"]
                                      ] = user_info["balance"]
 
+        # Else if they want fish level...
+        elif leaderboard_type == "Fish Level":
+
+            user_points_unsorted = {}
+
+            # Get a list of the user's fish levels
+            async with vbu.Database() as db:
+                user_balance_rows = await db("""SELECT * FROM user_balance""")
+                for user in user_balance_rows:
+                    user_fish_info = 0
+                    fish_row = await utils.user_fish_inventory_db_call(user["user_id"])
+                    for row in fish_row:
+                        user_fish_info = row["fish_level"] if row["fish_level"] > user_fish_info else user_fish_info
+
+                    # Work out the user's highest level fish
+                    highest_level_fish = user_fish_info
+                    user_points_unsorted[user["user_id"]] = highest_level_fish
+        # Else if they want fish type...
+        elif leaderboard_type == "Fish Type":
+
+            user_points_unsorted = {}
+
+            location_of_type = await utils.create_select_menu(self.bot, ctx, utils.normalized_location_list, "Location", "Choose", True)
+            fish_types = utils.FishSpecies.all_species_by_location_rarity[location_of_type.replace(
+                " ", "_").lower()]
+            fish_names = []
+            for _, fish in fish_types.items():
+                for single_fish in fish:
+                    fish_names.append(
+                        single_fish.name.replace("_", " ").title())
+            fish_type = await utils.create_select_menu(self.bot, ctx, fish_names, "Fish Type", "Choose", True)
+            async with vbu.Database() as db:
+                user_caught_rows = await db("""SELECT * FROM user_location_info""")
+
+            for user in user_caught_rows:
+                user_points_unsorted[user["user_id"]
+                                     ] = user[f"{fish_type.replace(' ', '_').lower()}_caught"]
         # Else if they want fish points...
         elif leaderboard_type == "Fish Points":
 
@@ -906,7 +947,7 @@ class Informative(vbu.Cog):
 
         HELP_EMBED = discord.Embed(
             title="List of all the commands and what they do")
-        for cog_num, cog in enumerate(self.bot.cogs.values()):
+        for cog in self.bot.cogs.values():
             field_title = cog.qualified_name
             value = ""
             if field_title not in ["Command Event", "Owner Only", "Command Counter", "Connect Event", "Error Handler", "Presence Auto Updater", "Interaction Handler", "Analytics", "Help"]:

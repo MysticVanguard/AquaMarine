@@ -373,7 +373,7 @@ async def create_select_menu(bot, ctx, option_list, type_noun, type_verb, remove
 
     # For each name that isnt "" add it as an option for the select menu
     for option in option_list:
-        if option != "":
+        if option != "" and len(test_options) < 25:
             test_options.append(discord.ui.SelectOption(
                 label=option, value=option))
 

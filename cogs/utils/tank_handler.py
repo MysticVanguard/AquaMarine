@@ -385,7 +385,7 @@ async def user_feed(self, ctx, tank_chosen):
 
     fish_in_tank = []
     for fish in fish_rows:
-        feed_time = dt(year=2005, month=5, day=1)
+        feed_time = dt(year=2005, month=3, day=1)
         if fish["fish_feed_time"]:
             feed_time = fish["fish_feed_time"]
         if fish["fish_alive"] == True and not (fish_feed_timeout := feed_time + FISH_FEED_COOLDOWN) > dt.utcnow():

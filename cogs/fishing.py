@@ -21,13 +21,13 @@ class Fishing(vbu.Cog):
         self.user_cast_loop.cancel()
 
     # Every hour, everyone gets a cast as long as they have less than 50
-    @tasks.loop(hours=1)
+    @tasks.loop(minutes=45)
     async def user_cast_loop(self):
         self.cast_time = dt.utcnow()
         async with vbu.Database() as db:
             casts = await db("""SELECT * FROM user_balance""")
             for x in casts:
-                if x["casts"] >= 50:
+                if x["casts"] >= 64:
                     continue
                 amount_of_crafted = await utils.user_item_inventory_db_call(
                     x["user_id"])
@@ -39,7 +39,7 @@ class Fishing(vbu.Cog):
                 else:
                     boot_multiplier = 0
                 amount = random.choices(
-                    [1, 2], [(1 - (.04 * boot_multiplier)), (.04 * boot_multiplier)])[0]
+                    [1, 2], [(1 - (.03 * boot_multiplier)), (.03 * boot_multiplier)])[0]
                 await db(
                     """UPDATE user_balance SET casts=casts+$2 WHERE user_id = $1""",
                     x["user_id"], amount
@@ -154,8 +154,8 @@ class Fishing(vbu.Cog):
                     # If they have no casts tell them they can't fish
                     if casts[0]["casts"] <= 0:
                         relative_time = discord.utils.format_dt(
-                            self.cast_time -
-                            timedelta(hours=(utils.DAYLIGHT_SAVINGS - 1)),
+                            self.cast_time + timedelta(minutes=45) -
+                            timedelta(hours=(utils.DAYLIGHT_SAVINGS - 2)),
                             style="R",
                         )
                         return await ctx.send(f"You have no casts, You will get another {relative_time}.")

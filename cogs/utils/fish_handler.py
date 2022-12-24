@@ -33,6 +33,9 @@ skin_type_dict = {
 location_list = ['pond', 'estuary', 'creek', 'coral_reef',
                  'lake', 'river', 'deep_sea', 'ocean', 'none']
 
+normalized_location_list = ["Pond", "Estuary", "Creek",
+                            "Coral Reef", "Lake", "River", "Deep Sea", "Ocean"]
+
 
 class FishSpecies:
 
@@ -259,22 +262,21 @@ async def ask_to_sell_fish(
 
     # Wait for them to click a button
     returned_message = ""
+    chosen_button_payload = None
     try:
         chosen_button_payload = await bot.wait_for(
             "component_interaction", timeout=60.0, check=lambda p: p.user.id == ctx.author.id)
         chosen_button = chosen_button_payload.component.custom_id.lower()
     except asyncio.TimeoutError:
-        returned_message += "Did you forget about me? I've been waiting for a while now! I'll just assume you wanted to sell the fish."
+        returned_message += "Did you forget about me? I've been waiting for a while now! I'll just assume you wanted to sell the fish.\n"
         chosen_button = 'sell'
 
     # Update the displayed emoji
-    interaction = None
     if chosen_button == "keep":
         # Get their current fish names
         fish_names = [i["fish_name"] for i in fish_rows]
         xp_max = math.floor(25 * level ** 1.5)
-        name, interaction = await utils.create_modal(bot, chosen_button_payload, "Fish Kept", "Enter Your Fish's Name")
-        error_message = ""
+        name, _ = await utils.create_modal(bot, chosen_button_payload, "Fish Kept", "Enter Your Fish's Name")
         while name in fish_names or not name:
             name = random_name_finder()
             while name in fish_names:
@@ -344,7 +346,7 @@ async def user_fish(self, ctx, casts, upgrades, user_locations_info, user_invent
     #    caught_fish = 2
 
     # If they didn't catch trash
-    if random.randint(1, 12) != 12:
+    if random.randint(1, 10) != 10:
 
         # For each fish caught...
         for _ in range(caught_fish):
@@ -401,7 +403,7 @@ async def user_fish(self, ctx, casts, upgrades, user_locations_info, user_invent
 
             # Grammar
             a_an = (
-                "an" if rarity[0].lower() in (
+                "an" if chosen_fish.name[0].lower() in (
                     "a", "e", "i", "o", "u") else "a"
             )
 
@@ -438,9 +440,11 @@ async def user_fish(self, ctx, casts, upgrades, user_locations_info, user_invent
 
             # Set the fish file to the fishes image
             if fish_skin != "":
+                skin_name = fish_skin
                 fish_file = discord.File(
                     f"{chosen_fish.image[:40]}{fish_skin}_{chosen_fish.image[40:]}", "new_fish.png")
             else:
+                skin_name = "None"
                 fish_file = discord.File(
                     chosen_fish.image, "new_fish.png")
 
@@ -533,21 +537,20 @@ async def user_fish(self, ctx, casts, upgrades, user_locations_info, user_invent
 
             # Tell the user about the fish they caught
             owned_unowned = "Owned" if amount > 0 else "Unowned"
-            if fish_skin != "":
-                fish_skin_underlined = f"__{fish_skin}__"
-            else:
-                fish_skin_underlined = ""
             embed = discord.Embed(
-                title=f"{utils.EMOJIS['aqua_fish']} {ctx.author.display_name} caught {a_an} *{rarity}* {fish_skin_underlined} {chosen_fish.size} **{chosen_fish.name.replace('_', ' ').title()}**!"
+                title=f"{utils.EMOJIS['aqua_fish']} {ctx.author.display_name} caught {a_an} **{chosen_fish.name.replace('_', ' ').title()}**!"
             )
+            embed.add_field(name="Rarity:", value=rarity)
+            embed.add_field(name="Size:", value=chosen_fish.size)
+            embed.add_field(name="Skin:", value=skin_name)
             embed.add_field(
                 name=owned_unowned,
                 value=f"You have caught {amount} **{chosen_fish.name.replace('_', ' ').title()}**",
                 inline=False,
             )
+            embed.set_image(url="attachment://new_fish.png")
             embed.add_field(
                 name="** **", value=f"*{random.choice(utils.fish_footers)}*")
-            embed.set_image(url="attachment://new_fish.png")
             embed.color = utils.RARITY_CULERS[rarity]
             if casts[0]["casts"] == 3:
                 guess_message += "\n⚠️You have two casts left⚠️"
