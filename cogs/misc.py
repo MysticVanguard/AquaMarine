@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands, vbu, tasks
+from cogs import utils
 
 
 class Misc(vbu.Cog):
@@ -15,9 +16,14 @@ class Misc(vbu.Cog):
     # Every hour, everyone gets a cast as long as they have less than 50
     @tasks.loop(hours=168)
     async def reset_fish_pools(self):
+        max_count = {"Common": 100, "Uncommon": 75, "Rare": 50,
+                     "Epic": 25, "Legendary": 15, "Mythic": 5}
         async with vbu.Database() as db:
-            await db("""DELETE FROM fish_pool_location""")
-            await db("""INSERT INTO fish_pool_location (banggai_cardinalfish_count) VALUES (100)""")
+            fish_rows = await utils.fish_pool_location_db_call()
+            for fish in fish_rows:
+                await db("""UPDATE fish_pool_location SET count = $2 WHERE fish_name = $1""",
+                         fish["fish_name"],
+                         max_count[fish["rarity"]])
 
     # Wait until the bot is on and ready and not just until the cog is on
     @reset_fish_pools.before_loop

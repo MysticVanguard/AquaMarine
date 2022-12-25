@@ -335,7 +335,7 @@ async def ask_to_sell_fish(
 user_last_fish_caught = {}
 
 
-async def user_fish(self, ctx, casts, upgrades, user_locations_info, user_inventory, location_pools_info):
+async def user_fish(self, ctx, casts, upgrades, user_locations_info):
 
     # pick a random number using the line upgrade, if it is equal to 1 they get to fish twice
     caught_fish = 1
@@ -377,18 +377,23 @@ async def user_fish(self, ctx, casts, upgrades, user_locations_info, user_invent
                 FishSpecies.get_location_rarity(
                     rarity, user_locations_info[0]['current_location'])
             )
-            while chosen_fish.name in utils.past_fish or location_pools_info[0][f"{chosen_fish.name}_count"] <= 0 or chosen_fish.name == utils.user_last_fish_caught[ctx.author.id]:
-                rarity = random.choices(
-                    *utils.rarity_percentage_finder(upgrades[0]["bait_upgrade"])
-                )[0]
-                while rarity not in FishSpecies.all_species_by_location_rarity[user_locations_info[0]['current_location']].keys() or (user_items[0]["recycled_bait"] > 0 and rarity == "common"):
+            async with vbu.Database() as db:
+                location_pools_info = await db("""SELECT * FROM fish_pool_location WHERE fish_name = $1""",
+                                               chosen_fish.name)
+                while chosen_fish.name in utils.past_fish or location_pools_info[0]["count"] <= 0 or chosen_fish.name == utils.user_last_fish_caught[ctx.author.id]:
                     rarity = random.choices(
                         *utils.rarity_percentage_finder(upgrades[0]["bait_upgrade"])
                     )[0]
-                chosen_fish = random.choice(
-                    FishSpecies.get_location_rarity(
-                        rarity, user_locations_info[0]['current_location'])
-                )
+                    while rarity not in FishSpecies.all_species_by_location_rarity[user_locations_info[0]['current_location']].keys() or (user_items[0]["recycled_bait"] > 0 and rarity == "common"):
+                        rarity = random.choices(
+                            *utils.rarity_percentage_finder(upgrades[0]["bait_upgrade"])
+                        )[0]
+                    chosen_fish = random.choice(
+                        FishSpecies.get_location_rarity(
+                            rarity, user_locations_info[0]['current_location'])
+                    )
+                    location_pools_info = await db("""SELECT * FROM fish_pool_location WHERE fish_name = $1""",
+                                                   chosen_fish.name)
             if user_items[0]["recycled_fish_finder"] > 0:
                 species = FishSpecies.get_location_rarity(
                     rarity, user_locations_info[0]["current_location"])
@@ -432,7 +437,8 @@ async def user_fish(self, ctx, casts, upgrades, user_locations_info, user_invent
                     ctx.author.id,
                 )
                 await db(
-                    f"""UPDATE fish_pool_location SET {chosen_fish.name}_count = {chosen_fish.name}_count - 1"""
+                    f"""UPDATE fish_pool_location SET count = count - 1 WHERE fish_name = $1""",
+                    chosen_fish.name
                 )
 
             # Find out how many of those fish they caught previously

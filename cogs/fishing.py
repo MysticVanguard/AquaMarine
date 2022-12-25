@@ -75,9 +75,7 @@ class Fishing(vbu.Cog):
             casts = await utils.user_balance_db_call(ctx.author.id)
             user_locations_info = await utils.user_location_info_db_call(
                 ctx.author.id)
-            user_inventory = await utils.user_fish_inventory_db_call(ctx.author.id)
             user_item_inventory = await utils.user_item_inventory_db_call(ctx.author.id)
-            location_pools_info = await utils.fish_pool_location_db_call()
 
             if not user_locations_info:
                 user_locations_info = await db(
@@ -90,18 +88,24 @@ class Fishing(vbu.Cog):
             title=f"__{ctx.author.display_name}'s Fish Menu!__\n*Current Location: {user_locations_info[0]['current_location'].replace('_', ' ').title()}*")
         embed.set_image(
             url="https://cdn.discordapp.com/attachments/952006920858923060/1035613173274918912/fishing_idle.gif")
-        for rarity, fish in FishSpecies.all_species_by_location_rarity[user_locations_info[0]['current_location']].items():
-            rarity = rarity.upper()
-            fish_in_rarity = []
-            for single_fish in fish:
-                if user_locations_info[0][f"{single_fish.name}_caught"] > 0:
-                    fish_in_rarity.append(
-                        f"{single_fish.name.replace('_', ' ').title()} ({location_pools_info[0][f'{single_fish.name}_count']} Left)")
-                else:
-                    fish_in_rarity.append(
-                        f"??? ({location_pools_info[0][f'{single_fish.name}_count']} Left)\t")
-            embed.add_field(name=rarity, value='\n'.join(
-                [f"{fish}" for fish in fish_in_rarity]), inline=True)
+        async with vbu.Database() as db:
+            for rarity, _ in FishSpecies.all_species_by_location_rarity[user_locations_info[0]['current_location']].items():
+                fish_in_rarity = []
+                fish_rarity = FishSpecies.all_species_by_location_rarity[
+                    user_locations_info[0]['current_location']][rarity]
+                rarity = rarity.title()
+                fish_pool_rows = await db("""SELECT * FROM fish_pool_location WHERE rarity = $1""",
+                                          rarity)
+                for single_fish in fish_pool_rows:
+                    if utils.FishSpecies.get_fish(single_fish['fish_name']) in fish_rarity:
+                        if user_locations_info[0][f"{single_fish['fish_name']}_caught"] > 0:
+                            fish_in_rarity.append(
+                                f"{single_fish['fish_name'].replace('_', ' ').title()} ({single_fish['count']} Left)")
+                        else:
+                            fish_in_rarity.append(
+                                f"??? ({single_fish['count']} Left)\t")
+                embed.add_field(name=rarity, value='\n'.join(
+                    [f"{fish}" for fish in fish_in_rarity]), inline=True)
         effect_string = "** **"
         for effect in ["recycled_fishing_rod", "recycled_bait", "recycled_fish_hook", "recycled_fish_finder"]:
             amount = user_item_inventory[0][effect]
@@ -149,7 +153,6 @@ class Fishing(vbu.Cog):
                 while keep_fishing:
                     async with vbu.Database() as db:
                         casts = await utils.user_balance_db_call(ctx.author.id)
-                        user_inventory = await utils.user_fish_inventory_db_call(ctx.author.id)
 
                     # If they have no casts tell them they can't fish
                     if casts[0]["casts"] <= 0:
@@ -160,8 +163,7 @@ class Fishing(vbu.Cog):
                         )
                         return await ctx.send(f"You have no casts, You will get another {relative_time}.")
 
-                    returned_message, post_components = await utils.user_fish(self, ctx, casts, upgrades,
-                                                                              user_locations_info, user_inventory, location_pools_info)
+                    returned_message, post_components = await utils.user_fish(self, ctx, casts, upgrades, user_locations_info)
 
                     if not returned_message:
                         return
@@ -300,23 +302,28 @@ class Fishing(vbu.Cog):
                 user_locations_info = await utils.user_location_info_db_call(
                     ctx.author.id)
                 user_item_inventory = await utils.user_item_inventory_db_call(ctx.author.id)
-                location_pools_info = await utils.fish_pool_location_db_call()
             new_embed = discord.Embed(
                 title=f"__{ctx.author.display_name}'s Fish Menu!__\n*Current Location: {user_locations_info[0]['current_location'].replace('_', ' ').title()}*")
             new_embed.set_image(
                 url="https://cdn.discordapp.com/attachments/952006920858923060/1035613173274918912/fishing_idle.gif")
-            for rarity, fish in FishSpecies.all_species_by_location_rarity[user_locations_info[0]['current_location']].items():
-                rarity = rarity.upper()
-                fish_in_rarity = []
-                for single_fish in fish:
-                    if user_locations_info[0][f"{single_fish.name}_caught"] > 0:
-                        fish_in_rarity.append(
-                            f"{single_fish.name.replace('_', ' ').title()} ({location_pools_info[0][f'{single_fish.name}_count']} Left)")
-                    else:
-                        fish_in_rarity.append(
-                            f"??? ({location_pools_info[0][f'{single_fish.name}_count']} Left)\t")
-                new_embed.add_field(name=rarity, value='\n'.join(
-                    [f"{fish}" for fish in fish_in_rarity]), inline=True)
+            async with vbu.Database() as db:
+                for rarity, _ in FishSpecies.all_species_by_location_rarity[user_locations_info[0]['current_location']].items():
+                    fish_in_rarity = []
+                    fish_rarity = FishSpecies.all_species_by_location_rarity[
+                        user_locations_info[0]['current_location']][rarity]
+                    rarity = rarity.title()
+                    fish_pool_rows = await db("""SELECT * FROM fish_pool_location WHERE rarity = $1""",
+                                              rarity)
+                    for single_fish in fish_pool_rows:
+                        if utils.FishSpecies.get_fish(single_fish['fish_name']) in fish_rarity:
+                            if user_locations_info[0][f"{single_fish['fish_name']}_caught"] > 0:
+                                fish_in_rarity.append(
+                                    f"{single_fish['fish_name'].replace('_', ' ').title()} ({single_fish['count']} Left)")
+                            else:
+                                fish_in_rarity.append(
+                                    f"??? ({single_fish['count']} Left)\t")
+                    new_embed.add_field(name=rarity, value='\n'.join(
+                        [f"{fish}" for fish in fish_in_rarity]), inline=True)
             if user_item_inventory[0]['new_location_unlock'] < 1:
                 components.get_component('unlock').disable()
             effect_string = "** **"
