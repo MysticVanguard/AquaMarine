@@ -10,7 +10,6 @@ from cogs.utils.fish_handler import FishSpecies, Fish
 
 
 class FishCare(vbu.Cog):
-
     def __init__(self, bot: vbu.Bot):
         super().__init__(bot)
         self.fish_food_death_loop.start()
@@ -28,10 +27,14 @@ class FishCare(vbu.Cog):
             )
             for fish_row in fish_rows:
                 if fish_row["death_time"]:
-                    if dt.utcnow() > fish_row["death_time"] and fish_row['fish_alive'] is True:
+                    if (
+                        dt.utcnow() > fish_row["death_time"]
+                        and fish_row["fish_alive"] is True
+                    ):
                         await db(
                             """UPDATE user_fish_inventory SET fish_alive=FALSE WHERE fish_name = $1 AND user_id = $2""",
-                            fish_row["fish_name"], fish_row["user_id"]
+                            fish_row["fish_name"],
+                            fish_row["user_id"],
                         )
 
     @fish_food_death_loop.before_loop
@@ -40,10 +43,15 @@ class FishCare(vbu.Cog):
 
     @commands.command(
         application_command_meta=commands.ApplicationCommandMeta(
-            options=[discord.ApplicationCommandOption(
-                name="tank",
-                type=discord.ApplicationCommandOptionType.string,
-                description="The tank you want to deal with")]))
+            options=[
+                discord.ApplicationCommandOption(
+                    name="tank",
+                    type=discord.ApplicationCommandOptionType.string,
+                    description="The tank you want to deal with",
+                )
+            ]
+        )
+    )
     @commands.bot_has_permissions(send_messages=True)
     async def tank(self, ctx: commands.Context, *, tank: str):
         """
@@ -92,24 +100,37 @@ class FishCare(vbu.Cog):
                     allowed_mentions=discord.AllowedMentions.none(),
                 )
             tank_info = tank_row[0]["tank_type"][tank_slot]
-            tank_info_button = (tank_row[0]["tank_type"][tank_slot], tank_row[0]["tank_theme"][tank_slot], tank_row[0]["fish_room"]
-                                [tank_slot], tank_row[0]["tank_clean_time"][tank_slot], tank_row[0]["tank_entertain_time"][tank_slot], tank)
+            tank_info_button = (
+                tank_row[0]["tank_type"][tank_slot],
+                tank_row[0]["tank_theme"][tank_slot],
+                tank_row[0]["fish_room"][tank_slot],
+                tank_row[0]["tank_clean_time"][tank_slot],
+                tank_row[0]["tank_entertain_time"][tank_slot],
+                tank,
+            )
 
             # finds what type of fish it is, then adds the paths to a list, as well as finding the fish's random starting position
             for selected_fish_types in selected_fish:
-                fishes.append(Fish(name=selected_fish_types['fish_name'], level=selected_fish_types['fish_level'], current_xp=selected_fish_types['fish_xp'], max_xp=selected_fish_types['fish_xp_max'],
-                                   alive=selected_fish_types['fish_alive'], species=FishSpecies.get_fish(selected_fish_types['fish']), location_caught=selected_fish_types['fish_location'], skin=selected_fish_types['fish_skin']))
+                fishes.append(
+                    Fish(
+                        name=selected_fish_types["fish_name"],
+                        level=selected_fish_types["fish_level"],
+                        current_xp=selected_fish_types["fish_xp"],
+                        max_xp=selected_fish_types["fish_xp_max"],
+                        alive=selected_fish_types["fish_alive"],
+                        species=FishSpecies.get_fish(selected_fish_types["fish"]),
+                        location_caught=selected_fish_types["fish_location"],
+                        skin=selected_fish_types["fish_skin"],
+                    )
+                )
 
             # For each fish in the tank...
             for fish_object in fishes:
-                fish_selections.append(
-                    utils.get_normal_size_image(fish_object))
+                fish_selections.append(utils.get_normal_size_image(fish_object))
                 dead_alive.append(fish_object.alive)
 
             # gif variables
-            gif_filename = (
-                f"{utils.file_prefix}/tanks/user_tank{gif_name}.png"
-            )
+            gif_filename = f"{utils.file_prefix}/tanks/user_tank{gif_name}.png"
 
             # Open our constant images
             tank_theme = tank_row[0]["tank_theme"][tank_slot]
@@ -131,9 +152,11 @@ class FishCare(vbu.Cog):
             # adds multiple fish and moves them if they are alive
             for x in range(0, len(im)):
                 x_spot = random.randint(
-                    utils.min_max_x[tank_info][0], utils.min_max_x[tank_info][1])
+                    utils.min_max_x[tank_info][0], utils.min_max_x[tank_info][1]
+                )
                 y_spot = random.randint(
-                    utils.min_max_y[tank_info][0], utils.min_max_y[tank_info][1])
+                    utils.min_max_y[tank_info][0], utils.min_max_y[tank_info][1]
+                )
 
                 if dead_alive[x] is False:
                     this_background.paste(
@@ -142,9 +165,7 @@ class FishCare(vbu.Cog):
                         im[x].rotate(180),
                     )
                 else:
-                    this_background.paste(
-                        im[x], (x_spot, y_spot), im[x]
-                    )
+                    this_background.paste(im[x], (x_spot, y_spot), im[x])
 
             # Pastes the backgrounds
             this_background.paste(midground, (0, 0), midground)
@@ -153,20 +174,21 @@ class FishCare(vbu.Cog):
             # Save the generated image to memory
             this_background.save(fp=gif_filename, format="PNG")
 
-        entertain_button = discord.ui.Button(
-            label="Entertain", custom_id="entertain")
+        entertain_button = discord.ui.Button(label="Entertain", custom_id="entertain")
         feed_button = discord.ui.Button(label="Feed", custom_id="feed")
         clean_button = discord.ui.Button(label="Clean", custom_id="clean")
         show_button = discord.ui.Button(label="Show", custom_id="show")
         revive_button = discord.ui.Button(label="Revive", custom_id="revive")
-        remove_button = discord.ui.Button(
-            label="Remove Fish", custom_id="remove")
-        deposit_button = discord.ui.Button(
-            label="Deposit Fish", custom_id="deposit")
+        remove_button = discord.ui.Button(label="Remove Fish", custom_id="remove")
+        deposit_button = discord.ui.Button(label="Deposit Fish", custom_id="deposit")
         info_button = discord.ui.Button(label="Info", custom_id="info")
         valid_buttons_row_one = [entertain_button, clean_button, feed_button]
-        valid_buttons_row_two = [show_button,
-                                 remove_button, deposit_button, info_button]
+        valid_buttons_row_two = [
+            show_button,
+            remove_button,
+            deposit_button,
+            info_button,
+        ]
         if False in dead_alive:
             valid_buttons_row_one.append(revive_button)
 
@@ -182,7 +204,9 @@ class FishCare(vbu.Cog):
             components.get_component("clean").disable()
         if not selected_fish:
             components.get_component("remove").disable()
-        tank_message = await ctx.send(file=discord.File(gif_filename), components=components)
+        tank_message = await ctx.send(
+            file=discord.File(gif_filename), components=components
+        )
 
         # Make the button check
         def button_check(payload):
@@ -195,9 +219,7 @@ class FishCare(vbu.Cog):
             chosen_button_payload = await self.bot.wait_for(
                 "component_interaction", check=button_check
             )
-            chosen_button = (
-                chosen_button_payload.component.custom_id
-            )
+            chosen_button = chosen_button_payload.component.custom_id
             if chosen_button == "feed":
                 await chosen_button_payload.response.defer_update()
                 await utils.user_feed(self, ctx, tank)
@@ -222,11 +244,16 @@ class FishCare(vbu.Cog):
 
     @commands.command(
         application_command_meta=commands.ApplicationCommandMeta(
-            options=[discord.ApplicationCommandOption(
-                name="fish",
-                type=discord.ApplicationCommandOptionType.string,
-                description="Fish you want to revive",
-                required=False)]))
+            options=[
+                discord.ApplicationCommandOption(
+                    name="fish",
+                    type=discord.ApplicationCommandOptionType.string,
+                    description="Fish you want to revive",
+                    required=False,
+                )
+            ]
+        )
+    )
     @commands.bot_has_permissions(send_messages=True)
     async def revive(self, ctx: commands.Context, *, fish: str = None):
         """
@@ -275,7 +302,7 @@ class FishCare(vbu.Cog):
         # Checks that error
         if fish_row[0]["fish_alive"] is True:
             return await ctx.send("That fish is alive!")
-        if not revival_count[0]['revival']:
+        if not revival_count[0]["revival"]:
             return await ctx.send("You have no revivals!")
 
         # If the fish isn't in a tank, it has no death timer, but if it is it's set to three days
@@ -300,9 +327,7 @@ class FishCare(vbu.Cog):
             )
 
         # Send message
-        await ctx.send(
-            message, allowed_mentions=discord.AllowedMentions.none()
-        )
+        await ctx.send(message, allowed_mentions=discord.AllowedMentions.none())
 
 
 def setup(bot):

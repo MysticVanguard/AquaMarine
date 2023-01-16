@@ -130,36 +130,60 @@ RARITY_CULERS = {
 }
 
 items_required = {
-    "Cast": ({"broken_fishing_net": 2},
-             "Gives you one cast."),
-    "Recycled Fishing Rod": ({"pile_of_straws": 3, "broken_fishing_net": 2, "plastic_bottle": 3},
-                             "Makes the next 5 fish you catch sell for double (stacks)"),
-    "Recycled Bait": ({"seaweed_scraps": 4, "old_tire": 2},
-                      "Makes the next 5 fish you catch unable to be common (stacks)"),
-    "Recycled Fish Hook": ({"pile_of_straws": 3, "plastic_bag": 4},
-                           "Makes the next fish you catch have a higher chance to be skinned (stacks)"),
+    "Cast": ({"broken_fishing_net": 2}, "Gives you one cast."),
+    "Recycled Fishing Rod": (
+        {"pile_of_straws": 3, "broken_fishing_net": 2, "plastic_bottle": 3},
+        "Makes the next 5 fish you catch sell for double (stacks)",
+    ),
+    "Recycled Bait": (
+        {"seaweed_scraps": 4, "old_tire": 2},
+        "Makes the next 5 fish you catch unable to be common (stacks)",
+    ),
+    "Recycled Fish Hook": (
+        {"pile_of_straws": 3, "plastic_bag": 4},
+        "Makes the next fish you catch have a higher chance to be skinned (stacks)",
+    ),
     # "Recycled Fishing Net": ({"plastic_bag": 5, "broken_fishing_net": 2},
     #                          "Makes the next cast catch two fish instead of one (stacks)"),
-    "Recycled Fish Finder": ({"halfeaten_flip_flop": 3, "pile_of_straws": 3},
-                             "Lets you choose the type of fish you catch next in the same rarity as others (stacks)"),
-    "Recycled Waders": ({"halfeaten_flip_flop": 2, "old_boot": 2},
-                        "Lets you change your location to anywhere once (stacks)"),
-    "Fishing Boots": ({"old_boot": 2, "broken_fishing_net": 3},
-                      "Gives you a 5% chance to get 2 casts instead of 1 each hour. (stacks up to 5)"),
-    "Trash Toys": ({"old_tire": 2, "halfeaten_flip_flop": 2, "plastic_bottle": 5, "seaweed_scraps": 4},
-                   "Gives you a 50% bonus to xp gotten from entertaining. (stacks up to 5)"),
-    "Super Food": ({"seaweed_scraps": 4},
-                   "Used to feed all fish in a tank, no matter their level.")
+    "Recycled Fish Finder": (
+        {"halfeaten_flip_flop": 3, "pile_of_straws": 3},
+        "Lets you choose the type of fish you catch next in the same rarity as others (stacks)",
+    ),
+    "Recycled Waders": (
+        {"halfeaten_flip_flop": 2, "old_boot": 2},
+        "Lets you change your location to anywhere once (stacks)",
+    ),
+    "Fishing Boots": (
+        {"old_boot": 2, "broken_fishing_net": 3},
+        "Gives you a 5% chance to get 2 casts instead of 1 each hour. (stacks up to 5)",
+    ),
+    "Trash Toys": (
+        {
+            "old_tire": 2,
+            "halfeaten_flip_flop": 2,
+            "plastic_bottle": 5,
+            "seaweed_scraps": 4,
+        },
+        "Gives you a 50% bonus to xp gotten from entertaining. (stacks up to 5)",
+    ),
+    "Super Food": (
+        {"seaweed_scraps": 4},
+        "Used to feed all fish in a tank, no matter their level.",
+    ),
 }
 
 
 async def enough_to_craft(crafted: str, user_id: int):
     for item, required in items_required[crafted][0].items():
         async with vbu.Database() as db:
-            amount = await db(f"""SELECT {item} FROM user_item_inventory WHERE user_id = $1""", user_id)
+            amount = await db(
+                f"""SELECT {item} FROM user_item_inventory WHERE user_id = $1""",
+                user_id,
+            )
         if amount[0][item] < required:
             return False
     return True
+
 
 # This is used to fix fields that are too long (i.e. If someone has too many of one rarity in their fish bucket)
 
@@ -219,7 +243,10 @@ def get_fixed_field(field):
 
 
 def create_bucket_embed(
-    user, field: tuple[str, str], page: int, custom_title: str = None,
+    user,
+    field: tuple[str, str],
+    page: int,
+    custom_title: None
 ):
     """
     Creates the embed for the pagination page for the fishbucket
@@ -273,8 +300,7 @@ async def paginate(ctx, fields, user, custom_str=None):
 
     # Put the buttons together
     components = discord.ui.MessageComponents(
-        discord.ui.ActionRow(*valid_buttons)
-    )
+        discord.ui.ActionRow(*valid_buttons))
 
     # Send the message
     fish_message = await ctx.send(embed=embed, components=components)
@@ -347,7 +373,9 @@ async def paginate(ctx, fields, user, custom_str=None):
 
             # Ask the user what page they want to go to
             pages_string = f"go to? (1-{len(fields)})"
-            page_selected = await utils.create_select_menu(bot, ctx, range(1, len(fields)+1), "page", pages_string)
+            page_selected = await utils.create_select_menu(
+                bot, ctx, range(1, len(fields) + 1), "page", pages_string
+            )
 
             user_input = int(page_selected)
 
@@ -358,7 +386,8 @@ async def paginate(ctx, fields, user, custom_str=None):
 
             # Edit the message with the new field
             await fish_message.edit(
-                embed=create_bucket_embed(user, curr_field, custom_str)
+                embed=create_bucket_embed(
+                    user, curr_field, curr_index, custom_str)
             )
 
 
@@ -411,14 +440,11 @@ async def create_select_menu(bot, ctx, option_list, type_noun, type_verb, remove
 
     # If it works don't fail, and if it times out say that
     try:
-        payload = await bot.wait_for(
-            "component_interaction", check=check, timeout=60
-        )
+        payload = await bot.wait_for("component_interaction", check=check, timeout=60)
         await payload.response.defer_update()
     except asyncio.TimeoutError:
         return await ctx.send(
-            f"Timed out asking for {type_noun} to "
-            f"{type_verb} <@{ctx.author.id}>"
+            f"Timed out asking for {type_noun} to " f"{type_verb} <@{ctx.author.id}>"
         )
 
     # Return what they chose
@@ -434,28 +460,30 @@ async def create_modal(bot, Interaction, title, placeholder):
 
     # Send a modal back to the user
     await Interaction.response.send_modal(
-        (sent_modal := discord.ui.Modal(
-            title=title,
-            components=[
-                discord.ui.ActionRow(
-                    discord.ui.InputText(
-                        label="Input text label",
-                        style=discord.TextStyle.short,
-                        placeholder=placeholder,
-                        min_length=1,
-                        max_length=32,
+        (
+            sent_modal := discord.ui.Modal(
+                title=title,
+                components=[
+                    discord.ui.ActionRow(
+                        discord.ui.InputText(
+                            label="Input text label",
+                            style=discord.TextStyle.short,
+                            placeholder=placeholder,
+                            min_length=1,
+                            max_length=32,
+                        ),
                     ),
-                ),
-            ],
-        ))
+                ],
+            )
+        )
     )
 
     # Wait for an interaction to be given back
     try:
         interaction: discord.Interaction = await bot.wait_for(
             "modal_submit",
-            check=lambda i: i.data['custom_id'] == sent_modal.custom_id,
-            timeout=60.0
+            check=lambda i: i.data["custom_id"] == sent_modal.custom_id,
+            timeout=60.0,
         )
     except asyncio.TimeoutError:
         return None, None

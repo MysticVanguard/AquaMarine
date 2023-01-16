@@ -30,7 +30,7 @@ SHOP_FIELDS = [
         f"{EMOJIS['bar_empty']}Can be used to **revive a dead fish**\n"
         f"**Fish Bowl** \n"
         f"{EMOJIS['bar_empty']}__Price: 250 {EMOJIS['sand_dollar']}__\n"
-        f"{EMOJIS['bar_empty']}The smallest tank, with only **1** Size Point\n"
+        f"{EMOJIS['bar_empty']}The smallest tank, with only **1** Size Point\n",
     ),
     (
         f"{EMOJIS['amfc']} __AquaMarine Fish Corps State Issued Resources__ {EMOJIS['amfc']}\n"
@@ -43,7 +43,7 @@ SHOP_FIELDS = [
         f"{EMOJIS['bar_empty']}The biggest tank, with **25** Size Points, able to hold a large fish\n"
         f"**New Location Unlock** \n"
         f"{EMOJIS['bar_empty']}__Price: 25 {EMOJIS['doubloon']}__\n"
-        f"{EMOJIS['bar_empty']}Unlocks one of the advanced locations\n"
+        f"{EMOJIS['bar_empty']}Unlocks one of the advanced locations\n",
     ),
     (
         f"{EMOJIS['gfu']} __Golden Fishers Union Item Market__ {EMOJIS['gfu']}\n"
@@ -59,7 +59,7 @@ SHOP_FIELDS = [
         f"{EMOJIS['bar_empty']}Gives a bag that can be a fish of any rarity, but is **level 25-50**\n"
         f"**Experience Potion {EMOJIS['experience_potion']}** \n"
         f"{EMOJIS['bar_empty']}__Price: 75,000 {EMOJIS['sand_dollar']}__\n"
-        f"{EMOJIS['bar_empty']}When used on a fish, gives them **25,000 Experience**\n"
+        f"{EMOJIS['bar_empty']}When used on a fish, gives them **25,000 Experience**\n",
     ),
     (
         f"{EMOJIS['gfu']} __Golden Fishers Union Item Market__ {EMOJIS['gfu']}\n"
@@ -72,7 +72,7 @@ SHOP_FIELDS = [
         f"{EMOJIS['bar_empty']}A nice green **plant themed background** for your aquarium, can be veiwed with {EMOJIS['bar_empty']}`preview` \n"
         f"**Fish Points {EMOJIS['fish_points']}** \n"
         f"{EMOJIS['bar_empty']}__Price: 500 {EMOJIS['sand_dollar']}__\n"
-        f"{EMOJIS['bar_empty']}One permanant point for the **\"Fish Points\" leaderboard**\n"
+        f"{EMOJIS['bar_empty']}One permanant point for the **\"Fish Points\" leaderboard**\n",
     ),
 ]
 
@@ -80,7 +80,7 @@ SHOP_FIELDS = [
 class Shop(vbu.Cog):
     @commands.command(
         aliases=["s", "store"],
-        application_command_meta=commands.ApplicationCommandMeta()
+        application_command_meta=commands.ApplicationCommandMeta(),
     )
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def shop(self, ctx: commands.Context):
@@ -106,46 +106,60 @@ class Shop(vbu.Cog):
                     description="The item you want to buy",
                     choices=[
                         discord.ApplicationCommandOptionChoice(
-                            name="Fish Flakes", value="ff"),
+                            name="Fish Flakes", value="ff"
+                        ),
                         discord.ApplicationCommandOptionChoice(
-                            name="Fish Pellets", value="fp"),
+                            name="Fish Pellets", value="fp"
+                        ),
                         discord.ApplicationCommandOptionChoice(
-                            name="Fish Wafers", value="fw"),
+                            name="Fish Wafers", value="fw"
+                        ),
                         discord.ApplicationCommandOptionChoice(
-                            name="Fish Revivals", value="fr"),
+                            name="Fish Revivals", value="fr"
+                        ),
                         discord.ApplicationCommandOptionChoice(
-                            name="Fish Bowl", value="fb"),
+                            name="Fish Bowl", value="fb"
+                        ),
                         discord.ApplicationCommandOptionChoice(
-                            name="Small Tank", value="st"),
+                            name="Small Tank", value="st"
+                        ),
                         discord.ApplicationCommandOptionChoice(
-                            name="Medium Tank", value="mt"),
+                            name="Medium Tank", value="mt"
+                        ),
                         discord.ApplicationCommandOptionChoice(
-                            name="New Location Unlock", value="nlu"),
+                            name="New Location Unlock", value="nlu"
+                        ),
                         discord.ApplicationCommandOptionChoice(
-                            name="Five Fishing Casts", value="fc"),
+                            name="Five Fishing Casts", value="fc"
+                        ),
                         discord.ApplicationCommandOptionChoice(
-                            name="Inverted Fish Bag", value="ifb"),
+                            name="Inverted Fish Bag", value="ifb"
+                        ),
                         discord.ApplicationCommandOptionChoice(
-                            name="High Level Fish Bag", value="hlfb"),
+                            name="High Level Fish Bag", value="hlfb"
+                        ),
                         discord.ApplicationCommandOptionChoice(
-                            name="Experience Potion", value="e"),
+                            name="Experience Potion", value="e"
+                        ),
                         discord.ApplicationCommandOptionChoice(
-                            name="Mutation Potion", value="m"),
+                            name="Mutation Potion", value="m"
+                        ),
                         discord.ApplicationCommandOptionChoice(
-                            name="Plant Life", value="pl"),
+                            name="Plant Life", value="pl"
+                        ),
                         discord.ApplicationCommandOptionChoice(
-                            name="Fish Points", value="p")
-                    ]
+                            name="Fish Points", value="p"
+                        ),
+                    ],
                 ),
                 discord.ApplicationCommandOption(
                     name="amount",
                     type=discord.ApplicationCommandOptionType.integer,
                     description="The number of the provided item you want to buy",
-                    required=False
-
+                    required=False,
                 ),
             ]
-        )
+        ),
     )
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def buy(self, ctx: commands.Context, item: str, amount: int = 1):
@@ -289,9 +303,7 @@ class Shop(vbu.Cog):
             if not await utils.check_price(
                 self.bot, ctx.author.id, full_cost, type_of_balance
             ):
-                return await ctx.send(
-                    f"You don't have enough {emoji} for this!"
-                )
+                return await ctx.send(f"You don't have enough {emoji} for this!")
 
             # Add item to user, check if item is a singular item and if so runs that function
             if item.title() in item_name_singular:
@@ -326,9 +338,7 @@ class Shop(vbu.Cog):
                 )
 
         # And tell the user we're done
-        await ctx.send(
-            f"You bought {amount:,} {response} for {full_cost:,} {emoji}!"
-        )
+        await ctx.send(f"You bought {amount:,} {response} for {full_cost:,} {emoji}!")
 
     @commands.command(
         aliases=["u"],
@@ -337,10 +347,10 @@ class Shop(vbu.Cog):
                 discord.ApplicationCommandOption(
                     name="item",
                     type=discord.ApplicationCommandOptionType.string,
-                    description="The item you want to use"
+                    description="The item you want to use",
                 ),
             ]
-        )
+        ),
     )
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def use(self, ctx: commands.Context, *, item: str):
@@ -393,8 +403,7 @@ class Shop(vbu.Cog):
 
             # Get their items from database
             async with vbu.Database() as db:
-                inventory_rows = await utils.user_item_inventory_db_call(
-                    ctx.author.id)
+                inventory_rows = await utils.user_item_inventory_db_call(ctx.author.id)
 
                 # If they don't have any potions tell them that
                 if inventory_rows[0][type_of_potion] == 0:
@@ -409,7 +418,7 @@ class Shop(vbu.Cog):
 
             fish_rows_names = []
             for row in fish_rows:
-                fish_rows_names.append(row['fish_name'])
+                fish_rows_names.append(row["fish_name"])
 
             # Add the buttons to the message
             components = discord.ui.MessageComponents(
@@ -420,7 +429,7 @@ class Shop(vbu.Cog):
             # Asks for the name of the tank the user is putting the theme on and makes sure it is correct
             message = await ctx.send(
                 f"Press the button to specify fish you want to give the potion to",
-                components=components
+                components=components,
             )
 
             def button_check(payload):
@@ -438,7 +447,12 @@ class Shop(vbu.Cog):
                     "Timed out asking for interaction, no available slots given."
                 )
 
-            name, interaction = await utils.create_modal(self.bot, chosen_button_payload, "Choose a fish", "Fish in a tank to give potion to")
+            name, interaction = await utils.create_modal(
+                self.bot,
+                chosen_button_payload,
+                "Choose a fish",
+                "Fish in a tank to give potion to",
+            )
 
             if not name:
                 return await ctx.send(
@@ -451,7 +465,7 @@ class Shop(vbu.Cog):
                 fish_row = await db(
                     """SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_name = $2 AND tank_fish != ''""",
                     ctx.author.id,
-                    name
+                    name,
                 )
 
             # Check for if the fish exists
@@ -469,8 +483,7 @@ class Shop(vbu.Cog):
             if item.title() in utils.EXPERIENCE_POTION_NAMES:
 
                 # Add 10k xp to the fish
-                await utils.xp_finder_adder(ctx.author.id, name, 25000, False)\
-
+                await utils.xp_finder_adder(ctx.author.id, name, 25000, False)
                 # Get the new rows
                 async with vbu.Database() as db:
                     new_fish_rows = await db(
@@ -492,7 +505,7 @@ class Shop(vbu.Cog):
 
                     await db(
                         """UPDATE user_fish_inventory SET fish_skin = $1 where user_id = $2 AND fish = $3""",
-                        'inverted',
+                        "inverted",
                         ctx.author.id,
                         fish_row[0]["fish"],
                     )
@@ -506,9 +519,7 @@ class Shop(vbu.Cog):
             if item.title() in utils.FEEDING_POTION_NAMES:
 
                 # Set the time to be now + the new death date
-                death_date = fish_row[0]["death_time"] + timedelta(
-                    days=30, hours=0
-                )
+                death_date = fish_row[0]["death_time"] + timedelta(days=30, hours=0)
 
                 # Update the fish's death date
                 async with vbu.Database() as db:
@@ -530,9 +541,7 @@ class Shop(vbu.Cog):
             if rarity_of_bag:
                 rarity_of_bag = rarity_of_bag.lower()
             else:
-                rarity_of_bag = random.choices(
-                    *utils.rarity_percentage_finder(0)
-                )[0]
+                rarity_of_bag = random.choices(*utils.rarity_percentage_finder(0))[0]
 
             # Lower the used bag
             used_bag = used_bag.lower()
@@ -549,12 +558,10 @@ class Shop(vbu.Cog):
                 return await ctx.send(f"You have no {used_bag_humanize}s!")
 
             # See which fish they caught by taking a random fish from the chosen rarity
-            chosen_fish = random.choice(
-                utils.FishSpecies.get_rarity(rarity_of_bag))
+            chosen_fish = random.choice(utils.FishSpecies.get_rarity(rarity_of_bag))
 
             while chosen_fish.name in utils.past_fish:
-                chosen_fish = random.choice(
-                    utils.FishSpecies.get_rarity(rarity_of_bag))
+                chosen_fish = random.choice(utils.FishSpecies.get_rarity(rarity_of_bag))
 
             # find if its skinned
             fish_skin = ""
@@ -578,10 +585,7 @@ class Shop(vbu.Cog):
             return await ctx.send("That is not a usable item!")
 
         # Grammar
-        a_an = (
-            "an" if rarity_of_bag[0].lower() in (
-                "a", "e", "i", "o", "u") else "a"
-        )
+        a_an = "an" if rarity_of_bag[0].lower() in ("a", "e", "i", "o", "u") else "a"
 
         # Get their fish inventory, add 1 to their times caught in achievements, subtract 1 from their casts
         async with vbu.Database() as db:
@@ -619,12 +623,19 @@ class Shop(vbu.Cog):
         embed.color = utils.RARITY_CULERS[rarity_of_bag]
 
         # Ask if they want to sell the fish they just caught or keep it
-        message, _ = await utils.ask_to_sell_fish(self.bot, ctx, None, level_inserted=level, chosen_fish=chosen_fish, skin=fish_skin, embed=embed)
+        message, _ = await utils.ask_to_sell_fish(
+            self.bot,
+            ctx,
+            None,
+            level_inserted=level,
+            chosen_fish=chosen_fish,
+            skin=fish_skin,
+            embed=embed,
+        )
         await ctx.send(message)
 
     @commands.command(
-        aliases=["inv"],
-        application_command_meta=commands.ApplicationCommandMeta()
+        aliases=["inv"], application_command_meta=commands.ApplicationCommandMeta()
     )
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def inventory(self, ctx: commands.Context):
@@ -639,20 +650,28 @@ class Shop(vbu.Cog):
 
         # list of tuples with the name and the name in the database
         items = [
-            ("High Level Fish Bag", "hlfb"), ("Inverted Fish Bag", "ifb"),
-            ("Fish Flake", "flakes"), ("Fish Pellet", "pellets"),
+            ("High Level Fish Bag", "hlfb"),
+            ("Inverted Fish Bag", "ifb"),
+            ("Fish Flake", "flakes"),
+            ("Fish Pellet", "pellets"),
             ("Mutation Potion", "mutation_potions"),
-            ("Fish Wafer", "wafers"), ("Experience Potion", "experience_potions"),
-            ("Revival", "revival"), ("Feeding Potion", "feeding_potions"),
+            ("Fish Wafer", "wafers"),
+            ("Experience Potion", "experience_potions"),
+            ("Revival", "revival"),
+            ("Feeding Potion", "feeding_potions"),
             ("Pile Of Bottle Caps", "pile_of_bottle_caps"),
             ("Plastic Bottle", "plastic_bottle"),
-            ("Plastic Bag", "plastic_bag"), ("Seaweed Scraps", "seaweed_scraps"),
+            ("Plastic Bag", "plastic_bag"),
+            ("Seaweed Scraps", "seaweed_scraps"),
             ("Broken Fishing Net", "broken_fishing_net"),
             ("Halfeaten Flip Flop", "halfeaten_flip_flop"),
-            ("Pile Of Straws", "pile_of_straws"), ("Old Boot", "old_boot"),
-            ("Old Tire", "old_tire"), ("Fishing Boots", "fishing_boots"),
-            ("Trash Toys", "trash_toys"), ("Super Food", "super_food"),
-            ("New Location Unlock", "new_location_unlock")
+            ("Pile Of Straws", "pile_of_straws"),
+            ("Old Boot", "old_boot"),
+            ("Old Tire", "old_tire"),
+            ("Fishing Boots", "fishing_boots"),
+            ("Trash Toys", "trash_toys"),
+            ("Super Food", "super_food"),
+            ("New Location Unlock", "new_location_unlock"),
         ]
 
         # Create an embed
@@ -669,26 +688,23 @@ class Shop(vbu.Cog):
 
             # If its a bag get rid of the fish part to make it fit better
             if "Bag" in name[0]:
-                name = (name[0].replace(' Fish', ''), name[1])
+                name = (name[0].replace(" Fish", ""), name[1])
 
             # If they have more than one of the item add an s
             if fetched[0][name[1]] > 1 and name[0][-1] != "s":
-                name = (name[0]+'s', name[1])
+                name = (name[0] + "s", name[1])
 
             # add the emoji, name, and amount formatted to the title list
             title_value.append(
-                f"{utils.EMOJIS[emoji]} {name[0]} : {fetched[0][name[1]]}")
+                f"{utils.EMOJIS[emoji]} {name[0]} : {fetched[0][name[1]]}"
+            )
 
             # If the lists length is 2 add the two strings in it as name and value and reset the list
             if len(title_value) == 2:
-                embed.add_field(
-                    name=title_value[0], value=title_value[1], inline=True
-                )
+                embed.add_field(name=title_value[0], value=title_value[1], inline=True)
                 title_value = []
-            elif items[len(items)-1][0] == name[0]:
-                embed.add_field(
-                    name=title_value[0], value="** **", inline=True
-                )
+            elif items[len(items) - 1][0] == name[0]:
+                embed.add_field(name=title_value[0], value="** **", inline=True)
                 title_value = []
 
         # Send the embed
@@ -702,15 +718,13 @@ class Shop(vbu.Cog):
                     name="user",
                     type=discord.ApplicationCommandOptionType.user,
                     description="The user's balance you want to check (leave blank for your own)",
-                    required=False
+                    required=False,
                 ),
             ]
-        )
+        ),
     )
     @commands.bot_has_permissions(send_messages=True)
-    async def balance(
-        self, ctx: commands.Context, user: discord.User = None
-    ):
+    async def balance(self, ctx: commands.Context, user: discord.User = None):
         """
         This command checks the user's balance or another user's balance.
         """
@@ -746,12 +760,11 @@ class Shop(vbu.Cog):
 
         # Send the users balance
         embed = discord.Embed(title=f"{other_or_self} Balance")
-        embed.add_field(name="Sand Dollars:",
-                        value=f"{amount_one} {EMOJIS['sand_dollar']}")
-        embed.add_field(name="Doubloons:",
-                        value=f"{amount_two} {EMOJIS['doubloon']}")
         embed.add_field(
-            name="Casts:", value=f"{amount_three} {EMOJIS['casts']}")
+            name="Sand Dollars:", value=f"{amount_one} {EMOJIS['sand_dollar']}"
+        )
+        embed.add_field(name="Doubloons:", value=f"{amount_two} {EMOJIS['doubloon']}")
+        embed.add_field(name="Casts:", value=f"{amount_three} {EMOJIS['casts']}")
         await ctx.send(embed=embed)
 
     @commands.command(
@@ -760,7 +773,7 @@ class Shop(vbu.Cog):
                 discord.ApplicationCommandOption(
                     name="fish_sold",
                     type=discord.ApplicationCommandOptionType.string,
-                    description="The fish you want to sell"
+                    description="The fish you want to sell",
                 ),
             ]
         )
@@ -807,7 +820,7 @@ class Shop(vbu.Cog):
         multiplier = fish_row[0]["fish_level"] / 20
 
         # Finds what fish the specified fish is and...
-        fish = FishSpecies.get_fish(fish_row[0]['fish'])
+        fish = FishSpecies.get_fish(fish_row[0]["fish"])
         cost = fish.cost
 
         # Get the sell money using the level multiplier
@@ -841,8 +854,7 @@ class Shop(vbu.Cog):
         )
 
     @commands.command(
-        aliases=["d"],
-        application_command_meta=commands.ApplicationCommandMeta()
+        aliases=["d"], application_command_meta=commands.ApplicationCommandMeta()
     )
     @commands.cooldown(1, 60 * 60 * 24, commands.BucketType.user)
     @commands.bot_has_permissions(send_messages=True)
@@ -861,18 +873,19 @@ class Shop(vbu.Cog):
 
         components = discord.ui.MessageComponents(
             discord.ui.ActionRow(
-                discord.ui.Button(
-                    label="Stop Spinning", custom_id="stop"
-                )
+                discord.ui.Button(label="Stop Spinning", custom_id="stop")
             ),
-
         )
         embed = discord.Embed(title="Click the button to stop the wheel!")
         file = discord.File(
-            "C:/Users/JT/Pictures/Aqua/assets/images/background/daily_wheel.gif", "win_wheel.gif")
+            "C:/Users/JT/Pictures/Aqua/assets/images/background/daily_wheel.gif",
+            "win_wheel.gif",
+        )
         embed.set_image(url="attachment://win_wheel.gif")
         embed.add_field(
-            name=f"Spinning...", value="Green = 400\nBlue = 800\nPurple = 1,600\nYellow = 2,400\nPink = 4,800")
+            name=f"Spinning...",
+            value="Green = 400\nBlue = 800\nPurple = 1,600\nYellow = 2,400\nPink = 4,800",
+        )
         daily_message = await ctx.send(embed=embed, components=components, file=file)
 
         # Make the button check
@@ -892,7 +905,8 @@ class Shop(vbu.Cog):
             return await ctx.send("Timed out waiting for click, try again.")
 
         reward = random.choices(
-            [400, 800, 1600, 2400, 4800], [.5, .25, .125, .083, .042])[0]
+            [400, 800, 1600, 2400, 4800], [0.5, 0.25, 0.125, 0.083, 0.042]
+        )[0]
 
         # Adds the money to the users balance
         async with vbu.Database() as db:
@@ -911,10 +925,14 @@ class Shop(vbu.Cog):
         # confirmation message
         embed = discord.Embed(title="Click the button to stop the wheel!")
         file = discord.File(
-            f"C:/Users/JT/Pictures/Aqua/assets/images/background/{str(reward)}_wheel_win.png", "win_wheel.png")
+            f"C:/Users/JT/Pictures/Aqua/assets/images/background/{str(reward)}_wheel_win.png",
+            "win_wheel.png",
+        )
         embed.set_image(url="attachment://win_wheel.png")
         embed.add_field(
-            name=f"Daily reward of {reward:,} {EMOJIS['sand_dollar']} claimed!", value="Green = 400\nBlue = 800\nPurple = 1,600\nYellow = 2,400\nPink = 4,800")
+            name=f"Daily reward of {reward:,} {EMOJIS['sand_dollar']} claimed!",
+            value="Green = 400\nBlue = 800\nPurple = 1,600\nYellow = 2,400\nPink = 4,800",
+        )
         await daily_message.delete()
         return await ctx.send(embed=embed, file=file)
 
@@ -929,9 +947,7 @@ class Shop(vbu.Cog):
         relative_time = discord.utils.format_dt(
             dt.utcnow() + time - timedelta(hours=DAYLIGHT_SAVINGS), style="R"
         )
-        await ctx.send(
-            f"Daily reward claimed, please try again {relative_time}."
-        )
+        await ctx.send(f"Daily reward claimed, please try again {relative_time}.")
 
     @commands.command(
         application_command_meta=commands.ApplicationCommandMeta(
@@ -940,7 +956,7 @@ class Shop(vbu.Cog):
                     name="amount",
                     type=discord.ApplicationCommandOptionType.integer,
                     description="The amount you want to gamble (multiple of 100)",
-                    required=False
+                    required=False,
                 )
             ]
         )
@@ -972,31 +988,26 @@ class Shop(vbu.Cog):
 
         components = discord.ui.MessageComponents(
             discord.ui.ActionRow(
-                discord.ui.Button(
-                    label="Yes", custom_id="yes"
-                ),
-                discord.ui.Button(
-                    label="No", custom_id="no"
-                ),
+                discord.ui.Button(label="Yes", custom_id="yes"),
+                discord.ui.Button(label="No", custom_id="no"),
             ),
         )
         needed_caps = amount / 100
-        bottle_caps = bottle_caps[0]['pile_of_bottle_caps']
+        bottle_caps = bottle_caps[0]["pile_of_bottle_caps"]
         if bottle_caps >= needed_caps:
-            yes_no_message = await ctx.send(f"Would you like to spend {int(needed_caps)} bottle caps instead of sand dollars? (You have {bottle_caps} bottle caps)", components=components)
+            yes_no_message = await ctx.send(
+                f"Would you like to spend {int(needed_caps)} bottle caps instead of sand dollars? (You have {bottle_caps} bottle caps)",
+                components=components,
+            )
 
             # Wait for them to click a button
             try:
                 chosen_button_payload = await self.bot.wait_for(
                     "component_interaction", timeout=60.0, check=yes_no_check
                 )
-                chosen_button = (
-                    chosen_button_payload.component.custom_id.lower()
-                )
+                chosen_button = chosen_button_payload.component.custom_id.lower()
             except asyncio.TimeoutError:
-                await yes_no_message.edit(
-                    components=components.disable_components()
-                )
+                await yes_no_message.edit(components=components.disable_components())
                 chosen_button = "no"
         else:
             chosen_button = "no"
@@ -1005,17 +1016,21 @@ class Shop(vbu.Cog):
             if chosen_button == "yes":
                 await db(
                     """UPDATE user_item_inventory SET pile_of_bottle_caps=pile_of_bottle_caps-$2 WHERE user_id = $1""",
-                    ctx.author.id, needed_caps
+                    ctx.author.id,
+                    needed_caps,
                 )
             else:
-                if not await utils.check_price(self.bot, ctx.author.id, amount, "balance"):
+                if not await utils.check_price(
+                    self.bot, ctx.author.id, amount, "balance"
+                ):
                     return await ctx.send(
                         f"You don't have enough sand dollars for this! ({amount})"
                     )
                 # Remove money from the user
                 await db(
                     """UPDATE user_balance SET balance=balance-$2 WHERE user_id = $1""",
-                    ctx.author.id, amount
+                    ctx.author.id,
+                    amount,
                 )
 
             async with vbu.Database() as db:
@@ -1033,9 +1048,7 @@ class Shop(vbu.Cog):
 
         # Pick three fish names from their rarity
         for i in range(3):
-            item_values.append(
-                random.randint(1, 31)
-            )
+            item_values.append(random.randint(1, 31))
 
         # Get the emojis for the values they rolled
         for value in item_values:
@@ -1075,11 +1088,14 @@ class Shop(vbu.Cog):
         components = discord.ui.MessageComponents(
             discord.ui.ActionRow(
                 discord.ui.Button(
-                    emoji="1\N{COMBINING ENCLOSING KEYCAP}", custom_id="one"),
+                    emoji="1\N{COMBINING ENCLOSING KEYCAP}", custom_id="one"
+                ),
                 discord.ui.Button(
-                    emoji="2\N{COMBINING ENCLOSING KEYCAP}", custom_id="two"),
+                    emoji="2\N{COMBINING ENCLOSING KEYCAP}", custom_id="two"
+                ),
                 discord.ui.Button(
-                    emoji="3\N{COMBINING ENCLOSING KEYCAP}", custom_id="three"),
+                    emoji="3\N{COMBINING ENCLOSING KEYCAP}", custom_id="three"
+                ),
             ),
         )
 
@@ -1101,13 +1117,9 @@ class Shop(vbu.Cog):
                 chosen_button_payload = await self.bot.wait_for(
                     "component_interaction", timeout=60.0, check=button_check
                 )
-                chosen_button = (
-                    chosen_button_payload.component.custom_id.lower()
-                )
+                chosen_button = chosen_button_payload.component.custom_id.lower()
             except asyncio.TimeoutError:
-                await gamble_message.edit(
-                    components=components.disable_components()
-                )
+                await gamble_message.edit(components=components.disable_components())
                 break
 
             # Update the displayed emoji
@@ -1140,14 +1152,10 @@ class Shop(vbu.Cog):
                 break
 
         # Set up the common types
-        common_types = [EMOJIS["sand_dollar_stack"],
-                        EMOJIS["sand_dollar_pile"]]
+        common_types = [EMOJIS["sand_dollar_stack"], EMOJIS["sand_dollar_pile"]]
 
         # If they won do nothing special
-        if (
-            emojis[0] == emojis[1] == emojis[2]
-            and EMOJIS["roll"] not in emojis
-        ):
+        if emojis[0] == emojis[1] == emojis[2] and EMOJIS["roll"] not in emojis:
             pass
 
         # If they didn't win 3 in a row see if they won some other way
@@ -1181,7 +1189,9 @@ class Shop(vbu.Cog):
         # Update their balance with the right type of balance
         async with vbu.Database() as db:
             await db(
-                f"""UPDATE user_balance SET {type_of_balance} = {type_of_balance} + {amount_won} WHERE user_id = $1""", ctx.author.id)
+                f"""UPDATE user_balance SET {type_of_balance} = {type_of_balance} + {amount_won} WHERE user_id = $1""",
+                ctx.author.id,
+            )
 
         # Tell them what they won
         return await ctx.send(

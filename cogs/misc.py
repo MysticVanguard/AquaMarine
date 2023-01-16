@@ -4,7 +4,6 @@ from cogs import utils
 
 
 class Misc(vbu.Cog):
-
     def __init__(self, bot: vbu.Bot):
         super().__init__(bot)
         self.reset_fish_pools.start()
@@ -16,14 +15,22 @@ class Misc(vbu.Cog):
     # Every hour, everyone gets a cast as long as they have less than 50
     @tasks.loop(hours=168)
     async def reset_fish_pools(self):
-        max_count = {"Common": 100, "Uncommon": 75, "Rare": 50,
-                     "Epic": 25, "Legendary": 15, "Mythic": 5}
+        max_count = {
+            "Common": 100,
+            "Uncommon": 75,
+            "Rare": 50,
+            "Epic": 25,
+            "Legendary": 15,
+            "Mythic": 5,
+        }
         async with vbu.Database() as db:
             fish_rows = await utils.fish_pool_location_db_call()
             for fish in fish_rows:
-                await db("""UPDATE fish_pool_location SET count = $2 WHERE fish_name = $1""",
-                         fish["fish_name"],
-                         max_count[fish["rarity"]])
+                await db(
+                    """UPDATE fish_pool_location SET count = $2 WHERE fish_name = $1""",
+                    fish["fish_name"],
+                    max_count[fish["rarity"]],
+                )
 
     # Wait until the bot is on and ready and not just until the cog is on
     @reset_fish_pools.before_loop
@@ -36,7 +43,7 @@ class Misc(vbu.Cog):
                 discord.ApplicationCommandOption(
                     name="user",
                     type=discord.ApplicationCommandOptionType.user,
-                    description="The user stabbed"
+                    description="The user stabbed",
                 ),
             ]
         )
@@ -65,13 +72,13 @@ class Misc(vbu.Cog):
                 discord.ApplicationCommandOption(
                     name="command",
                     type=discord.ApplicationCommandOptionType.string,
-                    description="The command that produced the the bug"
+                    description="The command that produced the the bug",
                 ),
                 discord.ApplicationCommandOption(
                     name="info",
                     type=discord.ApplicationCommandOptionType.string,
-                    description="The info about the bug you want to submit"
-                )
+                    description="The info about the bug you want to submit",
+                ),
             ]
         )
     )
@@ -93,9 +100,7 @@ class Misc(vbu.Cog):
         # let them know the bug report was sent
         await ctx.send("Bug report sent!")
 
-    @commands.command(
-        application_command_meta=commands.ApplicationCommandMeta()
-    )
+    @commands.command(application_command_meta=commands.ApplicationCommandMeta())
     @commands.bot_has_permissions(send_messages=True)
     async def support(self, ctx: commands.Context):
         """
@@ -105,9 +110,7 @@ class Misc(vbu.Cog):
         # Sends the link for the support server
         await ctx.send("https://discord.gg/FUyr8QmrD8")
 
-    @commands.command(
-        application_command_meta=commands.ApplicationCommandMeta()
-    )
+    @commands.command(application_command_meta=commands.ApplicationCommandMeta())
     @commands.bot_has_permissions(send_messages=True)
     async def vote_x(self, ctx: commands.Context):
         """
@@ -117,7 +120,9 @@ class Misc(vbu.Cog):
         # Sends the link for the support server
         embed = discord.Embed(title="Vote for AquaMarine!")
         embed.add_field(
-            name="**Top.gg**", value=f"[Vote Here!](https://top.gg/bot/840956686743109652/vote)")
+            name="**Top.gg**",
+            value=f"[Vote Here!](https://top.gg/bot/840956686743109652/vote)",
+        )
         await ctx.send(embed=embed)
 
 

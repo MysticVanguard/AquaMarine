@@ -12,9 +12,7 @@ from cogs.utils import EMOJIS
 
 
 class Informative(vbu.Cog):
-    @commands.command(
-        application_command_meta=commands.ApplicationCommandMeta()
-    )
+    @commands.command(application_command_meta=commands.ApplicationCommandMeta())
     @commands.bot_has_permissions(send_messages=True)
     async def tanks(self, ctx: commands.Context):
         """
@@ -27,7 +25,9 @@ class Informative(vbu.Cog):
             tank_rows = await utils.user_tank_inventory_db_call(ctx.author.id)
         # Check for if they have no tanks
         if not tank_rows:
-            return await ctx.send("You have no tanks! Please use the `firsttank` command!")
+            return await ctx.send(
+                "You have no tanks! Please use the `firsttank` command!"
+            )
 
         await utils.tanks_background_image_creator(ctx, tank_rows)
 
@@ -47,11 +47,11 @@ class Informative(vbu.Cog):
                 )
 
                 # Find all the relevant data for the fish
-                if not fish['fish_skin']:
+                if not fish["fish_skin"]:
                     skin = "No"
                 else:
-                    skin = fish['fish_skin'].title()
-                if fish['fish_alive']:
+                    skin = fish["fish_skin"].title()
+                if fish["fish_alive"]:
                     alive = "Alive"
                 else:
                     alive = "Dead"
@@ -76,9 +76,7 @@ class Informative(vbu.Cog):
 
                     # set up the fish message to be all the fish data
                     fish_message = [
-                        "\n".join(
-                            fish_collections[tank_row["tank_name"][count]]
-                        )
+                        "\n".join(fish_collections[tank_row["tank_name"][count]])
                     ]
 
                 # Else make the fish message say theres no fish
@@ -110,9 +108,7 @@ class Informative(vbu.Cog):
             ctx, fields, ctx.author, f"{ctx.author.display_name}'s tanks"
         )
 
-    @commands.command(
-        application_command_meta=commands.ApplicationCommandMeta()
-    )
+    @commands.command(application_command_meta=commands.ApplicationCommandMeta())
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def profile(self, ctx: commands.Context):
         """
@@ -124,18 +120,29 @@ class Informative(vbu.Cog):
 
         # Dict of all the items and their emoji
         items = {
-            "cfb": EMOJIS["common_fish_bag"], "ufb": EMOJIS["uncommon_fish_bag"],
-            "rfb": EMOJIS["rare_fish_bag"], "ifb": EMOJIS["inverted_fish_bag"],
-            "hlfb": EMOJIS["high_level_fish_bag"], "flakes": EMOJIS["fish_flake"],
-            "pellets": EMOJIS["fish_pellet"], "wafers": EMOJIS["fish_wafer"],
-            "revival": EMOJIS["revival"], "feeding_potions": EMOJIS["feeding_potion"],
-            "experience_potions": EMOJIS["experience_potion"], "mutation_potions": EMOJIS["mutation_potion"],
-            "pile_of_bottle_caps": EMOJIS["pile_of_bottle_caps"], "plastic_bottle": EMOJIS["plastic_bottle"],
-            "plastic_bag": EMOJIS["plastic_bag"], "seaweed_scraps": EMOJIS["seaweed_scraps"],
-            "broken_fishing_net": EMOJIS["broken_fishing_net"], "halfeaten_flip_flop": EMOJIS["halfeaten_flip_flop"],
-            "pile_of_straws": EMOJIS["pile_of_straws"], "old_boot": EMOJIS["old_boot"],
-            "old_tire": EMOJIS["old_tire"], "fishing_boots": EMOJIS["fishing_boots"],
-            "trash_toys": EMOJIS['trash_toys'],
+            "cfb": EMOJIS["common_fish_bag"],
+            "ufb": EMOJIS["uncommon_fish_bag"],
+            "rfb": EMOJIS["rare_fish_bag"],
+            "ifb": EMOJIS["inverted_fish_bag"],
+            "hlfb": EMOJIS["high_level_fish_bag"],
+            "flakes": EMOJIS["fish_flake"],
+            "pellets": EMOJIS["fish_pellet"],
+            "wafers": EMOJIS["fish_wafer"],
+            "revival": EMOJIS["revival"],
+            "feeding_potions": EMOJIS["feeding_potion"],
+            "experience_potions": EMOJIS["experience_potion"],
+            "mutation_potions": EMOJIS["mutation_potion"],
+            "pile_of_bottle_caps": EMOJIS["pile_of_bottle_caps"],
+            "plastic_bottle": EMOJIS["plastic_bottle"],
+            "plastic_bag": EMOJIS["plastic_bag"],
+            "seaweed_scraps": EMOJIS["seaweed_scraps"],
+            "broken_fishing_net": EMOJIS["broken_fishing_net"],
+            "halfeaten_flip_flop": EMOJIS["halfeaten_flip_flop"],
+            "pile_of_straws": EMOJIS["pile_of_straws"],
+            "old_boot": EMOJIS["old_boot"],
+            "old_tire": EMOJIS["old_tire"],
+            "fishing_boots": EMOJIS["fishing_boots"],
+            "trash_toys": EMOJIS["trash_toys"],
         }
 
         # Set up the default values
@@ -157,7 +164,7 @@ class Informative(vbu.Cog):
             if not fish_caught:
                 fish_caught = await db(
                     """INSERT INTO user_location_info (user_id, current_location) VALUES ($1, 'pond') RETURNING *""",
-                    ctx.author.id
+                    ctx.author.id,
                 )
 
         # If theres a tank row
@@ -204,8 +211,9 @@ class Informative(vbu.Cog):
                 )
 
             # Set the collection info in the correct format
-            collection_string = '\n'.join(
-                f"{x[0]}: {x[2]}/{x[1]}" for x in collection_data)
+            collection_string = "\n".join(
+                f"{x[0]}: {x[2]}/{x[1]}" for x in collection_data
+            )
 
         # If there are items
         if inventory_row:
@@ -254,7 +262,7 @@ class Informative(vbu.Cog):
             "Highest Level Fish": (highest_level_fish_string, False),
             "Collection": (collection_string + tank_string, True),
             "Items": (items_string, True),
-            "Balance": (balance_string, False)
+            "Balance": (balance_string, False),
         }
 
         # Create and format the embed
@@ -264,28 +272,24 @@ class Informative(vbu.Cog):
             embed.add_field(name=name, value=text, inline=inline)
         await ctx.send(embed=embed)
 
-    @ commands.command(
+    @commands.command(
         application_command_meta=commands.ApplicationCommandMeta(
             options=[
                 discord.ApplicationCommandOption(
                     name="fish_name",
                     type=discord.ApplicationCommandOptionType.string,
                     description="The type of fish you want to search (leave blank for all fish)",
-                    required=False
+                    required=False,
                 ),
             ]
         )
     )
-    @ commands.bot_has_permissions(send_messages=True, embed_links=True)
+    @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def bestiary(self, ctx: commands.Context, *, fish_name: str = None):
         """
         This command shows the user info about fish.
         """
-        size_demultiplier = {
-            "small": 1,
-            "medium": 2,
-            "large": 3
-        }
+        size_demultiplier = {"small": 1, "medium": 2, "large": 3}
 
         # If we want to just send all the fish
         if not fish_name:
@@ -301,13 +305,19 @@ class Informative(vbu.Cog):
                 fish_string = ""
 
                 # For each fish in the types
-                for count, fish_type in enumerate(FishSpecies.get_rarity(rarity=rarity)):
+                for count, fish_type in enumerate(
+                    FishSpecies.get_rarity(rarity=rarity)
+                ):
 
                     # Every other fish either bold or codeblock the text for contrast
                     if count % 2 == 0:
-                        fish_string += f" | **{' '.join(fish_type.name.split('_')).title()}**"
+                        fish_string += (
+                            f" | **{' '.join(fish_type.name.split('_')).title()}**"
+                        )
                     else:
-                        fish_string += f" | `{' '.join(fish_type.name.split('_')).title()}`"
+                        fish_string += (
+                            f" | `{' '.join(fish_type.name.split('_')).title()}`"
+                        )
 
                     # Every three append it to the lines and reset the string
                     if (count + 1) % 3 == 0:
@@ -323,47 +333,42 @@ class Informative(vbu.Cog):
                 [fields.append(i) for i in utils.get_fixed_field(field)]
 
             # Send the fields paginated
-            return await utils.paginate(
-                ctx, fields, ctx.author, "**Bestiary**\n"
-            )
+            return await utils.paginate(ctx, fields, ctx.author, "**Bestiary**\n")
 
         # If a fish is specified...
 
         # Find the info of the fish they selected
         try:
             selected_fish = FishSpecies.get_fish(
-                name=fish_name.replace(" ", "_").lower())
+                name=fish_name.replace(" ", "_").lower()
+            )
 
         # If it doesnt exist tell them
         except KeyError:
             return await ctx.send("That fish doesn't exist.")
 
         # Set up the embed with all the needed data
-        money_gained = int(selected_fish.cost /
-                           size_demultiplier[selected_fish.size])
-        embed = discord.Embed(
-            title=selected_fish.name.replace('_', ' ').title())
+        money_gained = int(selected_fish.cost / size_demultiplier[selected_fish.size])
+        embed = discord.Embed(title=selected_fish.name.replace("_", " ").title())
         async with vbu.Database() as db:
             user_fish_caught = await utils.user_location_info_db_call(ctx.author.id)
             if not user_fish_caught:
                 user_fish_caught = await db(
                     """INSERT INTO user_location_info (user_id, current_location) VALUES ($1, 'pond') RETURNING *""",
-                    ctx.author.id
+                    ctx.author.id,
                 )
         embed.set_image(url="attachment://new_fish.png")
-        embed.add_field(
-            name="Rarity:", value=f"{selected_fish.rarity}", inline=True
-        )
+        embed.add_field(name="Rarity:", value=f"{selected_fish.rarity}", inline=True)
         embed.add_field(
             name="Base Sell Price:",
             value=f"{int(money_gained)} {EMOJIS['sand_dollar']}",
             inline=True,
         )
+        embed.add_field(name="Size:", value=f"{selected_fish.size}", inline=True)
         embed.add_field(
-            name="Size:", value=f"{selected_fish.size}", inline=True
-        )
-        embed.add_field(
-            name="Amount Caught:", value=user_fish_caught[0][f'{selected_fish.name}_caught'], inline=True
+            name="Amount Caught:",
+            value=user_fish_caught[0][f"{selected_fish.name}_caught"],
+            inline=True,
         )
         embed.color = {
             "common": 0xFFFFFE,  # White - FFFFFF doesn't work with Discord
@@ -378,7 +383,7 @@ class Informative(vbu.Cog):
         # Send the embed
         await ctx.send(file=fish_file, embed=embed)
 
-    @ commands.command(
+    @commands.command(
         aliases=["bucket", "fb"],
         application_command_meta=commands.ApplicationCommandMeta(
             options=[
@@ -386,16 +391,13 @@ class Informative(vbu.Cog):
                     name="user",
                     type=discord.ApplicationCommandOptionType.user,
                     description="The person's bucket you want to see (leave blank for your own)",
-                    required=False
+                    required=False,
                 ),
             ]
-        )
+        ),
     )
-    @ commands.bot_has_permissions(
-        send_messages=True, embed_links=True)
-    async def fishbucket(
-        self, ctx: commands.Context, user: discord.User = None
-    ):
+    @commands.bot_has_permissions(send_messages=True, embed_links=True)
+    async def fishbucket(self, ctx: commands.Context, user: discord.User = None):
         """
         Show a user's fishbucket.
         """
@@ -422,18 +424,32 @@ class Informative(vbu.Cog):
 
         # Find the fish's data in a list of tuples sorted
         fish_list = [
-            Fish(name=i['fish_name'], level=i['fish_level'], current_xp=i['fish_xp'], max_xp=i['fish_xp_max'], alive=i['fish_alive'], species=FishSpecies.get_fish(i['fish']), location_caught=i['fish_location'], skin=i['fish_skin']) for i in fish_rows
+            Fish(
+                name=i["fish_name"],
+                level=i["fish_level"],
+                current_xp=i["fish_xp"],
+                max_xp=i["fish_xp_max"],
+                alive=i["fish_alive"],
+                species=FishSpecies.get_fish(i["fish"]),
+                location_caught=i["fish_location"],
+                skin=i["fish_skin"],
+            )
+            for i in fish_rows
         ]
         fish_list = sorted(fish_list, key=lambda x: x.species.name)
 
         # The "pages" that the user can scroll through are the different rarity levels
-        fields = (
-            []
-        )
+        fields = []
 
         # Dictionary of the fish that the user has
-        sorted_fish = {"common": [], "uncommon": [], "rare": [],
-                       "epic": [], "legendary": [], "mythic": []}
+        sorted_fish = {
+            "common": [],
+            "uncommon": [],
+            "rare": [],
+            "epic": [],
+            "legendary": [],
+            "mythic": [],
+        }
 
         for rarity in utils.rarity_values.keys():
             for fish in fish_list:
@@ -454,17 +470,16 @@ class Informative(vbu.Cog):
                     else:
                         skin = "No"
                     fish_string.append(
-                        f"\"{fish.name}\": **{' '.join(fish.species.name.split('_')).title()}** ({fish.species.size.title()}, {alive}, {skin} skin)")
+                        f"\"{fish.name}\": **{' '.join(fish.species.name.split('_')).title()}** ({fish.species.size.title()}, {alive}, {skin} skin)"
+                    )
                 field = (rarity.title(), "\n".join(fish_string))
                 [fields.append(i) for i in utils.get_fixed_field(field)]
 
         # Create an embed
         await utils.paginate(ctx, fields, user)
 
-    @ commands.command(
-        application_command_meta=commands.ApplicationCommandMeta()
-    )
-    @ commands.bot_has_permissions(send_messages=True, embed_links=True)
+    @commands.command(application_command_meta=commands.ApplicationCommandMeta())
+    @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def achievements(self, ctx: commands.Context):
         """
         Shows the achievements and lets the user claim them.
@@ -472,19 +487,43 @@ class Informative(vbu.Cog):
 
         # The milestones for each achievement type
         milestones_dict_of_achievements = {
-            "times_entertained": [96, 672, 1344, 2880, 8640, 17280, 25920, 35040, 52512, 70080],
+            "times_entertained": [
+                96,
+                672,
+                1344,
+                2880,
+                8640,
+                17280,
+                25920,
+                35040,
+                52512,
+                70080,
+            ],
             "times_fed": [1, 10, 50, 100, 1500, 3000, 6000, 22750, 34125, 45500],
             "times_cleaned": [12, 84, 168, 360, 540, 1080, 1620, 2190, 3285, 4928],
             "times_caught": [24, 168, 336, 720, 1000, 2160, 3240, 4380, 6570, 9856],
             "tanks_owned": [1, 3, 5, 10],
             "times_gambled": [5, 10, 50, 100, 500, 1000, 5000, 10000, 50000, 500000],
-            "money_gained": [1000, 10000, 50000, 100000, 250000, 500000, 1000000, 1500000, 2000000, 5000000],
+            "money_gained": [
+                1000,
+                10000,
+                50000,
+                100000,
+                250000,
+                500000,
+                1000000,
+                1500000,
+                2000000,
+                5000000,
+            ],
         }
 
         # Database variables
         await utils.check_registered(self.bot, ctx, ctx.author.id)
         async with vbu.Database() as db:
-            user_achievement_milestone_data = await utils.user_achievements_milestones_db_call(ctx.author.id)
+            user_achievement_milestone_data = (
+                await utils.user_achievements_milestones_db_call(ctx.author.id)
+            )
             user_achievement_data = await utils.user_achievements_db_call(ctx.author.id)
             tank_data = await utils.user_tank_inventory_db_call(ctx.author.id)
 
@@ -514,9 +553,7 @@ class Informative(vbu.Cog):
         are_there_any_claimable_achievements_check = False
 
         # Creating the embed
-        embed = discord.Embed(
-            title=f"**{ctx.author.display_name}**'s achievements"
-        )
+        embed = discord.Embed(title=f"**{ctx.author.display_name}**'s achievements")
 
         # Set Variables for milestones, default to nonclaimable, and default stars to nothing
         for (
@@ -528,31 +565,15 @@ class Informative(vbu.Cog):
             list_of_stars_per_achievement = []
 
             # Checks what type of star to add
-            for milestone_value in milestones_dict_of_achievements[
-                achievement
-            ]:
-                if (
-                    user_achievement_milestone_data[0][f"{milestone}_done"]
-                    is True
-                ):
-                    list_of_stars_per_achievement.append(
-                        EMOJIS["achievement_star"]
-                    )
-                elif (
-                    milestone_value
-                    < user_achievement_milestone_data[0][milestone]
-                ):
-                    list_of_stars_per_achievement.append(
-                        EMOJIS["achievement_star"]
-                    )
+            for milestone_value in milestones_dict_of_achievements[achievement]:
+                if user_achievement_milestone_data[0][f"{milestone}_done"] is True:
+                    list_of_stars_per_achievement.append(EMOJIS["achievement_star"])
+                elif milestone_value < user_achievement_milestone_data[0][milestone]:
+                    list_of_stars_per_achievement.append(EMOJIS["achievement_star"])
                 elif milestone_value <= user_achievement_value:
-                    list_of_stars_per_achievement.append(
-                        EMOJIS["achievement_star_new"]
-                    )
+                    list_of_stars_per_achievement.append(EMOJIS["achievement_star_new"])
                 else:
-                    list_of_stars_per_achievement.append(
-                        EMOJIS["achievement_star_no"]
-                    )
+                    list_of_stars_per_achievement.append(EMOJIS["achievement_star_no"])
 
             # Grammar stuff and the number of stars said
             next_unclaimable_star = 0
@@ -571,10 +592,8 @@ class Informative(vbu.Cog):
 
             # Sets the milestonme to be claimable if it is
             if (
-                user_achievement_value
-                >= user_achievement_milestone_data[0][milestone]
-                and user_achievement_milestone_data[0][f"{milestone}_done"]
-                is False
+                user_achievement_value >= user_achievement_milestone_data[0][milestone]
+                and user_achievement_milestone_data[0][f"{milestone}_done"] is False
             ):
                 if are_there_any_claimable_achievements_check is False:
                     are_there_any_claimable_achievements_check = True
@@ -638,9 +657,7 @@ class Informative(vbu.Cog):
             except asyncio.TimeoutError:
                 break
             finally:
-                await claim_message.edit(
-                    components=components.disable_components()
-                )
+                await claim_message.edit(components=components.disable_components())
 
             # Sets reward and if the button is clicked...
             amount_of_doubloons_earned = 0
@@ -679,9 +696,9 @@ class Informative(vbu.Cog):
                             """UPDATE user_achievements_milestones SET {} = $1 WHERE user_id = $2""".format(
                                 f"{achievement_button}_milestone"
                             ),
-                            milestones_dict_of_achievements[
-                                achievement_button
-                            ][user_achievement_position_button + 1],
+                            milestones_dict_of_achievements[achievement_button][
+                                user_achievement_position_button + 1
+                            ],
                             ctx.author.id,
                         )
 
@@ -699,7 +716,7 @@ class Informative(vbu.Cog):
                 f"Rewards claimed, you earned {amount_of_doubloons_earned} {EMOJIS['doubloon']}!"
             )
 
-    @ commands.command(
+    @commands.command(
         application_command_meta=commands.ApplicationCommandMeta(
             options=[
                 discord.ApplicationCommandOption(
@@ -707,20 +724,24 @@ class Informative(vbu.Cog):
                     type=discord.ApplicationCommandOptionType.string,
                     description="The type of leaderboard you want to view",
                     choices=[
-                                discord.ApplicationCommandOptionChoice(
-                                    name="Balance", value="Balance"),
-                                discord.ApplicationCommandOptionChoice(
-                                    name="Fish Points", value="Fish Points"),
-                                discord.ApplicationCommandOptionChoice(
-                                    name="Fish Level", value="Fish Level"),
-                                discord.ApplicationCommandOptionChoice(
-                                    name="Fish Type", value="Fish Type")
-                    ]
+                        discord.ApplicationCommandOptionChoice(
+                            name="Balance", value="Balance"
+                        ),
+                        discord.ApplicationCommandOptionChoice(
+                            name="Fish Points", value="Fish Points"
+                        ),
+                        discord.ApplicationCommandOptionChoice(
+                            name="Fish Level", value="Fish Level"
+                        ),
+                        discord.ApplicationCommandOptionChoice(
+                            name="Fish Type", value="Fish Type"
+                        ),
+                    ],
                 )
             ]
         )
     )
-    @ commands.bot_has_permissions(send_messages=True, embed_links=True)
+    @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def leaderboard(self, ctx: commands.Context, leaderboard_type: str):
         """
         Shows a global leaderboard of balances.
@@ -742,8 +763,7 @@ class Informative(vbu.Cog):
 
             # For each row add their id and balance to the unsorted dict
             for user_info in user_balance_rows:
-                user_points_unsorted[user_info["user_id"]
-                                     ] = user_info["balance"]
+                user_points_unsorted[user_info["user_id"]] = user_info["balance"]
 
         # Else if they want fish level...
         elif leaderboard_type == "Fish Level":
@@ -757,7 +777,11 @@ class Informative(vbu.Cog):
                     user_fish_info = 0
                     fish_row = await utils.user_fish_inventory_db_call(user["user_id"])
                     for row in fish_row:
-                        user_fish_info = row["fish_level"] if row["fish_level"] > user_fish_info else user_fish_info
+                        user_fish_info = (
+                            row["fish_level"]
+                            if row["fish_level"] > user_fish_info
+                            else user_fish_info
+                        )
 
                     # Work out the user's highest level fish
                     highest_level_fish = user_fish_info
@@ -767,21 +791,31 @@ class Informative(vbu.Cog):
 
             user_points_unsorted = {}
 
-            location_of_type = await utils.create_select_menu(self.bot, ctx, utils.normalized_location_list, "Location", "Choose", True)
-            fish_types = utils.FishSpecies.all_species_by_location_rarity[location_of_type.replace(
-                " ", "_").lower()]
+            location_of_type = await utils.create_select_menu(
+                self.bot,
+                ctx,
+                utils.normalized_location_list,
+                "Location",
+                "Choose",
+                True,
+            )
+            fish_types = utils.FishSpecies.all_species_by_location_rarity[
+                location_of_type.replace(" ", "_").lower()
+            ]
             fish_names = []
             for _, fish in fish_types.items():
                 for single_fish in fish:
-                    fish_names.append(
-                        single_fish.name.replace("_", " ").title())
-            fish_type = await utils.create_select_menu(self.bot, ctx, fish_names, "Fish Type", "Choose", True)
+                    fish_names.append(single_fish.name.replace("_", " ").title())
+            fish_type = await utils.create_select_menu(
+                self.bot, ctx, fish_names, "Fish Type", "Choose", True
+            )
             async with vbu.Database() as db:
                 user_caught_rows = await db("""SELECT * FROM user_location_info""")
 
             for user in user_caught_rows:
-                user_points_unsorted[user["user_id"]
-                                     ] = user[f"{fish_type.replace(' ', '_').lower()}_caught"]
+                user_points_unsorted[user["user_id"]] = user[
+                    f"{fish_type.replace(' ', '_').lower()}_caught"
+                ]
         # Else if they want fish points...
         elif leaderboard_type == "Fish Points":
 
@@ -790,9 +824,7 @@ class Informative(vbu.Cog):
 
             # Get their fish inventory and extra points
             async with vbu.Database() as db:
-                user_info_rows = await db(
-                    """SELECT * FROM user_fish_inventory"""
-                )
+                user_info_rows = await db("""SELECT * FROM user_fish_inventory""")
                 user_extra_points = await db("""SELECT * FROM user_balance""")
 
             # For each row of fish...
@@ -817,8 +849,14 @@ class Informative(vbu.Cog):
                         )
 
             # Setup for the rarity points
-            rarity_points = {"common": 1, "uncommon": 3, "rare": 15,
-                             "epic": 75, "legendary": 150, "mythic": 1000}
+            rarity_points = {
+                "common": 1,
+                "uncommon": 3,
+                "rare": 15,
+                "epic": 75,
+                "legendary": 150,
+                "mythic": 1000,
+            }
 
             # Setup for the unsorted dict
             user_points_unsorted = {}
@@ -869,10 +907,8 @@ class Informative(vbu.Cog):
         # Return the embed
         return await menu.start(ctx)
 
-    @ commands.command(
-        application_command_meta=commands.ApplicationCommandMeta()
-    )
-    @ commands.bot_has_permissions(send_messages=True, embed_links=True)
+    @commands.command(application_command_meta=commands.ApplicationCommandMeta())
+    @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def guide(self, ctx: commands.Context):
         """
         Give's a navigatable guide of the bot.
@@ -885,10 +921,8 @@ class Informative(vbu.Cog):
         # Send the correct fields paginated
         await utils.paginate(ctx, fields, ctx.author)
 
-    @ commands.command(
-        application_command_meta=commands.ApplicationCommandMeta()
-    )
-    @ commands.bot_has_permissions(send_messages=True)
+    @commands.command(application_command_meta=commands.ApplicationCommandMeta())
+    @commands.bot_has_permissions(send_messages=True)
     async def totalfish(self, ctx: commands.Context):
         """
         Shows the number of each type of fish owned, sorted by most
@@ -897,7 +931,7 @@ class Informative(vbu.Cog):
         async with vbu.Database() as db:
             fish = await db("""SELECT fish FROM user_fish_inventory""")
         for single_fish in fish:
-            single_fish = single_fish['fish']
+            single_fish = single_fish["fish"]
             if single_fish not in fish_dict.keys():
                 fish_dict[single_fish] = 1
             else:
@@ -913,8 +947,7 @@ class Informative(vbu.Cog):
         }
         output = []
         for fish_type, count in fish_dict_sorted.items():
-            output.append(
-                f"**{fish_type.replace('_', ' ').title()}**: {count}")
+            output.append(f"**{fish_type.replace('_', ' ').title()}**: {count}")
         menu = vbu.Paginator(
             output,
             per_page=10,
@@ -924,19 +957,19 @@ class Informative(vbu.Cog):
         # Return the embed
         return await menu.start(ctx)
 
-    @ commands.command(
+    @commands.command(
         application_command_meta=commands.ApplicationCommandMeta(
             options=[
                 discord.ApplicationCommandOption(
                     name="command",
                     type=discord.ApplicationCommandOptionType.string,
                     description="The command you need help with (leave blank for menu)",
-                    required=False
+                    required=False,
                 ),
             ]
         )
     )
-    @ commands.bot_has_permissions(send_messages=True)
+    @commands.bot_has_permissions(send_messages=True)
     async def help(self, ctx: commands.Context, *, command: str = None):
         """
         Gives help for all or a specific command
@@ -945,24 +978,38 @@ class Informative(vbu.Cog):
         if hasattr(ctx, "interaction"):
             await ctx.interaction.response.defer()
 
-        HELP_EMBED = discord.Embed(
-            title="List of all the commands and what they do")
+        HELP_EMBED = discord.Embed(title="List of all the commands and what they do")
         for cog in self.bot.cogs.values():
             field_title = cog.qualified_name
             value = ""
-            if field_title not in ["Command Event", "Owner Only", "Command Counter", "Connect Event", "Error Handler", "Presence Auto Updater", "Interaction Handler", "Analytics", "Help"]:
+            if field_title not in [
+                "Command Event",
+                "Owner Only",
+                "Command Counter",
+                "Connect Event",
+                "Error Handler",
+                "Presence Auto Updater",
+                "Interaction Handler",
+                "Analytics",
+                "Help",
+            ]:
                 for command_singular in cog.get_commands():
                     if command_singular.hidden == False:
-                        value += f"**{command_singular.name}**: {command_singular.help}\n"
+                        value += (
+                            f"**{command_singular.name}**: {command_singular.help}\n"
+                        )
                 HELP_EMBED.add_field(
-                    name=f"__{field_title}__", value=value, inline=False)
+                    name=f"__{field_title}__", value=value, inline=False
+                )
         if not command:
             return await ctx.send(embed=HELP_EMBED)
         if command not in utils.help_descriptions.keys():
             return await ctx.send("That command doesn't exist!")
         embed = discord.Embed(title=f"Help for {command}")
         embed.add_field(
-            name=f"Use: {utils.help_descriptions[command][0]}", value=f"{utils.help_descriptions[command][1]}\n\n(*italic words* are required, while __underlined words__ are optional, but always include any \"\")")
+            name=f"Use: {utils.help_descriptions[command][0]}",
+            value=f'{utils.help_descriptions[command][1]}\n\n(*italic words* are required, while __underlined words__ are optional, but always include any "")',
+        )
 
         return await ctx.send(embed=embed)
 

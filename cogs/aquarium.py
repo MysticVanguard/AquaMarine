@@ -4,12 +4,17 @@ from cogs import utils
 
 
 class Aquarium(vbu.Cog):
-
-    @commands.command(application_command_meta=commands.ApplicationCommandMeta(
-        options=[discord.ApplicationCommandOption(
-            name="tank_name",
-            type=discord.ApplicationCommandOptionType.string,
-            description="The name you want to apply to your first tank")]))
+    @commands.command(
+        application_command_meta=commands.ApplicationCommandMeta(
+            options=[
+                discord.ApplicationCommandOption(
+                    name="tank_name",
+                    type=discord.ApplicationCommandOptionType.string,
+                    description="The name you want to apply to your first tank",
+                )
+            ]
+        )
+    )
     @commands.bot_has_permissions(send_messages=True)
     async def firsttank(self, ctx: commands.Context, tank_name: str):
         """
@@ -31,7 +36,8 @@ class Aquarium(vbu.Cog):
             await db(
                 """UPDATE user_tank_inventory SET tank[1]=TRUE, tank_type[1]='Fish Bowl', tank_name[1] = $2,
                 fish_room[1] = 1, tank_theme[1] = 'Aqua' WHERE user_id=$1""",
-                ctx.author.id, tank_name
+                ctx.author.id,
+                tank_name,
             )
         await ctx.send(
             f"You have your new tank, **{tank_name}**!",
@@ -40,24 +46,36 @@ class Aquarium(vbu.Cog):
 
     @commands.command(
         application_command_meta=commands.ApplicationCommandMeta(
-            options=[discord.ApplicationCommandOption(
-                name="theme",
-                type=discord.ApplicationCommandOptionType.string,
-                description="The theme that you want to apply to the chosen tank",
-                choices=[
-                    discord.ApplicationCommandOptionChoice(
-                            name="Plant Life", value="Plant_Life")]),
-                     discord.ApplicationCommandOption(
-                name="tank_type",
-                type=discord.ApplicationCommandOptionType.string,
-                description="The type of tank chosen",
-                choices=[
-                    discord.ApplicationCommandOptionChoice(
-                            name="Fish Bowl", value="Fish Bowl"),
-                    discord.ApplicationCommandOptionChoice(
-                        name="Small Tank", value="Small Tank"),
-                    discord.ApplicationCommandOptionChoice(
-                        name="Medium Tank", value="Medium Tank")])]))
+            options=[
+                discord.ApplicationCommandOption(
+                    name="theme",
+                    type=discord.ApplicationCommandOptionType.string,
+                    description="The theme that you want to apply to the chosen tank",
+                    choices=[
+                        discord.ApplicationCommandOptionChoice(
+                            name="Plant Life", value="Plant_Life"
+                        )
+                    ],
+                ),
+                discord.ApplicationCommandOption(
+                    name="tank_type",
+                    type=discord.ApplicationCommandOptionType.string,
+                    description="The type of tank chosen",
+                    choices=[
+                        discord.ApplicationCommandOptionChoice(
+                            name="Fish Bowl", value="Fish Bowl"
+                        ),
+                        discord.ApplicationCommandOptionChoice(
+                            name="Small Tank", value="Small Tank"
+                        ),
+                        discord.ApplicationCommandOptionChoice(
+                            name="Medium Tank", value="Medium Tank"
+                        ),
+                    ],
+                ),
+            ]
+        )
+    )
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def preview(self, ctx: commands.Context, theme: str, tank_type: str):
         """

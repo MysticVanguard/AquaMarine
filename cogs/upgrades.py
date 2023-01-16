@@ -34,10 +34,7 @@ class Upgrades(vbu.Cog):
     TOYS_UPGRADES = ["amazement_upgrade", "mutation_upgrade"]
     BIG_SERVINGS_UPGRADES = ["hygienic_upgrade", "feeding_upgrade"]
     TIER_3 = (
-        BAIT_UPGRADES
-        + CRATE_CHANCE_UPGRADES
-        + TOYS_UPGRADES
-        + BIG_SERVINGS_UPGRADES
+        BAIT_UPGRADES + CRATE_CHANCE_UPGRADES + TOYS_UPGRADES + BIG_SERVINGS_UPGRADES
     )
 
     # TIER 2
@@ -62,9 +59,7 @@ class Upgrades(vbu.Cog):
     UPGRADE_COST_LIST_TWO = (10000, 20000, 30000, 40000, 50000, 50000)
     UPGRADE_COST_LIST_THREE = (100000, 200000, 300000, 400000, 500000, 500000)
 
-    @commands.command(
-        application_command_meta=commands.ApplicationCommandMeta()
-    )
+    @commands.command(application_command_meta=commands.ApplicationCommandMeta())
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def upgrades(self, ctx: commands.Context):
         """
@@ -81,18 +76,29 @@ class Upgrades(vbu.Cog):
             upgrades = await utils.user_upgrades_db_call(ctx.author.id)
 
         # Find the positions for the different upgrades
-        positions = [(2140, 910), (1300, 1070), (1310, 1260), (1710, 1080), (2200, 1470),
-                     (1760, 1290), (2180, 1450), (2670,
-                                                  170), (240, 210), (840, 110),
-                     (550, 1460), (840, 750), (1930, 190), (1020, 1290)]
+        positions = [
+            (2140, 910),
+            (1300, 1070),
+            (1310, 1260),
+            (1710, 1080),
+            (2200, 1470),
+            (1760, 1290),
+            (2180, 1450),
+            (2670, 170),
+            (240, 210),
+            (840, 110),
+            (550, 1460),
+            (840, 750),
+            (1930, 190),
+            (1020, 1290),
+        ]
 
         # Makes a list of the upgrades names
         list_of_upgrades = [single for single in upgrades[0].keys()]
 
         # Create an id for the image
         id = "".join(
-            random.choice(string.ascii_uppercase + string.digits)
-            for _ in range(10)
+            random.choice(string.ascii_uppercase + string.digits) for _ in range(10)
         )
 
         # Set the file prefix, shadow path, and file name
@@ -111,8 +117,9 @@ class Upgrades(vbu.Cog):
             if i == 0:
                 continue
             added_upgrade = Image.open(
-                f"{utils.file_prefix}/background/Room Walls/Upgrades_Wall/{list_of_upgrades[i]}_tier_{upgrades[0][list_of_upgrades[i]]+1}-export.png").convert("RGBA")
-            new_background.paste(added_upgrade, positions[i-1], added_upgrade)
+                f"{utils.file_prefix}/background/Room Walls/Upgrades_Wall/{list_of_upgrades[i]}_tier_{upgrades[0][list_of_upgrades[i]]+1}-export.png"
+            ).convert("RGBA")
+            new_background.paste(added_upgrade, positions[i - 1], added_upgrade)
 
         # Paste the shadow on top finally
         new_background.paste(shadow, (0, 0), shadow)
@@ -138,7 +145,9 @@ class Upgrades(vbu.Cog):
                 name = " ".join(upgrade.split("_")).title()
 
                 # Get the cost of an upgrade
-                cost_string = f"{self.UPGRADE_COST_LIST[int(level)]:,} {EMOJIS['sand_dollar']}"
+                cost_string = (
+                    f"{self.UPGRADE_COST_LIST[int(level)]:,} {EMOJIS['sand_dollar']}"
+                )
 
                 # If its the first tier its also the parent upgrade
                 if tier == 1:
@@ -194,9 +203,7 @@ class Upgrades(vbu.Cog):
                     # If the tier is 3 set some other correct emotes
                     if tier == 3:
                         start_two = f"{EMOJIS['straight']}{EMOJIS['straight']}"
-                        start = (
-                            f"{EMOJIS['straight']}{EMOJIS['straight_branch']}"
-                        )
+                        start = f"{EMOJIS['straight']}{EMOJIS['straight_branch']}"
 
                     # If not set another correct emote
                     else:
@@ -300,11 +307,12 @@ class Upgrades(vbu.Cog):
                 discord.ApplicationCommandOption(
                     name="upgrade",
                     type=discord.ApplicationCommandOptionType.string,
-                    description="The name of the upgrade you want to increase")
+                    description="The name of the upgrade you want to increase",
+                )
             ]
         )
     )
-    @ commands.bot_has_permissions(send_messages=True, embed_links=True)
+    @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def upgrade(self, ctx: commands.Context, *, upgrade: str):
         """
         Upgrade one of your items.
@@ -341,8 +349,7 @@ class Upgrades(vbu.Cog):
         elif upgrade in self.TIER_2:
 
             # Find parent tier and check if it's upgraded
-            parent = [key for key, val in self.TIER_1.items()
-                      if upgrade in val][0]
+            parent = [key for key, val in self.TIER_1.items() if upgrade in val][0]
             if not fully_leveled(upgrades[parent]):
                 return await ctx.send(upgrade_error(parent))
 
@@ -353,8 +360,7 @@ class Upgrades(vbu.Cog):
         elif upgrade in self.TIER_3:
 
             # Find parent tier and check if it's upgraded
-            parent = [key for key, val in self.TIER_2.items()
-                      if upgrade in val][0]
+            parent = [key for key, val in self.TIER_2.items() if upgrade in val][0]
             if not fully_leveled(upgrades[parent]):
                 return await ctx.send(upgrade_error(parent))
 

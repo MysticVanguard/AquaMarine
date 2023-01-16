@@ -35,7 +35,7 @@ class CommandCounter(vbu.Cog):
 
     @commands.command(
         aliases=["commandstats", "commandcount", "commandcounter"],
-        application_command_meta=commands.ApplicationCommandMeta()
+        application_command_meta=commands.ApplicationCommandMeta(),
     )
     async def commanddata(self, ctx: commands.Context):
         """

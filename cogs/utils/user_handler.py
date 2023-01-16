@@ -62,8 +62,7 @@ async def buying_singular(bot, user: discord.user, ctx, item: str):
             if tank_row[0]["tank_type"][tank_slot] in nonavailable_tank_types:
                 nonavailable_slots.append(str(tank_slot + 1))
             continue
-        available_slots.append(str(tank_slot + 1)
-                               )
+        available_slots.append(str(tank_slot + 1))
 
     def button_check(payload):
         if payload.message.id != message.id:
@@ -71,6 +70,7 @@ async def buying_singular(bot, user: discord.user, ctx, item: str):
         return payload.user.id == ctx.author.id
 
         # Keep going...
+
     # If the item is a tank...
     if item in tank_types:
 
@@ -86,8 +86,7 @@ async def buying_singular(bot, user: discord.user, ctx, item: str):
             return False
         # Asks the user what slot to put the tank in and checks that its a slot
         message = await ctx.send(
-            f"Click the button to enter a tank slot:",
-            components=components
+            f"Click the button to enter a tank slot:", components=components
         )
 
         # Wait for them to click a button
@@ -101,7 +100,12 @@ async def buying_singular(bot, user: discord.user, ctx, item: str):
             )
             return False
 
-        slot, interaction = await utils.create_modal(bot, chosen_button_payload, "Tank Slot To Change", f"Available: {', '.join(available_slots)}; Taken: {', '.join(nonavailable_slots)}")
+        slot, interaction = await utils.create_modal(
+            bot,
+            chosen_button_payload,
+            "Tank Slot To Change",
+            f"Available: {', '.join(available_slots)}; Taken: {', '.join(nonavailable_slots)}",
+        )
 
         if not slot:
             await interaction.response.send_message(
@@ -112,11 +116,13 @@ async def buying_singular(bot, user: discord.user, ctx, item: str):
         elif slot in available_slots:
 
             # Asks what to name the new tank and makes sure it matches the check
-            await interaction.response.send_message("What would you like to name this tank? ")
+            await interaction.response.send_message(
+                "What would you like to name this tank? "
+            )
             message = await ctx.send(
                 "(must be a different name from your other tanks, "
                 'less than 32 characters, and cannot be "none")',
-                components=components
+                components=components,
             )
 
             # Wait for them to click a button
@@ -130,7 +136,9 @@ async def buying_singular(bot, user: discord.user, ctx, item: str):
                 )
                 return False
 
-            name, interaction2 = await utils.create_modal(bot, chosen_button_payload, "Tank Name", "Enter your new tank's name")
+            name, interaction2 = await utils.create_modal(
+                bot, chosen_button_payload, "Tank Name", "Enter your new tank's name"
+            )
             await interaction2.response.defer()
 
             if not name:
@@ -163,9 +171,7 @@ async def buying_singular(bot, user: discord.user, ctx, item: str):
                     item,
                     int(
                         tank_types[item]
-                        - tank_types[
-                            tank_row[0]["tank_type"][int(slot) - 1]
-                        ]
+                        - tank_types[tank_row[0]["tank_type"][int(slot) - 1]]
                     ),
                     ctx.author.id,
                     tank_names[int(slot) - 1],
@@ -193,7 +199,7 @@ async def buying_singular(bot, user: discord.user, ctx, item: str):
         # Asks for the name of the tank the user is putting the theme on and makes sure it is correct
         message = await ctx.send(
             f"Press the button to specify what tank you want to add the theme to",
-            components=components
+            components=components,
         )
 
         # Wait for them to click a button
@@ -207,7 +213,12 @@ async def buying_singular(bot, user: discord.user, ctx, item: str):
             )
             return False
 
-        theme_message, interaction = await utils.create_modal(bot, chosen_button_payload, "Tank Slot To Change", f"(Available names: {', '.join(tank_names)})")
+        theme_message, interaction = await utils.create_modal(
+            bot,
+            chosen_button_payload,
+            "Tank Slot To Change",
+            f"(Available names: {', '.join(tank_names)})",
+        )
 
         if not theme_message or theme_message not in tank_names:
             await interaction.response.send_message(
@@ -227,30 +238,55 @@ async def buying_singular(bot, user: discord.user, ctx, item: str):
 
 async def check_registered(bot, ctx, user_id: int):
     async with bot.database() as db:
-        user_balance_info = await db("""SELECT * FROM user_balance WHERE user_id = $1""", user_id)
-        user_item_inventory_info = await db("""SELECT * FROM user_item_inventory WHERE user_id = $1""", user_id)
-        user_achievements_milestones_info = await db("""SELECT * FROM user_achievements_milestones WHERE user_id = $1""", user_id)
-        user_achievements_info = await db("""SELECT * FROM user_achievements WHERE user_id = $1""", user_id)
-        user_upgrades_info = await db("""SELECT * FROM user_upgrades WHERE user_id = $1""", user_id)
+        user_balance_info = await db(
+            """SELECT * FROM user_balance WHERE user_id = $1""", user_id
+        )
+        user_item_inventory_info = await db(
+            """SELECT * FROM user_item_inventory WHERE user_id = $1""", user_id
+        )
+        user_achievements_milestones_info = await db(
+            """SELECT * FROM user_achievements_milestones WHERE user_id = $1""", user_id
+        )
+        user_achievements_info = await db(
+            """SELECT * FROM user_achievements WHERE user_id = $1""", user_id
+        )
+        user_upgrades_info = await db(
+            """SELECT * FROM user_upgrades WHERE user_id = $1""", user_id
+        )
 
-    if user_balance_info and user_upgrades_info and user_item_inventory_info and user_achievements_milestones_info and user_achievements_info:
+    if (
+        user_balance_info
+        and user_upgrades_info
+        and user_item_inventory_info
+        and user_achievements_milestones_info
+        and user_achievements_info
+    ):
         return
 
-    start_message = (f"Welcome to AquaMarine! This command helps me get you into the bot, while also displaying some information I think will prove good to have."
-                     f" First things first, I want to mention that there is an in-bot guide for if you get confused on anything that should be able to explain most"
-                     f" things, and it can be accessed with the `guide` command. If you're still confused on anything you can use the `support` command to get the"
-                     f" link to the support server.")
+    start_message = (
+        f"Welcome to AquaMarine! This command helps me get you into the bot, while also displaying some information I think will prove good to have."
+        f" First things first, I want to mention that there is an in-bot guide for if you get confused on anything that should be able to explain most"
+        f" things, and it can be accessed with the `guide` command. If you're still confused on anything you can use the `support` command to get the"
+        f" link to the support server."
+    )
     await ctx.send(start_message)
 
     async with bot.database() as db:
         if not user_balance_info:
-            await db("""INSERT INTO user_balance (user_id, casts) VALUES ($1, 6)""", user_id)
+            await db(
+                """INSERT INTO user_balance (user_id, casts) VALUES ($1, 6)""", user_id
+            )
         if not user_upgrades_info:
             await db("""INSERT INTO user_upgrades (user_id) VALUES ($1)""", user_id)
         if not user_item_inventory_info:
-            await db("""INSERT INTO user_item_inventory (user_id) VALUES ($1)""", user_id)
+            await db(
+                """INSERT INTO user_item_inventory (user_id) VALUES ($1)""", user_id
+            )
         if not user_achievements_milestones_info:
-            await db("""INSERT INTO user_achievements_milestones (user_id) VALUES ($1)""", user_id)
+            await db(
+                """INSERT INTO user_achievements_milestones (user_id) VALUES ($1)""",
+                user_id,
+            )
         if not user_achievements_info:
             await db("""INSERT INTO user_achievements (user_id) VALUES ($1)""", user_id)
 
@@ -361,6 +397,7 @@ async def user_location_info_db_call(user_id: int) -> list:
             user_id,
         )
         return selected
+
 
 ROD_UPGRADES = {0: 1, 1: 1.4, 2: 1.8, 3: 2.2, 4: 2.6, 5: 3.0}
 

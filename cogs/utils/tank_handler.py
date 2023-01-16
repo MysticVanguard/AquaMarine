@@ -136,8 +136,18 @@ async def user_show(self, ctx, tank_name, payload):
 
         # finds what type of fish it is, then adds the paths to a list, as well as finding the fish's random starting position
         for selected_fish_types in selected_fish:
-            fishes.append(utils.Fish(name=selected_fish_types['fish_name'], level=selected_fish_types['fish_level'], current_xp=selected_fish_types['fish_xp'], max_xp=selected_fish_types['fish_xp_max'],
-                                     alive=selected_fish_types['fish_alive'], species=utils.FishSpecies.get_fish(selected_fish_types['fish']), location_caught=selected_fish_types['fish_location'], skin=selected_fish_types['fish_skin']))
+            fishes.append(
+                utils.Fish(
+                    name=selected_fish_types["fish_name"],
+                    level=selected_fish_types["fish_level"],
+                    current_xp=selected_fish_types["fish_xp"],
+                    max_xp=selected_fish_types["fish_xp_max"],
+                    alive=selected_fish_types["fish_alive"],
+                    species=utils.FishSpecies.get_fish(selected_fish_types["fish"]),
+                    location_caught=selected_fish_types["fish_location"],
+                    skin=selected_fish_types["fish_skin"],
+                )
+            )
 
         # For each fish in the tank...
         for fish_object in fishes:
@@ -154,15 +164,12 @@ async def user_show(self, ctx, tank_name, payload):
                     min_max_y[tank_info][1],
                 )
             )
-            fish_selections.append(
-                utils.get_normal_size_image(fish_object))
+            fish_selections.append(utils.get_normal_size_image(fish_object))
 
             dead_alive.append(fish_object.alive)
 
         # gif variables
-        gif_filename = (
-            f"{utils.file_prefix}/gifs/actual_gifs/user_tank{gif_name}.gif"
-        )
+        gif_filename = f"{utils.file_prefix}/gifs/actual_gifs/user_tank{gif_name}.gif"
 
         # Open our constant images
         tank_theme = tank_row[0]["tank_theme"][tank_slot]
@@ -193,9 +200,7 @@ async def user_show(self, ctx, tank_name, payload):
                         im[x].rotate(180),
                     )
                 else:
-                    this_background.paste(
-                        im[x], (move_x[x], fish_y_value[x]), im[x]
-                    )
+                    this_background.paste(im[x], (move_x[x], fish_y_value[x]), im[x])
                     move_x[x] += fish_size_speed[tank_info]
                     if move_x[x] > min_max_x[tank_info][1]:
                         move_x[x] = min_max_x[tank_info][0]
@@ -243,7 +248,10 @@ async def user_entertain(self, ctx, tank_entertained, payload):
             ctx.author.id,
             tank_entertained,
         )
-        amount_of_crafted = await db(f"""SELECT fishing_boots FROM user_item_inventory WHERE user_id = $1""", ctx.author.id)
+        amount_of_crafted = await db(
+            f"""SELECT fishing_boots FROM user_item_inventory WHERE user_id = $1""",
+            ctx.author.id,
+        )
 
     if not fish_rows:
         return await payload.response.send_message("No fish in that tank!")
@@ -254,7 +262,7 @@ async def user_entertain(self, ctx, tank_entertained, payload):
     )
 
     if amount_of_crafted:
-        boot_multiplier = .3 * amount_of_crafted[0]['fishing_boots']
+        boot_multiplier = 0.3 * amount_of_crafted[0]["fishing_boots"]
     else:
         boot_multiplier = 0
     total_xp_to_add * (1 + (boot_multiplier))
@@ -278,8 +286,7 @@ async def user_entertain(self, ctx, tank_entertained, payload):
     # See if they're able to entertain their tank due to the cooldown
     if tank_rows[0]["tank_entertain_time"][tank_slot]:
         if (
-            tank_rows[0]["tank_entertain_time"][tank_slot]
-            + timedelta(minutes=10)
+            tank_rows[0]["tank_entertain_time"][tank_slot] + timedelta(minutes=10)
             > dt.utcnow()
         ):
             time_left = timedelta(
@@ -290,14 +297,12 @@ async def user_entertain(self, ctx, tank_entertained, payload):
                 ).total_seconds()
             )
             relative_time = discord.utils.format_dt(
-                dt.utcnow()
-                + time_left
-                - timedelta(hours=utils.DAYLIGHT_SAVINGS),
+                dt.utcnow() + time_left - timedelta(hours=utils.DAYLIGHT_SAVINGS),
                 style="R",
             )
             return await payload.response.send_message(
                 f"This tank is entertained, please try again in {relative_time}.",
-                ephemeral=True
+                ephemeral=True,
             )
 
     # Typing Indicator
@@ -355,8 +360,7 @@ async def user_entertain(self, ctx, tank_entertained, payload):
     # Add a string for each fish adding their new level and data
     for data in new_fish_data:
         display_block = (
-            display_block
-            + f"{data[0]} is now level {data[1]}, {data[2]}/{data[3]}{n}"
+            display_block + f"{data[0]} is now level {data[1]}, {data[2]}/{data[3]}{n}"
         )
 
     # Send the display string
@@ -372,7 +376,8 @@ async def user_feed(self, ctx, tank_chosen):
         )
         fish_rows = await db(
             """SELECT * FROM user_fish_inventory WHERE user_id = $1 AND tank_fish = $2""",
-            ctx.author.id, tank_chosen
+            ctx.author.id,
+            tank_chosen,
         )
         item_rows = await db(
             """SELECT * FROM user_item_inventory WHERE user_id = $1""",
@@ -388,11 +393,14 @@ async def user_feed(self, ctx, tank_chosen):
         feed_time = dt(year=2005, month=3, day=1)
         if fish["fish_feed_time"]:
             feed_time = fish["fish_feed_time"]
-        if fish["fish_alive"] == True and not (fish_feed_timeout := feed_time + FISH_FEED_COOLDOWN) > dt.utcnow():
+        if (
+            fish["fish_alive"] == True
+            and not (fish_feed_timeout := feed_time + FISH_FEED_COOLDOWN) > dt.utcnow()
+        ):
             fish_in_tank.append(fish["fish_name"])
     if len(fish_in_tank) != 0:
         if len(fish_in_tank) > 1:
-            if item_rows[0]['super_food'] > 0:
+            if item_rows[0]["super_food"] > 0:
                 # Make the button check
                 def yes_no_check(payload):
                     if payload.message.id != yes_no_message.id:
@@ -402,23 +410,20 @@ async def user_feed(self, ctx, tank_chosen):
 
                 components = discord.ui.MessageComponents(
                     discord.ui.ActionRow(
-                        discord.ui.Button(
-                            label="Yes", custom_id="yes"
-                        ),
-                        discord.ui.Button(
-                            label="No", custom_id="no"
-                        ),
+                        discord.ui.Button(label="Yes", custom_id="yes"),
+                        discord.ui.Button(label="No", custom_id="no"),
                     ),
                 )
-                yes_no_message = await ctx.send(f"Would you like to use a Super Food to feed all fish in the tank? (You have {item_rows[0]['super_food']} and there are {len(fish_in_tank)} fish that need fed)", components=components)
+                yes_no_message = await ctx.send(
+                    f"Would you like to use a Super Food to feed all fish in the tank? (You have {item_rows[0]['super_food']} and there are {len(fish_in_tank)} fish that need fed)",
+                    components=components,
+                )
                 # Wait for them to click a button
                 try:
                     chosen_button_payload = await self.bot.wait_for(
                         "component_interaction", timeout=60.0, check=yes_no_check
                     )
-                    chosen_button = (
-                        chosen_button_payload.component.custom_id.lower()
-                    )
+                    chosen_button = chosen_button_payload.component.custom_id.lower()
                 except asyncio.TimeoutError:
                     await yes_no_message.edit(
                         components=components.disable_components()
@@ -430,10 +435,11 @@ async def user_feed(self, ctx, tank_chosen):
             # Create a select menu of those fish
             if chosen_button == "yes":
                 for fish_fed in fish_rows:
-                    if fish_fed['fish_alive']:
+                    if fish_fed["fish_alive"]:
                         # How many days and hours till the next feed based on upgrades
-                        day, hour = utils.FEEDING_UPGRADES[upgrades[0]
-                                                           ["feeding_upgrade"]]
+                        day, hour = utils.FEEDING_UPGRADES[
+                            upgrades[0]["feeding_upgrade"]
+                        ]
 
                         # Set the time to be now + the new death date
                         death_date = fish_fed["death_time"] + timedelta(
@@ -445,7 +451,7 @@ async def user_feed(self, ctx, tank_chosen):
                             await db(
                                 """UPDATE user_fish_inventory SET death_time = $3, fish_feed_time = $4 WHERE user_id = $1 AND fish_name = $2""",
                                 ctx.author.id,
-                                fish_fed['fish_name'],
+                                fish_fed["fish_name"],
                                 death_date,
                                 dt.utcnow(),
                             )
@@ -453,7 +459,8 @@ async def user_feed(self, ctx, tank_chosen):
                 # Achievements
                 async with vbu.Database() as db:
                     await db(
-                        """UPDATE user_item_inventory SET super_food=super_food-1 WHERE user_id=$1""", ctx.author.id
+                        """UPDATE user_item_inventory SET super_food=super_food-1 WHERE user_id=$1""",
+                        ctx.author.id,
                     )
                     await db(
                         """UPDATE user_achievements SET times_fed = times_fed + 1 WHERE user_id = $1""",
@@ -489,25 +496,20 @@ async def user_feed(self, ctx, tank_chosen):
         # Make sure the fish is able to be fed
         if fish_row[0]["fish_feed_time"]:
             if (
-                fish_feed_timeout := fish_row[0]["fish_feed_time"]
-                + FISH_FEED_COOLDOWN
+                fish_feed_timeout := fish_row[0]["fish_feed_time"] + FISH_FEED_COOLDOWN
             ) > dt.utcnow():
                 relative_time = discord.utils.format_dt(
-                    fish_feed_timeout -
-                    timedelta(hours=utils.DAYLIGHT_SAVINGS),
+                    fish_feed_timeout - timedelta(hours=utils.DAYLIGHT_SAVINGS),
                     style="R",
                 )
                 return await ctx.send(
                     f"This fish is full, please try again {relative_time}."
                 )
         # How many days and hours till the next feed based on upgrades
-        day, hour = utils.FEEDING_UPGRADES[upgrades[0]
-                                           ["feeding_upgrade"]]
+        day, hour = utils.FEEDING_UPGRADES[upgrades[0]["feeding_upgrade"]]
 
         # Set the time to be now + the new death date
-        death_date = fish_row[0]["death_time"] + timedelta(
-            days=day, hours=hour
-        )
+        death_date = fish_row[0]["death_time"] + timedelta(days=day, hours=hour)
 
         # Update the fish's death date
         async with vbu.Database() as db:
@@ -523,9 +525,7 @@ async def user_feed(self, ctx, tank_chosen):
             extra = ""
             full = random.randint(
                 1,
-                utils.BIG_SERVINGS_UPGRADE[
-                    upgrades[0]["big_servings_upgrade"]
-                ],
+                utils.BIG_SERVINGS_UPGRADE[upgrades[0]["big_servings_upgrade"]],
             )
             if full != 1:
                 await db(
@@ -581,15 +581,12 @@ async def user_clean(self, ctx, tank_cleaned, payload):
             break
 
     # Get the time before cleaning and the multiplier from upgrades
-    multiplier, time = utils.HYGIENIC_UPGRADE[
-        upgrades[0]["hygienic_upgrade"]
-    ]
+    multiplier, time = utils.HYGIENIC_UPGRADE[upgrades[0]["hygienic_upgrade"]]
 
     # If its been enough time they can clean, else give an error
     if tank_rows[0]["tank_clean_time"][tank_slot]:
         if (
-            tank_rows[0]["tank_clean_time"][tank_slot]
-            + timedelta(minutes=time)
+            tank_rows[0]["tank_clean_time"][tank_slot] + timedelta(minutes=time)
             > dt.utcnow()
         ):
             time_left = timedelta(
@@ -600,9 +597,7 @@ async def user_clean(self, ctx, tank_cleaned, payload):
                 ).total_seconds()
             )
             relative_time = discord.utils.format_dt(
-                dt.utcnow()
-                + time_left
-                - timedelta(hours=utils.DAYLIGHT_SAVINGS),
+                dt.utcnow() + time_left - timedelta(hours=utils.DAYLIGHT_SAVINGS),
                 style="R",
             )
             return await payload.response.send_message(
@@ -648,26 +643,31 @@ async def user_clean(self, ctx, tank_cleaned, payload):
                 nl = "\n"
                 extra += f"{nl}{fish['fish']} looks kind of strange now..."
 
-        fish_species = utils.FishSpecies.get_fish(fish['fish'])
+        fish_species = utils.FishSpecies.get_fish(fish["fish"])
         size_multiplier = size_values[fish_species.size]
         rarity_multiplier = rarity_values[fish_species.rarity]
 
         # The money added for each fish is the level * the rarity * the size
-        money_gained += (
-            fish["fish_level"] * (rarity_multiplier + size_multiplier)
-        )
+        money_gained += fish["fish_level"] * (rarity_multiplier + size_multiplier)
 
     # See if they voted, and if so add a .5 to the multipliers
     vote_multiplier = 0
     if await utils.get_user_voted(self.bot, ctx.author.id) == True:
-        vote_multiplier = .5
+        vote_multiplier = 0.5
         await ctx.send(
             "You voted at <https://top.gg/bot/840956686743109652/vote> for a **1.5x** bonus to money earned"
         )
 
     # After all the fish the new money is the total * upgrade multipliers + the effort rounded down
-    money_gained = math.floor(money_gained * (utils.BLEACH_UPGRADE[upgrades[0]["bleach_upgrade"]] + (
-        multiplier - 1) + vote_multiplier) + effort_extra[0])
+    money_gained = math.floor(
+        money_gained
+        * (
+            utils.BLEACH_UPGRADE[upgrades[0]["bleach_upgrade"]]
+            + (multiplier - 1)
+            + vote_multiplier
+        )
+        + effort_extra[0]
+    )
 
     # Add the money gained to the database, and add the achievements
     async with vbu.Database() as db:
@@ -706,7 +706,8 @@ async def user_revive(self, ctx, tank):
     async with vbu.Database() as db:
         fish_rows = await db(
             """SELECT * FROM user_fish_inventory WHERE user_id = $1 AND fish_alive = FALSE AND tank_fish = $2""",
-            ctx.author.id, tank
+            ctx.author.id,
+            tank,
         )
         revival_count = await db(
             """SELECT revival FROM user_item_inventory WHERE user_id = $1""",
@@ -723,7 +724,7 @@ async def user_revive(self, ctx, tank):
         self.bot, ctx, fish_in_tank, "dead fish", "revive", True
     )
 
-    if revival_count[0]['revival'] <= 0:
+    if revival_count[0]["revival"] <= 0:
         return await ctx.send("You have no revivals!")
 
     # If the fish isn't in a tank, it has no death timer, but if it is it's set to three days
@@ -744,9 +745,7 @@ async def user_revive(self, ctx, tank):
         )
 
     # Send message
-    await ctx.send(
-        message, allowed_mentions=discord.AllowedMentions.none()
-    )
+    await ctx.send(message, allowed_mentions=discord.AllowedMentions.none())
 
 
 async def user_remove(self, ctx, tank_name):
@@ -801,10 +800,12 @@ async def user_remove(self, ctx, tank_name):
     # If they dont, tell them they have none
     if fish_row[0]["fish_alive"] == True:
         if not item_rows[0][type_of_food]:
-            return await ctx.send(f"You must have a piece of {type_of_food} before you can remove this fish so it doesn't go hungry! (after getting food run this command again)")
+            return await ctx.send(
+                f"You must have a piece of {type_of_food} before you can remove this fish so it doesn't go hungry! (after getting food run this command again)"
+            )
 
     # finds the tank slot the tank in question is at
-    tank_name = fish_row[0]['tank_fish']
+    tank_name = fish_row[0]["tank_fish"]
     for tank_slot_in in tank_row[0]["tank_name"]:
         if tank_slot_in == tank_name:
             break
@@ -847,7 +848,9 @@ async def user_deposit(self, ctx, tank_name, chosen_button_payload):
     size_values = {"small": 1, "medium": 5, "large": 25}
 
     try:
-        fish_deposited, interaction = await utils.create_modal(self.bot, chosen_button_payload, "Fish Deposited", "Enter Your Fish's Name")
+        fish_deposited, interaction = await utils.create_modal(
+            self.bot, chosen_button_payload, "Fish Deposited", "Enter Your Fish's Name"
+        )
     except TypeError:
         return await ctx.send("Modal timed out.")
 
@@ -871,7 +874,9 @@ async def user_deposit(self, ctx, tank_name, chosen_button_payload):
             allowed_mentions=discord.AllowedMentions.none(),
         )
     if fish_row[0]["tank_fish"]:
-        return await interaction.response.send_message("This fish is already in a tank!")
+        return await interaction.response.send_message(
+            "This fish is already in a tank!"
+        )
     if fish_row[0]["fish_alive"] is False:
         return await interaction.response.send_message("That fish is dead!")
 
@@ -881,10 +886,7 @@ async def user_deposit(self, ctx, tank_name, chosen_button_payload):
             break
 
     # another check
-    if (
-        tank_row[0]["fish_room"][tank_slot]
-        < size_values[fish_row[0]["fish_size"]]
-    ):
+    if tank_row[0]["fish_room"][tank_slot] < size_values[fish_row[0]["fish_size"]]:
         n = "\n"
         return await interaction.response.send_message(
             f"{fish_row[0]['fish_name']} is {fish_row[0]['fish_size']} and takes up {size_values[fish_row[0]['fish_size']]} Size Points.{n}That tank only has {tank_row[0]['fish_room'][tank_slot]} Size Points left"
@@ -911,16 +913,12 @@ async def user_deposit(self, ctx, tank_name, chosen_button_payload):
 
     # find the timestamp in relative time of when the fish will die
     relative_time = discord.utils.format_dt(
-        dt.utcnow()
-        + timedelta(days=3)
-        - timedelta(hours=utils.DAYLIGHT_SAVINGS),
+        dt.utcnow() + timedelta(days=3) - timedelta(hours=utils.DAYLIGHT_SAVINGS),
         style="R",
     )
 
     # Confirmation message
-    return await ctx.send(
-        f"Fish has been deposited and will die {relative_time}!"
-    )
+    return await ctx.send(f"Fish has been deposited and will die {relative_time}!")
 
 
 async def user_info(self, ctx, tank_info, fishes):
@@ -932,5 +930,6 @@ async def user_info(self, ctx, tank_info, fishes):
         if fish.skin != "":
             info_field += f"\n{utils.EMOJIS['bar_empty']}{utils.EMOJIS['bar_empty']}{utils.EMOJIS['bar_empty']}Skin: {fish.skin}"
     fixed_fields = utils.get_fixed_field((info_title, info_field))
-    await utils.paginate(ctx, fixed_fields, ctx.author,
-                         f"{ctx.author.display_name}'s Tank")
+    await utils.paginate(
+        ctx, fixed_fields, ctx.author, f"{ctx.author.display_name}'s Tank"
+    )
