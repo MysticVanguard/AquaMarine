@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>{% block title %}AquaMarine - Fill Title{% endblock title %}</title>
+    <link rel="stylesheet" type="text/css" href="{{ static('/css/main.css') }}" />
+    {% block head -%}{% endblock head %}
+</head>
+
+<body>
+
+    {% block body %}
+    <header>
+        <div id="header-content">
+            <div class="left">
+                <img class="logo header-object" alt="AquaMarine Logo" src="{{ static('/images/AquaMarine_Logo.png') }}" />
+                <p class="title header-object"><a href="/">AquaMarine</a></p>
+            </div>
+            <div class="right">
+                <p class="header-object"><a class="header-button commands-button" href="/commands">Commands</a></p>
+                <p class="header-object"><a class="header-button bestiary-button" href="/bestiary">Bestiary</a></p>
+                {% if user_info == None -%}
+                    <p class="header-object"><a class="header-button login-button" href="{{ app['config']['login_url'] }}">Login</a></p>
+                {% else -%}
+                    <p class="header-object"><a class="header-button use-button" href="/use">Use</a></p>
+                    <p class="header-object"><a class="header-button logout-button" href="/logout">Logout</a></p>
+                    <p class="header-object"><a class="header-button settings-button" href="/settings">Settings</a></p>
+                    <p class="header-object" style="margin: 0;"><img class="user-avatar" alt="Your Discord user avatar" src="{{ user_info.avatar_url }}" /></p>
+                {% endif %}
+            </div>
+        </div>
+    </header> <!-- header -->
+
+    <div id="content">
+        {% block content -%}{% endblock content %}
+    </div> <!-- content -->
+
+    <footer>
+        {% block footer -%}<h4>&copy; MysticVanguard</h4>{% endblock footer %}
+    </footer> <!-- footer -->
+
+    {% endblock body %}
+
+</body>
+
+</html>

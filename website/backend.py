@@ -1,31 +1,31 @@
-from aiohttp.web import HTTPFound, Request, Response, RouteTableDef
+import json
+
+from aiohttp.web import HTTPFound, Request, Response, RouteTableDef, json_response
+from voxelbotutils import web as webutils
 import aiohttp_session
-from discord.ext import vbu
+import discord
+from aiohttp_jinja2 import template
+
+from cogs import utils as botutils
 
 
 routes = RouteTableDef()
 
 
-@routes.get("/login_processor")
+@routes.get('/login_processor')
 async def login_processor(request: Request):
     """
     Page the discord login redirects the user to when successfully logged in with Discord.
     """
 
-    # Process their login code
-    v = await vbu.web.process_discord_login(request)
-
-    # It failed - we want to redirect back to the index
+    v = await webutils.process_discord_login(request)
     if isinstance(v, Response):
-        return HTTPFound(location="/")
-
-    # It succeeded - let's redirect them to where we specified to go if we
-    # used a decorator, OR back to the index page
+        return HTTPFound('/')
     session = await aiohttp_session.get_session(request)
-    return HTTPFound(location=session.pop("redirect_on_login", "/"))
+    return HTTPFound(location=session.pop('redirect_on_login', '/'))
 
 
-@routes.get("/logout")
+@routes.get('/logout')
 async def logout(request: Request):
     """
     Destroy the user's login session.
@@ -33,15 +33,13 @@ async def logout(request: Request):
 
     session = await aiohttp_session.get_session(request)
     session.invalidate()
-    return HTTPFound(location="/")
+    return HTTPFound(location='/')
 
 
-@routes.get("/login")
+@routes.get('/login')
 async def login(request: Request):
     """
-    Redirect the user to the bot's Oauth login page.
+    Direct the user to the bot's Oauth login page.
     """
 
-    return HTTPFound(
-        location=vbu.web.get_discord_login_url(request, "/login_processor")
-    )
+    return HTTPFound(location=webutils.get_discord_login_url(request, "/login_processor"))
