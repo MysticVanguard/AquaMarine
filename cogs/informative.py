@@ -1,6 +1,7 @@
 from datetime import timedelta
 import collections
 import asyncio
+from typing import List
 
 import discord
 from discord.ext import commands, vbu
@@ -903,7 +904,7 @@ class Informative(vbu.Cog):
         ]
 
         # Set the output to be a list of strings
-        output: list[str] = []
+        output: List[str] = []
 
         # Format each person's id and points
         for user_id, points in user_id_sorted:

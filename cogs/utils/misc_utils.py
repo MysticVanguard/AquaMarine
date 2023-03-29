@@ -2,7 +2,7 @@ import asyncio
 from cogs import utils
 import discord
 from discord.ext import vbu
-
+from typing import Tuple
 # Finds out what level and xp each fish will be
 
 
@@ -244,7 +244,7 @@ def get_fixed_field(field):
 
 def create_bucket_embed(
     user,
-    field: tuple[str, str],
+    field: Tuple[str, str],
     page: int,
     custom_title: None
 ):

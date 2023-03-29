@@ -2,6 +2,7 @@ import asyncio
 import discord
 from discord.ext import vbu
 from cogs import utils
+from typing import Tuple, List
 
 
 async def check_price(bot, user_id: int, cost: int, balance_type: str) -> bool:
@@ -628,7 +629,7 @@ def special_percentage_finder(upgrade_level):
 
 def rarity_percentage_finder(
     upgrade_level: int,
-) -> tuple[list[str], list[float]]:
+) -> Tuple[List[str], List[float]]:
     """
     Returns the results of the bait upgrade
     [(list of rarities), (list of chances)]
