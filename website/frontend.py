@@ -32,8 +32,10 @@ async def bestiary(request: Request):
     Index of the website, has "login with Discord" button.
     If not logged in, all pages should redirect here.
     """
-
-    return {}
+    fish_objects = []
+    for rarity in botutils.rarity_values.keys():
+        fish_objects.append(botutils.FishSpecies.get_rarity(rarity))
+    return {"fish_objects": fish_objects}
 
 
 @routes.get("/commands")
