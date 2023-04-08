@@ -36,7 +36,12 @@
 
         document.getElementById('submit').onclick = async function() {
             let data = await getPosition(document.getElementById("myInput").value.toLowerCase().replaceAll(" ", "_"));
+            let fishNameElement = document.getElementsByClassName("fish-name")[0];
+            let currentClass = parseInt(fishNameElement.classList.item(0));
+            let newClass = (data.position-1).toString();
+            fishNameElement.classList.replace(currentClass.toString(), newClass);
             setCurrentFish((data.position-1));
+
         };
     </script>
 
@@ -123,7 +128,7 @@
             let currentClass = parseInt(fishNameElement.classList.item(0));
             let newClass = (currentClass + 1).toString();
             fishNameElement.classList.replace(currentClass.toString(), newClass);
-            setCurrentFish();
+            setCurrentFish(null);
         });
 
         let left = document.getElementById("go-left");
@@ -132,7 +137,7 @@
             let currentClass = parseInt(fishNameElement.classList.item(0));
             let newClass = (currentClass - 1).toString();
             fishNameElement.classList.replace(currentClass.toString(), newClass);
-            setCurrentFish();
+            setCurrentFish(null);
         });
 
 
