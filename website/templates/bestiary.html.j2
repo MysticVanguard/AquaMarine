@@ -35,7 +35,7 @@
         }
 
         document.getElementById('submit').onclick = async function() {
-            let data = await getPosition(document.getElementById("myInput").value.toLowerCase().replace(" ", "_"));
+            let data = await getPosition(document.getElementById("myInput").value.toLowerCase().replaceAll(" ", "_"));
             setCurrentFish((data.position-1));
         };
     </script>
