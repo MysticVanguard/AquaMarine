@@ -43,3 +43,66 @@ async def login(request: Request):
     """
 
     return HTTPFound(location=webutils.get_discord_login_url(request, "/login_processor"))
+
+
+@routes.post('/fish_info')
+async def fish_info(request: Request):
+    """
+    Get the fish info of the page
+    """
+    data = await request.json()  # Parse the request body as JSON
+    fish_index = int(data)  # Convert the data to an integer
+
+    fish = botutils.fetch_fish("website/static/images/bot-images/fish")
+
+    print(str(fish[fish_index].image))
+    fish_info = {
+        "name": str(fish[fish_index].name),
+        "image": str(fish[fish_index].image),
+        "rarity": str(fish[fish_index].rarity),
+        "size": str(fish[fish_index].size),
+        "location": str(fish[fish_index].location)
+    }
+
+    return json_response(fish_info)
+
+
+@routes.post('/fish_names')
+async def fish_names(request: Request):
+    """
+    Get all fish names
+    """
+
+    fish = botutils.fetch_fish("website/static/images/bot-images/fish")
+
+    fish_names = []
+    for single_fish in fish:
+        fish_names.append(single_fish.name.replace("_", " ").title())
+
+    fish_names_formatted = {
+        'names': fish_names
+    }
+
+    return json_response(fish_names_formatted)
+
+
+@routes.post('/fish_position')
+async def fish_position(request: Request):
+    """
+    Get all fish names
+    """
+
+    data = await request.json()
+    fish = botutils.fetch_fish("website/static/images/bot-images/fish")
+
+    fish_names = []
+    for single_fish in fish:
+        fish_names.append(single_fish.name)
+
+    position = fish_names.index(str(data))
+
+    fish_position_formatted = {
+        'position': position
+    }
+
+    return json_response(fish_position_formatted)
