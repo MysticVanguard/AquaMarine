@@ -32,7 +32,7 @@ async def bestiary(request: Request):
     Index of the website, has "login with Discord" button.
     If not logged in, all pages should redirect here.
     """
-    return {"fish_objects": botutils.fetch_fish("C:/Users/JT/Pictures/Aqua/assets/images/fish")}
+    return {}
 
 
 @routes.get("/commands")
