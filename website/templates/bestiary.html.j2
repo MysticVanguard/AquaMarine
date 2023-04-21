@@ -12,15 +12,16 @@
 <h1 style="margin:12px;">Bestiary</h1>
 <h1 style="margin:12px;">Find info on any of the fish in the application</h1>
 
-
-    <div class="autocomplete">
-        <input id="myInput" type="text" placeholder="Search Categories">
-        <script>
-            autocomplete(document.getElementById("myInput"));
-            showAllCategoriesOnClick(document.getElementById("myInput"));
-        </script>
+    <div style="display: flex; flex-direction: column; align-items: center;">
+        <div class="autocomplete">
+            <input id="myInput" type="text" placeholder="Search Categories">
+            <script>
+                autocomplete(document.getElementById("myInput"));
+                showAllCategoriesOnClick(document.getElementById("myInput"));
+            </script>
+        </div>
+        <button id="submit" >Submit</button>
     </div>
-    <button id="submit" >Submit</button>
     <script>
 
         async function getPosition(data) {
