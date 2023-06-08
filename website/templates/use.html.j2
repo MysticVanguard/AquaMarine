@@ -1,0 +1,42 @@
+{% extends 'base.html.j2' %}
+
+
+{% block title %}AquaMarine - Index{% endblock title %}
+
+
+{% block content %}
+
+<h1>Use Fish or Tank commands</h1>
+<h1>Use fishing commands or tank commands without being on Discord</h1>
+
+    <div class="use">
+        <div class="use-left">
+            <div class = "left-top">
+                <div class="displayer">
+                    <h1>Casts</h1>
+                    <p></p>
+                </div>
+
+                <div class="displayer">
+                    <h1>Location</h1>
+                    <p></p>
+                </div>
+            </div>
+            <div class="dropdown">
+                <button class="dropbtn">Change Location</button>
+                <div class="dropdown-content">
+                    <p>Option 1</p>
+                    <p>Option 2</p>
+                    <p>Option 3</p>
+                </div>
+            </div>
+        </div>
+        <div class = "displayer">
+            <img alt="Fish Caught" src="/static/images/AquaMarine.png"/>
+            <button style="width: 100%;">Fish</Button>
+        </div>
+
+
+    </div>
+
+{% endblock content %}

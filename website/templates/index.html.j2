@@ -1,0 +1,45 @@
+
+{% extends 'base.html.j2' %}
+
+
+{% block title %}AquaMarine - Index{% endblock title %}
+
+
+{% block content %}
+
+<h1>AquaMarine</h1>
+<h1>A Discord bot where you can virtually catch and take care of cute pixel aquatic animals</h1>
+
+    <div class="bubble">
+        <div class="left">
+            <h1>Fishing</h1>
+            <p>
+                Catch over 150 different species of cute pixel fish across six rarities, each with different possible mutations affecting how they look!
+                To fish, use <span class="code">/fish</span> to bring up the fishing menu, and then from there you can fish for as many casts as you
+                have. New users get 5 casts to start off with, and everyone gets one cast every 45 minutes, which will pile up until you have 64 casts.
+                Once you have 64 casts any new casts won't be added until you use casts and deplete your current amount. Fishing will first open up with
+                an image of what you caught and four options to let you guess the name of the animal you caught for extra sand dollars. Then after that it
+                will open up the response pictured to the right, and you will be able to keep or sell the caught animal. If you choose to keep it, it will
+                pop up a menu letting you choose a name for it and then it will be added to your fish bucket and then be able to be added to a tank you
+                have. If you choose to sell, however, you will get sand dollars based on how rare the fish is.
+            </p>
+            <p>
+                From this fishing menu you can also change your location, as certain fish are only able to caught at certain locations. The starter locations
+                include the Pond, Estuary, and Creek. The other five locations include the Coral Reef, Lake, Deep Sea, River, and Ocean, and these locations
+                can be unlocked by buying a "New Location Unlock" with Doubloons (more on these later). You may also see the info on your location and see what
+                fish can be caught there and how many are left in the pool, but only the ones you have previously caught. There is a certain amount of fish in
+                each pool based on their rarity, and once that pool is depleted no more of that fish can be caught that week.
+            </p>
+        </div>
+        <img alt="An image of a fish being caught" src="/static/images/Fish_Command.png" />
+    </div>
+
+    <div class="bubble">
+        <div class="left">
+            <h1>Aquarium</h1>
+            <p>Display your best catches in a tank, and earn money from cleaning their tanks and even more from entertaining them to level them up, but be careful and make sure you feel them so they don't die.</p>
+        </div>
+        <img alt="An image of the tank your fish can be in" src="{{ static('/images/Tank_Command.png') }}" />
+    </div>
+
+{% endblock content %}

@@ -1,0 +1,147 @@
+{% extends 'base.html.j2' %}
+
+
+{% block title %}AquaMarine - Index{% endblock title %}
+
+{% block head %}
+<script src="/static/scripts/bestiary-script.js"></script>
+{% endblock head %}
+
+{% block content %}
+
+<h1 style="margin:12px;">Bestiary</h1>
+<h1 style="margin:12px;">Find info on any of the fish in the application</h1>
+
+    <div style="display: flex; flex-direction: column; align-items: center;">
+        <div class="autocomplete">
+            <input id="myInput" type="text" placeholder="Search Categories">
+            <script>
+                autocomplete(document.getElementById("myInput"));
+                showAllCategoriesOnClick(document.getElementById("myInput"));
+            </script>
+        </div>
+        <button id="submit" >Submit</button>
+    </div>
+    <script>
+
+        async function getPosition(data) {
+            let site = await fetch("/fish_position", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data),
+            });
+            return site.json();
+        }
+
+        document.getElementById('submit').onclick = async function() {
+            let data = await getPosition(document.getElementById("myInput").value.toLowerCase().replaceAll(" ", "_"));
+            let fishNameElement = document.getElementsByClassName("fish-name")[0];
+            let currentClass = parseInt(fishNameElement.classList.item(0));
+            let newClass = (data.position-1).toString();
+            fishNameElement.classList.replace(currentClass.toString(), newClass);
+            setCurrentFish((data.position-1));
+
+        };
+    </script>
+
+    <div class="fish-previews">
+        <div class="fish-info secondary">
+            <div class="fish-stats">
+                <h1 class="-1 fish-name"></h1>
+                <p class="fish-rarity"></p>
+                <p class="fish-size"></p>
+                <p class="fish-location"></p>
+            </div>
+            <img class="fish-image" src=""/>
+            <div class="opacitate"></div>
+        </div>
+
+        <div class="fish-info main">
+            <div class="fish-stats">
+                <h1 class="fish-name"></h1>
+                <p class="fish-rarity"></p>
+                <p class="fish-size"></p>
+                <p class="fish-location"></p>
+            </div>
+            <img class="fish-image" src=""/>
+        </div>
+        <div class="fish-info secondary">
+            <div class="fish-stats">
+                <h1 class="fish-name"></h1>
+                <p class="fish-rarity"></p>
+                <p class="fish-size"></p>
+                <p class="fish-location"></p>
+            </div>
+            <img class="fish-image" src=""/>
+            <div class="opacitate"></div>
+        </div>
+    </div>
+    <div class="buttons">
+        <button id="go-left">Left</button>
+        <button id="go-right">Right</button>
+    </div>
+
+    <script>
+        async function getStuff(data) {
+            let site = await fetch("/fish_info", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data),
+            });
+            return site.json();
+        }
+        function toTitleCase(str) {
+            return str.replace(
+                /\w\S*/g,
+                function(txt) {
+                return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+                }
+            );
+        }
+        async function setCurrentFish(current) {
+
+            try {
+                if (current===null)
+                    current = parseInt(document.getElementsByClassName("fish-name")[0].classList[0]);
+
+                for (let i=0; i<3; i++) {
+                    let response = await getStuff(current+i);
+                    let data = response;
+                    document.getElementsByClassName("fish-name")[i].innerHTML = "Species: " + toTitleCase(data.name.replaceAll("_", " "));
+                    document.getElementsByClassName("fish-image")[i].src = data.image.replace("website", "");
+                    document.getElementsByClassName("fish-rarity")[i].innerHTML = "Rarity: " + toTitleCase(data.rarity);
+                    document.getElementsByClassName("fish-size")[i].innerHTML = "Size: " + toTitleCase(data.size);
+                    document.getElementsByClassName("fish-location")[i].innerHTML = "Location: " + toTitleCase(data.location.replaceAll("_", " "));
+                }
+            } catch (error) {
+                console.error("Error occurred during HTTP request:", error);
+            }
+        }
+        setCurrentFish(null);
+
+        let right = document.getElementById("go-right");
+        right.addEventListener("click", function() {
+            let fishNameElement = document.getElementsByClassName("fish-name")[0];
+            let currentClass = parseInt(fishNameElement.classList.item(0));
+            let newClass = (currentClass + 1).toString();
+            fishNameElement.classList.replace(currentClass.toString(), newClass);
+            setCurrentFish(null);
+        });
+
+        let left = document.getElementById("go-left");
+        left.addEventListener("click", function() {
+            let fishNameElement = document.getElementsByClassName("fish-name")[0];
+            let currentClass = parseInt(fishNameElement.classList.item(0));
+            let newClass = (currentClass - 1).toString();
+            fishNameElement.classList.replace(currentClass.toString(), newClass);
+            setCurrentFish(null);
+        });
+
+
+    </script>
+
+{% endblock content %}

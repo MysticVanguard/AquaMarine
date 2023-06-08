@@ -1,8 +1,8 @@
 aiohttp
 aiohttp_jinja2
 aiohttp_session
-discord.py
+novus < 1.0.0
 imageio
 Pillow
 pre-commit
-voxelbotutils
+

@@ -1,0 +1,306 @@
+{% extends 'base.html.j2' %}
+
+
+{% block title %}AquaMarine - Commands{% endblock title %}
+
+
+{% block content %}
+
+<h1>Commands</h1>
+<h1>A list of all the commands in the bot with how to use them and their descriptions</h1>
+
+    <div class="bubble command-bubble">
+        <div class="left">
+            <h1>Bot Stats</h1>
+            <div class="command-text">
+                <p>/info</p>
+                <p>
+                    - Gives a small snippet of information about the bot, as well as useful links such as a link for inviting the bot,
+                    a link for the bot's website, a link for the invite to the bot's support server, a link to the bot's GitHub, a link to
+                    the bot's donate feature, and a link to vote for the bot.
+                </p>
+            </div>
+            <div class="command-text">
+                <p>/vote</p>
+                <p>
+                    - Gives the link to the top.gg page that lets you vote for the bot.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="bubble command-bubble">
+        <div class="left">
+            <h1>Aquarium</h1>
+            <div class="command-text">
+                <p>/firsttank [tank_name]</p>
+                <p>
+                    - This command needs to be ran before buying any tanks, and will give you a free tank that can hold one small fish
+                    named whatever you inputted for [tank_name].
+
+                </p>
+            </div>
+            <div class="command-text">
+                <p>/preview [theme] [tank_type]</p>
+                <p>
+                    - This command will preview a specified tank theme from the dropdown inputted for [theme] on the specified type of
+                    tank from the dropdown inputted for [tank_type].
+                </p>
+            </div>
+        </div>
+    </div>
+
+<div class="bubble command-bubble">
+        <div class="left">
+            <h1>Fishing</h1>
+            <div class="command-text">
+                <p>/fish</p>
+                <p>
+                    - This command displays a fishing menu displaying your current location, your current effects, and includes buttons
+                    for fishing, changing your location, getting info on your location, unlocking a new location, and closing the menu.
+                    When using the (fish) button, it will prompt you with an image of a fish from your current location as well as four
+                    other buttons for guessing what the type of fish is. If you click the correct button, you will recieve bonus Sand
+                    Dollars. After you guess, you will be prompted with another embed with the fish's image and info including it's
+                    rarity, size, skin, and how many you have previously caught. There will also be buttons to keep or sell the fish you
+                    caught. Pressing the (keep) button opens up a modal, letting you enter the name you would like to give to the fish.
+                    This name cannot be the same as another fish's name, or greater than 32 characters. After you press submit a message
+                    stating the new fish has been added to your bucket will appear. If you press the (sell) button instead, you will gain
+                    Sand Dollars based on the rarity of the fish. After you finish with either button, you will get the option to either
+                    fish again or stop. pressing the (fish again) button will act the same as pressing the (fish) button on the menu, and
+                    pressing the stop button will stop your fishing. Pressing the (change location) button on the fishing menu will prompt
+                    you with a drop down giving you options for unlocked locations. Pressing the (location info) button will give information
+                    on how many fish are left at the location of each type, which when depleted means that certain kind of fish cannot be
+                    caught anymore (This resets weekly however). Pressing the (unlock location) button will let you choose one of the more
+                    advanced locations to fish from with many more types of fish, but it requires you to own a "New Location Unlock". Finally,
+                    pressing the (close menu) button will simply close the menu.
+                </p>
+            </div>
+            <div class="command-text">
+                <p>/rename [old] [new]</p>
+                <p>
+                    - This command will have you input a name of a current fish/tank for [old] and then input the new name you want to give
+                    that fish/tank for [new] (The new name cannot be the same as a current fish/tank's name).
+                </p>
+            </div>
+            <div class="command-text">
+                <p>/craft [crafted:optional]</p>
+                <p>
+                    - If [crafted] is not given, this command will give you a menu of what all you can craft with trash and what trash is
+                    needed to craft it. If [crafted] is supplied it will attempt to craft the item inputted in [crafted], adding it to your
+                    inventory and removing the trash used to craft it if successful.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="bubble command-bubble">
+        <div class="left">
+            <h1>Fish Care</h1>
+            <div class="command-text">
+                <p>/tank [tank_name]</p>
+                <p>
+                    - This command will prompt the user with the tank menu for the tank they named for [tank_name]. In this menu they can
+                    choose to entertain their fish, clean their fish tank, feed their fish, revive their fish, show their fish tank, remove
+                    fish from their fish tank, deposit fish in their fish tank, or get the info of their fish tank. When clicking the
+                    [entertain] button, you will entertain the fish in your tank, giving them xp towards leveling up. These levels are used
+                    for the next part of this command, the [clean] button. When this button is clicked, you get Sand Dollars based off the
+                    fish's rarity, size, and level. If you click the [feed] button, you are prompted with a dropdown menu that gives a list
+                    of alive fish that can be fed. Feeding fish is important, as every time they are fed they survive for 3 more days. This
+                    does stack, but if this timer runs out, your fish will unfortunately pass away. This leads directly into our next button,
+                    the [revive] button. This button can be used to prompt you with a dropdown with a list of dead fish in the selected tank,
+                    which you can then choose a fish to revive given you own a revive. The next two buttons [remove fish] and [deposit fish]
+                    will bring up ways to move around the fish in your tanks. If you choose to remove a fish, a dropdown of fish in the tank
+                    will appear and you will be able to select one to remove from the tank. If you choose to deposit a fish, a prompt asking
+                    for the name of the fish you'd like to deposit will appear instead, and whatever fish you name will be added to the tank
+                    given there is space for it. A tank can only hold either 1, 5, or 25 small fish, with medium fish taking up the same space
+                    as 5 small fish, and large fish taking up the same space as 25 small fish. The info command will give you information about
+                    the tank you have selected, such as it's name, how much room is in it, and info about the fish in it such as their names,
+                    levels, and skins.
+                </p>
+            </div>
+            <div class="command-text">
+                <p>/revive [fish:optional]</p>
+                <p>
+                    - This command will let you revive a fish. It is similar to the revive button in the <span class="code">/tank</span> command,
+                    but it lets you revive a fish from anywhere, not just in that single tank. This command is useful for reviving all your dead
+                    fish, or reviving dead fish outside of a tank. if [fish] is not given, it will give a dropdown of dead fish and let you choose
+                    one to revive. Else, you can specify the name of the fish you want to revive for [fish], and it will be revived if you have
+                    revivals.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="bubble command-bubble">
+        <div class="left">
+            <h1>Misc</h1>
+            <div class="command-text">
+                <p>/stab [user]</p>
+                <p>
+                    - This command lets you stab the user entered as [user], giving a cute gif of a goldfish stabbing, as well as saying the fish
+                    stabs them.
+                </p>
+            </div>
+            <div class="command-text">
+                <p>/bug [command] [info]</p>
+                <p>
+                    - This command lets you report any bug you find in the bot, giving the name of the command run when given the bug, as well as
+                    any information the user might have.
+                </p>
+            </div>
+            <div class="command-text">
+                <p>/support</p>
+                <p>
+                    - This command sends the invite link for the support server for the bot.
+                </p>
+            </div>
+            <div class="command-text">
+                <p>/vote</p>
+                <p>
+                    - This command sends the top.gg link, letting the user vote for the bot to get rewards.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="bubble command-bubble">
+        <div class="left">
+            <h1>Upgrades</h1>
+            <div class="command-text">
+                <p>/upgrades</p>
+                <p>
+                    - This command displays the upgrades menu, letting you see how far you are into the upgrades tree and what each upgrade does.
+                </p>
+            </div>
+            <div class="command-text">
+                <p>/upgrade [upgrade]</p>
+                <p>
+                    - This command lets you purchase an upgrade for Sand Dollars by providing the name of the upgrade for [upgrade]
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="bubble command-bubble">
+        <div class="left">
+            <h1>Informative</h1>
+            <div class="command-text">
+                <p>/tanks</p>
+                <p>
+                    - This command gives a menu showing the name of each tank along with the info of the fish inside, including the type of fish
+                    they are, their name, if they have a skin, if they are dead, when they die or died, what level they are, and where they are
+                    at in xp. It also displays a picture showing off what type of tank you have and the theme your tank has.
+                </p>
+            </div>
+            <div class="command-text">
+                <p>/profile</p>
+                <p>
+                    - This command shows you your profile, giving much of your information such as the name, level, and xp of your highest level
+                    fish, how many unique fish of each rarity you have caught, what items you own, how many tanks you have, and how many Sand
+                    Dollars, Doubloons, Casts, and Fish Points you have in your balance.
+                </p>
+            </div>
+            <div class="command-text">
+                <p>/bestiary [fish_name:optional]</p>
+                <p>
+                    - If [fish_name] is not provided, this command gives a list of the names of every fish in the bot seperated by rarity. If
+                    [fish_name] is provided, it gives you the rarity of the fish, how much it sells for before any multipliers, it's size, and how
+                    many of them you have caught.
+                </p>
+            </div>
+            <div class="command-text">
+                <p>/fishbucket [user]</p>
+                <p>
+                    - This command shows you all the fish you have not in tanks. It seperates them by rarity, and gives you their name, type, size,
+                    status of life, and skin status. If [user] is provided, it does the same but with the fish that given user has.
+                </p>
+            </div>
+            <div class="command-text">
+                <p>/achievements</p>
+                <p>
+                    - This command shows you your progress in your achievements. there achievements for how many times you entertain fish, how many
+                    times you feed fish, how many times you clean tanks, how many times you catch fish, how many times you've gambled, how much money
+                    you've gained, and how many tanks you own. Each of these achievements give Doubloons, and have multiple tier to each, with the next
+                    giving more Doubloons than the first. This is the only way to get Doubloons in the bot.
+                </p>
+            </div>
+            <div class="command-text">
+                <p>/leaderboard [leaderboard_type]</p>
+                <p>
+                    - This command shows you the leaderboard based on the type you provided in [leaderboard_type]. Balance will give you players ranked by
+                    their Sand Dollar balance, Fish Points will give you players ranked by how many fish a player has and how rare their fish are, Fish Level
+                    will give you players ranked by their highest level fish, and Fish Type will open up a dropdown for a location and then a fish type at that
+                    location, and will provide players ranked by the amount of that fish they have caught.
+                </p>
+            </div>
+            <div class="command-text">
+                <p>/totalfish</p>
+                <p>
+                    - This command shows you a leaderboard for the fish, based on which fish is kept the most.
+                </p>
+            </div>
+            <div class="command-text">
+                <p>/help [command]</p>
+                <p>
+                    - This command shows you all of the command names grouped by category, and you can provide the name of the command for [command] to get more
+                    specific help for that command.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="bubble command-bubble">
+        <div class="left">
+            <h1>Shop</h1>
+            <div class="command-text">
+                <p>/shop</p>
+                <p>
+                    - This returns the shop menu, showing you all the items you can buy, along with what they do and how much they cost.
+                </p>
+            </div>
+            <div class="command-text">
+                <p>/buy [item] [amount:optional]</p>
+                <p>
+                    - This lets you buy an item in the shop that you provide for [item]. You may also provide an amount of the item you want to buy for [amount],
+                    and if one is not provided it will be assumed to be 1.
+                </p>
+            </div>
+            <div class="command-text">
+                <p>/use [item]</p>
+                <p>
+                    - gives the link to the top.gg page that lets you vote for the bot
+                </p>
+            </div>
+            <div class="command-text">
+                <p>/inventory</p>
+                <p>
+                    - gives the link to the top.gg page that lets you vote for the bot
+                </p>
+            </div>
+            <div class="command-text">
+                <p>/balance</p>
+                <p>
+                    - gives the link to the top.gg page that lets you vote for the bot
+                </p>
+            </div>
+            <div class="command-text">
+                <p>/sell</p>
+                <p>
+                    - gives the link to the top.gg page that lets you vote for the bot
+                </p>
+            </div>
+            <div class="command-text">
+                <p>/daily</p>
+                <p>
+                    - gives the link to the top.gg page that lets you vote for the bot
+                </p>
+            </div>
+            <div class="command-text">
+                <p>/gamble</p>
+                <p>
+                    - gives the link to the top.gg page that lets you vote for the bot
+                </p>
+            </div>
+        </div>
+    </div>
+{% endblock content %}

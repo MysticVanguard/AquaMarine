@@ -1,0 +1,369 @@
+html * {
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+    background-color: #0B0C10;
+    color: white;
+}
+
+html,
+body {
+    height: 100vh;
+}
+
+header {
+    margin: 0;
+    padding: 0;
+
+}
+
+#header-content,
+footer {
+    background-color: #282828;
+}
+
+#header-content {
+    display: flex;
+    justify-content: space-between;
+    border-radius: 8px;
+    align-items: center;
+    height: 52px;
+}
+
+.left {
+    display: flex;
+    float: left;
+    align-items: center;
+}
+
+.right {
+    float: right;
+    display: flex;
+    align-items: center;
+}
+
+.title {
+    margin: 0;
+    margin-left: 8px;
+    font-size: x-large;
+    color: white;
+    border-radius: 8px;
+    padding: 4px;
+}
+
+.header-button {
+    margin-right: 8px;
+    height: 52px;
+    padding: 12px;
+    font-size: larger;
+    text-decoration: none;
+    color: #66FCF1;
+    background-color: #282828;
+    border-radius: 8px;
+}
+
+a.header-button:hover,
+.title:hover {
+    background-color: #0B0C10;
+}
+
+.user-avatar {
+    width: 48px;
+    height: auto;
+    border-radius: 8px;
+    display: block;
+    border: 2px solid #66FCF1;
+}
+
+.logo {
+    width: 32px;
+    height: auto;
+    margin-left: 14px;
+}
+
+#content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+div.bubble {
+    display: flex;
+    background-color: #282828;
+    border: 2px solid #66FCF1;
+    margin: 8px;
+    padding: 8px;
+    border-radius: 8px;
+    align-items: center;
+    margin-left: 24px;
+    margin-right: 24px;
+}
+
+.bubble .left {
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.left p,
+h1,
+footer h4 {
+    text-align: center;
+    padding: 6px;
+}
+
+footer {
+    border-radius: 8px;
+    position: sticky;
+    bottom: 0;
+}
+
+.bubble img,
+.displayer img {
+    height: 384px;
+    width: auto;
+}
+
+h1,
+.title a {
+    color: #66FCF1;
+}
+
+.title a {
+    text-decoration: none;
+}
+
+.left p {
+    font-size: large;
+}
+
+.code {
+    padding: 0 5px 0 5px;
+    background: #0B0C10;
+    border-radius: 5px;
+    font-family: monospace;
+    font-weight: bold;
+}
+
+footer h4 {
+    margin: 0px;
+}
+
+.command-text {
+    display: flex;
+    align-self: baseline;
+}
+
+.command-text p {
+    text-align: start;
+}
+
+.fish-info {
+    position: relative;
+    border: 4px solid #66FCF1;
+    border-radius: 8px;
+    display: flex;
+    width: 50%;
+    height: 460px;
+    max-width: 100%;
+    max-height: 100%;
+    padding: 8px;
+    overflow: hidden;
+    z-index: 0;
+    /* Move the z-index to 0 to position below the overlay */
+}
+
+.fish-image {
+    padding: 16px;
+    width: 100%;
+    height: auto;
+    max-width: 60%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.fish-stats {
+    padding: 8px;
+    background-color: #282828;
+    border-radius: 8px;
+    width: 40%;
+    text-align: center;
+}
+
+.fish-previews {
+    margin-top: 16px;
+    margin-bottom: 16px;
+    display: flex;
+    flex: 1;
+    gap: 16px;
+}
+
+.buttons {
+    display: flex;
+    margin-left: 20%;
+    margin-right: 20%;
+}
+
+button {
+    width: 50%;
+    height: 96px;
+    background-color: #0B0C10;
+    border: 4px solid #66FCF1;
+    border-radius: 8px;
+    color: #66FCF1;
+    margin-bottom: 10px;
+}
+
+button:hover {
+    background-color: #282828;
+}
+
+.secondary {
+    margin: 32px;
+    width: 25%;
+    border: 4px solid #143230;
+}
+
+.opacitate {
+    position: absolute;
+    top: -4px;
+    /* Adjust the top position to cover the top border */
+    left: -4px;
+    /* Adjust the left position to cover the left border */
+    right: -4px;
+    /* Adjust the right position to cover the right border */
+    bottom: -4px;
+    /* Adjust the bottom position to cover the bottom border */
+    background-color: rgba(0, 0, 0, 0.8);
+    /* Increase the opacity to darken the background */
+    z-index: 1;
+}
+
+.main {
+    box-shadow: 0 0 24px 15px #66FCF1;
+}
+
+.autocomplete {
+    /*the container must be positioned relative:*/
+    position: relative;
+    display: inline-block;
+    width: 25%;
+    align-self: center;
+    margin-bottom: 0;
+}
+
+.autocomplete-items {
+    position: absolute;
+    border: 1px solid #d4d4d4;
+    border-bottom: none;
+    border-top: none;
+    z-index: 99;
+    /*position the autocomplete items to be the same width as the container:*/
+    top: 100%;
+    left: 0;
+    right: 0;
+}
+
+.autocomplete-items div {
+    padding: 10px;
+    cursor: pointer;
+    background-color: #0B0C10;
+    border-bottom: 1px solid #d4d4d4;
+}
+
+.autocomplete-items div:hover,
+.dropdown-content p:hover {
+    /*when hovering an item:*/
+    background-color: #282828;
+}
+
+.autocomplete-active {
+    /*when navigating through the items using the arrow keys:*/
+    background-color: #282828 !important;
+    color: #ffffff;
+}
+
+#submit {
+    margin-top: 0;
+    display: flex;
+    align-self: center;
+    align-items: center;
+    justify-content: center;
+    width: 25%;
+    height: 36px;
+}
+
+/*search*/
+#myInput {
+    width: 98%;
+    background-color: #0B0C10;
+    height: 36px;
+    color: #d4d4d4;
+    border-radius: 4px;
+}
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+.dropbtn {
+    cursor: pointer;
+    width: 100%;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #d4d4d4;
+    width: 100%;
+    padding: 10px;
+    z-index: 1;
+}
+
+.dropdown-content p {
+    display: block;
+    color: #0B0C10;
+    text-decoration: none;
+    padding: 5px 0;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+    padding: 0;
+}
+
+.use {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 240px;
+}
+
+.use-left {
+    padding: 36px;
+    background-color: #282828;
+    border-radius: 8px;
+}
+
+.left-top {
+    display: flex;
+    padding: 16px;
+}
+
+.displayer,
+.displayer img,
+.displayer a {
+    padding: 16px;
+}
+
+.dropdown p {
+    margin: 0;
+    border: 2px solid #d4d4d4;
+}
+
+.use .displayer {
+    background-color: #282828;
+    border-radius: 8px;
+}
