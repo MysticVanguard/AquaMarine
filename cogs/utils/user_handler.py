@@ -2,7 +2,6 @@ import asyncio
 import discord
 from discord.ext import vbu
 from cogs import utils
-from typing import Tuple, List
 
 
 async def check_price(bot, user_id: int, cost: int, balance_type: str) -> bool:
@@ -588,7 +587,7 @@ AMAZEMENT_UPGRADE = {0: 1600, 1: 1500, 2: 1300, 3: 1000, 4: 600, 5: 100}
 
 # Mutation upgrade increases the chance of a fish to mutate to
 # golden or inverted after being in a tank cleaned
-MUTATION_UPGRADE = {0: 5000, 1: 4000, 2: 3000, 3: 2000, 4: 1000, 5: 500}
+MUTATION_UPGRADE = {0: 50000, 1: 40000, 2: 30000, 3: 20000, 4: 10000, 5: 5000}
 
 # Big servings upgrade increases the chance of fish food not being
 # consumed when a fish is fed
@@ -629,7 +628,7 @@ def special_percentage_finder(upgrade_level):
 
 def rarity_percentage_finder(
     upgrade_level: int,
-) -> Tuple[List[str], List[float]]:
+) -> tuple[list[str], list[float]]:
     """
     Returns the results of the bait upgrade
     [(list of rarities), (list of chances)]

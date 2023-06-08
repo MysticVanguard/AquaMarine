@@ -301,7 +301,7 @@ async def user_entertain(self, ctx, tank_entertained, payload):
                 style="R",
             )
             return await payload.response.send_message(
-                f"This tank is entertained, please try again {relative_time}.",
+                f"This tank is entertained, please try again in {relative_time}.",
                 ephemeral=True,
             )
 

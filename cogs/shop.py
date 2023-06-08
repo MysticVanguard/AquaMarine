@@ -519,8 +519,7 @@ class Shop(vbu.Cog):
             if item.title() in utils.FEEDING_POTION_NAMES:
 
                 # Set the time to be now + the new death date
-                death_date = fish_row[0]["death_time"] + \
-                    timedelta(days=30, hours=0)
+                death_date = fish_row[0]["death_time"] + timedelta(days=30, hours=0)
 
                 # Update the fish's death date
                 async with vbu.Database() as db:
@@ -542,8 +541,7 @@ class Shop(vbu.Cog):
             if rarity_of_bag:
                 rarity_of_bag = rarity_of_bag.lower()
             else:
-                rarity_of_bag = random.choices(
-                    *utils.rarity_percentage_finder(0))[0]
+                rarity_of_bag = random.choices(*utils.rarity_percentage_finder(0))[0]
 
             # Lower the used bag
             used_bag = used_bag.lower()
@@ -560,12 +558,10 @@ class Shop(vbu.Cog):
                 return await ctx.send(f"You have no {used_bag_humanize}s!")
 
             # See which fish they caught by taking a random fish from the chosen rarity
-            chosen_fish = random.choice(
-                utils.FishSpecies.get_rarity(rarity_of_bag))
+            chosen_fish = random.choice(utils.FishSpecies.get_rarity(rarity_of_bag))
 
             while chosen_fish.name in utils.past_fish:
-                chosen_fish = random.choice(
-                    utils.FishSpecies.get_rarity(rarity_of_bag))
+                chosen_fish = random.choice(utils.FishSpecies.get_rarity(rarity_of_bag))
 
             # find if its skinned
             fish_skin = ""
@@ -589,8 +585,7 @@ class Shop(vbu.Cog):
             return await ctx.send("That is not a usable item!")
 
         # Grammar
-        a_an = "an" if rarity_of_bag[0].lower() in (
-            "a", "e", "i", "o", "u") else "a"
+        a_an = "an" if rarity_of_bag[0].lower() in ("a", "e", "i", "o", "u") else "a"
 
         # Get their fish inventory, add 1 to their times caught in achievements, subtract 1 from their casts
         async with vbu.Database() as db:
@@ -706,12 +701,10 @@ class Shop(vbu.Cog):
 
             # If the lists length is 2 add the two strings in it as name and value and reset the list
             if len(title_value) == 2:
-                embed.add_field(
-                    name=title_value[0], value=title_value[1], inline=True)
+                embed.add_field(name=title_value[0], value=title_value[1], inline=True)
                 title_value = []
             elif items[len(items) - 1][0] == name[0]:
-                embed.add_field(
-                    name=title_value[0], value="** **", inline=True)
+                embed.add_field(name=title_value[0], value="** **", inline=True)
                 title_value = []
 
         # Send the embed
@@ -770,10 +763,8 @@ class Shop(vbu.Cog):
         embed.add_field(
             name="Sand Dollars:", value=f"{amount_one} {EMOJIS['sand_dollar']}"
         )
-        embed.add_field(name="Doubloons:",
-                        value=f"{amount_two} {EMOJIS['doubloon']}")
-        embed.add_field(
-            name="Casts:", value=f"{amount_three} {EMOJIS['casts']}")
+        embed.add_field(name="Doubloons:", value=f"{amount_two} {EMOJIS['doubloon']}")
+        embed.add_field(name="Casts:", value=f"{amount_three} {EMOJIS['casts']}")
         await ctx.send(embed=embed)
 
     @commands.command(
@@ -1151,9 +1142,7 @@ class Shop(vbu.Cog):
                         "Click the buttons to stop the rolls!",
                         "".join(list(emojis)),
                     ),
-                    1,
                     f"{ctx.author.display_name}'s roll",
-
                 ),
                 components=components,
             )
@@ -1163,8 +1152,7 @@ class Shop(vbu.Cog):
                 break
 
         # Set up the common types
-        common_types = [EMOJIS["sand_dollar_stack"],
-                        EMOJIS["sand_dollar_pile"]]
+        common_types = [EMOJIS["sand_dollar_stack"], EMOJIS["sand_dollar_pile"]]
 
         # If they won do nothing special
         if emojis[0] == emojis[1] == emojis[2] and EMOJIS["roll"] not in emojis:
