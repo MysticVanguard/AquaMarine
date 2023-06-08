@@ -2,7 +2,7 @@ import asyncio
 from cogs import utils
 import discord
 from discord.ext import vbu
-
+from typing import Tuple
 # Finds out what level and xp each fish will be
 
 
@@ -117,7 +117,7 @@ TANK_THEMES = PLANT_LIFE_NAMES
 # Daylight savings variable because for some reason i need to
 # add four and then an hour when its daylight savings,
 # will be changed to 4 when daylight savings is over
-DAYLIGHT_SAVINGS = 5
+DAYLIGHT_SAVINGS = 4
 
 # What colors the embed should have based on rarity
 RARITY_CULERS = {
@@ -244,7 +244,7 @@ def get_fixed_field(field):
 
 def create_bucket_embed(
     user,
-    field: tuple[str, str],
+    field: Tuple[str, str],
     page: int,
     custom_title: None
 ):

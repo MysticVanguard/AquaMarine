@@ -1,6 +1,7 @@
 from datetime import timedelta
 import collections
 import asyncio
+from typing import List
 
 import discord
 from discord.ext import commands, vbu
@@ -76,7 +77,8 @@ class Informative(vbu.Cog):
 
                     # set up the fish message to be all the fish data
                     fish_message = [
-                        "\n".join(fish_collections[tank_row["tank_name"][count]])
+                        "\n".join(
+                            fish_collections[tank_row["tank_name"][count]])
                     ]
 
                 # Else make the fish message say theres no fish
@@ -142,7 +144,7 @@ class Informative(vbu.Cog):
             "old_boot": EMOJIS["old_boot"],
             "old_tire": EMOJIS["old_tire"],
             "fishing_boots": EMOJIS["fishing_boots"],
-            "trash_toys": EMOJIS["trash_toys"],
+            "trash_toys": EMOJIS["trash_toys"]
         }
 
         # Set up the default values
@@ -226,7 +228,7 @@ class Informative(vbu.Cog):
             for key, value in inventory_row[0].items():
 
                 # if its the user_id skip it
-                if key in ["user_id", "new_location_unlock", "super_food"]:
+                if key in ["user_id", "new_location_unlock", "super_food", "recycled_fishing_rod", "recycled_fishing_rod", "recycled_fishing_rod", "recycled_bait", "recycled_fish_hook", "recycled_fishing_net", "recycled_fish_finder", "recycled_waders", ]:
                     continue
 
                 # Every three add a new line to the key and add it to the value
@@ -348,8 +350,10 @@ class Informative(vbu.Cog):
             return await ctx.send("That fish doesn't exist.")
 
         # Set up the embed with all the needed data
-        money_gained = int(selected_fish.cost / size_demultiplier[selected_fish.size])
-        embed = discord.Embed(title=selected_fish.name.replace("_", " ").title())
+        money_gained = int(selected_fish.cost /
+                           size_demultiplier[selected_fish.size])
+        embed = discord.Embed(
+            title=selected_fish.name.replace("_", " ").title())
         async with vbu.Database() as db:
             user_fish_caught = await utils.user_location_info_db_call(ctx.author.id)
             if not user_fish_caught:
@@ -358,13 +362,15 @@ class Informative(vbu.Cog):
                     ctx.author.id,
                 )
         embed.set_image(url="attachment://new_fish.png")
-        embed.add_field(name="Rarity:", value=f"{selected_fish.rarity}", inline=True)
+        embed.add_field(
+            name="Rarity:", value=f"{selected_fish.rarity}", inline=True)
         embed.add_field(
             name="Base Sell Price:",
             value=f"{int(money_gained)} {EMOJIS['sand_dollar']}",
             inline=True,
         )
-        embed.add_field(name="Size:", value=f"{selected_fish.size}", inline=True)
+        embed.add_field(
+            name="Size:", value=f"{selected_fish.size}", inline=True)
         embed.add_field(
             name="Amount Caught:",
             value=user_fish_caught[0][f"{selected_fish.name}_caught"],
@@ -553,7 +559,8 @@ class Informative(vbu.Cog):
         are_there_any_claimable_achievements_check = False
 
         # Creating the embed
-        embed = discord.Embed(title=f"**{ctx.author.display_name}**'s achievements")
+        embed = discord.Embed(
+            title=f"**{ctx.author.display_name}**'s achievements")
 
         # Set Variables for milestones, default to nonclaimable, and default stars to nothing
         for (
@@ -567,13 +574,17 @@ class Informative(vbu.Cog):
             # Checks what type of star to add
             for milestone_value in milestones_dict_of_achievements[achievement]:
                 if user_achievement_milestone_data[0][f"{milestone}_done"] is True:
-                    list_of_stars_per_achievement.append(EMOJIS["achievement_star"])
+                    list_of_stars_per_achievement.append(
+                        EMOJIS["achievement_star"])
                 elif milestone_value < user_achievement_milestone_data[0][milestone]:
-                    list_of_stars_per_achievement.append(EMOJIS["achievement_star"])
+                    list_of_stars_per_achievement.append(
+                        EMOJIS["achievement_star"])
                 elif milestone_value <= user_achievement_value:
-                    list_of_stars_per_achievement.append(EMOJIS["achievement_star_new"])
+                    list_of_stars_per_achievement.append(
+                        EMOJIS["achievement_star_new"])
                 else:
-                    list_of_stars_per_achievement.append(EMOJIS["achievement_star_no"])
+                    list_of_stars_per_achievement.append(
+                        EMOJIS["achievement_star_no"])
 
             # Grammar stuff and the number of stars said
             next_unclaimable_star = 0
@@ -763,7 +774,8 @@ class Informative(vbu.Cog):
 
             # For each row add their id and balance to the unsorted dict
             for user_info in user_balance_rows:
-                user_points_unsorted[user_info["user_id"]] = user_info["balance"]
+                user_points_unsorted[user_info["user_id"]
+                                     ] = user_info["balance"]
 
         # Else if they want fish level...
         elif leaderboard_type == "Fish Level":
@@ -805,7 +817,8 @@ class Informative(vbu.Cog):
             fish_names = []
             for _, fish in fish_types.items():
                 for single_fish in fish:
-                    fish_names.append(single_fish.name.replace("_", " ").title())
+                    fish_names.append(
+                        single_fish.name.replace("_", " ").title())
             fish_type = await utils.create_select_menu(
                 self.bot, ctx, fish_names, "Fish Type", "Choose", True
             )
@@ -891,7 +904,7 @@ class Informative(vbu.Cog):
         ]
 
         # Set the output to be a list of strings
-        output: list[str] = []
+        output: List[str] = []
 
         # Format each person's id and points
         for user_id, points in user_id_sorted:
@@ -947,7 +960,8 @@ class Informative(vbu.Cog):
         }
         output = []
         for fish_type, count in fish_dict_sorted.items():
-            output.append(f"**{fish_type.replace('_', ' ').title()}**: {count}")
+            output.append(
+                f"**{fish_type.replace('_', ' ').title()}**: {count}")
         menu = vbu.Paginator(
             output,
             per_page=10,
@@ -978,7 +992,8 @@ class Informative(vbu.Cog):
         if hasattr(ctx, "interaction"):
             await ctx.interaction.response.defer()
 
-        HELP_EMBED = discord.Embed(title="List of all the commands and what they do")
+        HELP_EMBED = discord.Embed(
+            title="List of all the commands and what they do")
         for cog in self.bot.cogs.values():
             field_title = cog.qualified_name
             value = ""
